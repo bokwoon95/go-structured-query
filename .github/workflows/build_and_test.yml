@@ -1,0 +1,61 @@
+name: CI
+on: [push, pull_request]
+jobs:
+  build_and_test:
+    name: build_and_test
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: devlab
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5440:5432
+      mysql:
+        image: mysql
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_USER: mysql
+          MYSQL_PASSWORD: mysql
+          MYSQL_DATABASE: devlab
+        options: >-
+          --health-cmd "mysqladmin ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 3310:3306
+    steps:
+    - name: Clone repo
+      uses: actions/checkout@v2
+    - name: Install go
+      uses: actions/setup-go@v1
+      with:
+        go-version: '1.14.x'
+    - name: load postgres data
+      run: |
+        psql 'postgres://postgres:postgres@localhost:5440/devlab' -f 'testdata/postgres/init.sql'
+        psql 'postgres://postgres:postgres@localhost:5440/devlab' -f 'testdata/postgres/data.sql'
+    - name: load mysql data
+      run: |
+        mysql -h 127.0.0.1 -P 3310 -D devlab -uroot -proot -e 'source testdata/mysql/init.sql'
+        mysql -h 127.0.0.1 -P 3310 -D devlab -uroot -proot -e 'source testdata/mysql/data.sql'
+    - name: go test ./... -failfast -race -coverprofile=coverage.out
+      run: go test ./... -failfast -race -coverprofile=coverage.out
+    - name: Convert coverage.out to coverage.lcov
+      uses: jandelgado/gcov2lcov-action@v1.0.0
+      with:
+          infile: coverage.out
+          outfile: coverage.lcov
+    - name: Upload coverage.lcov to Coveralls
+      uses: coverallsapp/github-action@master
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        path-to-lcov: coverage.lcov

@@ -1,0 +1,6 @@
+- Make a fork, do your changes, submit a PR
+- Add tests if you add code
+- There are tests that hit the database with live data, you need to populate an empty database with init.sql and data.sql found in testdata/postgres and testdata/mysql respectively.
+    - If you have docker, you can just run `docker-compose up` to set up postgres and mysql (based on the default .env).
+        - There will be four databases set up: postgres latest, postgres 9.5, mysql latest, mysql 5.7. I use the latest versions of both postgres and mysql for testing. postgres 9.5 and mysql 5.7 is just there for me to try out stuff on older versions.
+    - Configure the database settings (port, username, password etc) in the .env file in the root directory (but remember to change it back when submitting the PR).
