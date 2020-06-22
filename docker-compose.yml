@@ -1,0 +1,62 @@
+version: '3.2'
+services:
+
+  postgres:
+    container_name: "${POSTGRES_NAME}-postgres"
+    image: 'postgres'
+    ports:
+      - "${POSTGRES_PORT}:5432"
+    volumes:
+      - 'postgres_data:/var/lib/postgresql/data'
+      - './testdata:/testdata'
+    environment:
+      POSTGRES_USER: "${POSTGRES_USER}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
+      POSTGRES_DB: "${POSTGRES_NAME}"
+
+  postgres_9_5:
+    container_name: "${POSTGRES_NAME}-postgres-9-5"
+    image: 'postgres:9.5'
+    ports:
+      - "${POSTGRES_PORT_9_5}:5432"
+    volumes:
+      - 'postgres_data_9_5:/var/lib/postgresql/data'
+      - './testdata:/testdata'
+    environment:
+      POSTGRES_USER: "${POSTGRES_USER}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
+      POSTGRES_DB: "${POSTGRES_NAME}"
+
+  mysql:
+    container_name: "${MYSQL_NAME}-mysql"
+    image: 'mysql'
+    ports:
+      - "${MYSQL_PORT}:3306"
+    volumes:
+      - 'mysql_data:/var/lib/mysql'
+      - './testdata:/testdata'
+    environment:
+      MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD}"
+      MYSQL_USER: "${MYSQL_USER}"
+      MYSQL_PASSWORD: "${MYSQL_PASSWORD}"
+      MYSQL_DATABASE: "${MYSQL_NAME}"
+
+  mysql_5_7:
+    container_name: "${MYSQL_NAME}-mysql-5-7"
+    image: 'mysql:5.7'
+    ports:
+      - "${MYSQL_PORT_5_7}:3306"
+    volumes:
+      - 'mysql_data_5_7:/var/lib/mysql'
+      - './testdata:/testdata'
+    environment:
+      MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD}"
+      MYSQL_USER: "${MYSQL_USER}"
+      MYSQL_PASSWORD: "${MYSQL_PASSWORD}"
+      MYSQL_DATABASE: "${MYSQL_NAME}"
+
+volumes:
+  postgres_data:
+  postgres_data_9_5:
+  mysql_data:
+  mysql_data_5_7:

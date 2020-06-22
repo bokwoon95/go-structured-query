@@ -1,0 +1,10 @@
+- Parseable log output (type SqLogRaw string => type SqLog struct)
+    - Wrapper over anything that contains the Println method
+
+Postgres
+- COALESCE
+- JSON handling?
+
+MySQL
+- COALESCE
+- JSON handling?
