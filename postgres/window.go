@@ -82,16 +82,16 @@ func (w Window) Frame(frameDefinition string) Window {
 type Windows []Window
 
 func (ws Windows) AppendSQL(buf *strings.Builder, args *[]interface{}) {
-	for i := range ws {
+	for i, window := range ws {
 		if i > 0 {
 			buf.WriteString(", ")
 		}
-		if ws[i].WindowName != "" {
-			buf.WriteString(ws[i].WindowName)
+		if window.WindowName != "" {
+			buf.WriteString(window.WindowName)
 		} else {
 			buf.WriteString(RandomString(8))
 		}
 		buf.WriteString(" AS ")
-		ws[i].AppendSQL(buf, args)
+		window.AppendSQL(buf, args)
 	}
 }

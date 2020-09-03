@@ -108,10 +108,10 @@ type JoinTables []JoinTable
 // no JoinTables it simply writes nothing into the buffer. It returns a flag
 // indicating whether anything was written into the buffer.
 func (joins JoinTables) AppendSQL(buf *strings.Builder, args *[]interface{}) {
-	for i := range joins {
+	for i, join := range joins {
 		if i > 0 {
 			buf.WriteString(" ")
 		}
-		joins[i].AppendSQL(buf, args)
+		join.AppendSQL(buf, args)
 	}
 }

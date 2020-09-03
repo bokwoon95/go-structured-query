@@ -28,14 +28,14 @@ type Fields []Field
 // AppendSQLExclude marshals PredicateCases into a buffer and an args slice. It
 // propagates the excludedTableQualifiers down to its Fields.
 func (fs Fields) AppendSQLExclude(buf *strings.Builder, args *[]interface{}, excludedTableQualifiers []string) {
-	for i := range fs {
+	for i, field := range fs {
 		if i > 0 {
 			buf.WriteString(", ")
 		}
-		if fs[i] == nil {
+		if field == nil {
 			buf.WriteString("NULL")
 		} else {
-			fs[i].AppendSQLExclude(buf, args, excludedTableQualifiers)
+			field.AppendSQLExclude(buf, args, excludedTableQualifiers)
 		}
 	}
 }
@@ -45,15 +45,15 @@ func (fs Fields) AppendSQLExclude(buf *strings.Builder, args *[]interface{}, exc
 // has one.
 func (fs Fields) AppendSQLExcludeWithAlias(buf *strings.Builder, args *[]interface{}, excludedTableQualifiers []string) {
 	var alias string
-	for i := range fs {
+	for i, field := range fs {
 		if i > 0 {
 			buf.WriteString(", ")
 		}
-		if fs[i] == nil {
+		if field == nil {
 			buf.WriteString("NULL")
 		} else {
-			fs[i].AppendSQLExclude(buf, args, excludedTableQualifiers)
-			if alias = fs[i].GetAlias(); alias != "" {
+			field.AppendSQLExclude(buf, args, excludedTableQualifiers)
+			if alias = field.GetAlias(); alias != "" {
 				buf.WriteString(" AS ")
 				buf.WriteString(alias)
 			}
@@ -86,10 +86,10 @@ type Assignments []Assignment
 // AppendSQLExclude marshals the Assignments into a buffer and an args
 // slice. It propagates the excludedTableQualifiers down to its child elements.
 func (assignments Assignments) AppendSQLExclude(buf *strings.Builder, args *[]interface{}, excludedTableQualifiers []string) {
-	for i := range assignments {
+	for i, assignment := range assignments {
 		if i > 0 {
 			buf.WriteString(", ")
 		}
-		assignments[i].AppendSQLExclude(buf, args, excludedTableQualifiers)
+		assignment.AppendSQLExclude(buf, args, excludedTableQualifiers)
 	}
 }

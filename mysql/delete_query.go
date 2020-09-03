@@ -57,19 +57,19 @@ func (q DeleteQuery) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 	if len(q.FromTables) == 0 {
 		buf.WriteString("NULL")
 	} else {
-		for i := range q.FromTables {
+		for i, table := range q.FromTables {
 			if i > 0 {
 				buf.WriteString(", ")
 			}
-			if q.FromTables[i] == nil {
+			if table == nil {
 				buf.WriteString("NULL")
 				continue
 			}
-			alias := q.FromTables[i].GetAlias()
+			alias := table.GetAlias()
 			if alias != "" {
 				buf.WriteString(alias)
 			} else {
-				q.FromTables[i].AppendSQL(buf, args)
+				table.AppendSQL(buf, args)
 			}
 		}
 	}

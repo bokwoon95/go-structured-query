@@ -30,8 +30,8 @@ func (f BinaryField) AppendSQLExclude(buf *strings.Builder, args *[]interface{},
 		if tableQualifier == "" {
 			tableQualifier = f.table.GetName()
 		}
-		for i := range excludedTableQualifiers {
-			if tableQualifier == excludedTableQualifiers[i] {
+		for _, excludedTableQualifier := range excludedTableQualifiers {
+			if tableQualifier == excludedTableQualifier {
 				tableQualifier = ""
 				break
 			}

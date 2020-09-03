@@ -58,8 +58,8 @@ type CTEs []CTE
 // AppendSQL marshals the CTEs into a buffer and an args slice.
 func (ctes CTEs) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 	var hasRecursiveCTE bool
-	for i := range ctes {
-		if ctes[i].Recursive {
+	for _, cte := range ctes {
+		if cte.Recursive {
 			hasRecursiveCTE = true
 			break
 		}
@@ -69,22 +69,21 @@ func (ctes CTEs) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 	} else {
 		buf.WriteString("WITH ")
 	}
-	for i := range ctes {
+	for i, cte := range ctes {
 		if i > 0 {
 			buf.WriteString(", ")
 		}
-		buf.WriteString(ctes[i].Name)
-		if len(ctes[i].Columns) > 0 {
+		buf.WriteString(cte.Name)
+		if len(cte.Columns) > 0 {
 			buf.WriteString(" (")
-			buf.WriteString(strings.Join(ctes[i].Columns, ", "))
+			buf.WriteString(strings.Join(cte.Columns, ", "))
 			buf.WriteString(")")
 		}
 		buf.WriteString(" AS (")
-		switch ctes[i].Query.(type) {
-		case nil:
+		if cte.Query == nil {
 			buf.WriteString("NULL")
-		default:
-			ctes[i].Query.NestThis().AppendSQL(buf, args)
+		} else {
+			cte.Query.NestThis().AppendSQL(buf, args)
 		}
 		buf.WriteString(")")
 	}

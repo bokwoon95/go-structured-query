@@ -47,13 +47,13 @@ func (q VariadicQuery) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 		if q.Nested {
 			buf.WriteString("(")
 		}
-		for i := range q.Queries {
+		for i, query := range q.Queries {
 			if i > 0 {
 				buf.WriteString(" ")
 				buf.WriteString(string(q.Operator))
 				buf.WriteString(" ")
 			}
-			switch v := q.Queries[i].(type) {
+			switch v := query.(type) {
 			case nil:
 				buf.WriteString("NULL")
 			case VariadicQuery:

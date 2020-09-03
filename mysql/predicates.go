@@ -120,17 +120,16 @@ func (p VariadicPredicate) AppendSQLExclude(buf *strings.Builder, args *[]interf
 		if !p.Toplevel {
 			buf.WriteString("(")
 		}
-		for i := range p.Predicates {
+		for i, predicate := range p.Predicates {
 			if i > 0 {
 				buf.WriteString(" ")
 				buf.WriteString(string(p.Operator))
 				buf.WriteString(" ")
 			}
-			switch p.Predicates[i].(type) {
-			case nil:
+			if predicate == nil {
 				buf.WriteString("NULL")
-			default:
-				p.Predicates[i].AppendSQLExclude(buf, args, excludedTableQualifiers)
+			} else {
+				predicate.AppendSQLExclude(buf, args, excludedTableQualifiers)
 			}
 		}
 		if !p.Toplevel {

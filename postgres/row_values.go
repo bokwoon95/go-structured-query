@@ -10,11 +10,11 @@ type RowValues []RowValue
 // anything into the buffer. It returns a flag indicating whether anything was
 // written into the buffer.
 func (rs RowValues) AppendSQL(buf *strings.Builder, args *[]interface{}) {
-	for i := range rs {
+	for i, rowvalue := range rs {
 		if i > 0 {
 			buf.WriteString(", ")
 		}
-		rs[i].AppendSQL(buf, args)
+		rowvalue.AppendSQL(buf, args)
 	}
 }
 
@@ -26,32 +26,32 @@ func (r RowValue) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 
 func (r RowValue) AppendSQLExclude(buf *strings.Builder, args *[]interface{}, excludedTableQualifiers []string) {
 	buf.WriteString("(")
-	for i := range r {
+	for i, value := range r {
 		if i > 0 {
 			buf.WriteString(", ")
 		}
-		AppendSQLValue(buf, args, excludedTableQualifiers, r[i])
+		AppendSQLValue(buf, args, excludedTableQualifiers, value)
 	}
 	buf.WriteString(")")
 }
 
 func (r RowValue) In(v interface{}) CustomPredicate {
-	var format string
-	var values []interface{}
 	switch v := v.(type) {
 	case RowValue:
-		format = "? IN ?"
-		values = []interface{}{r, v}
+		return CustomPredicate{
+			Format: "? IN ?",
+			Values: []interface{}{r, v},
+		}
 	case Query:
-		format = "? IN (?)"
-		values = []interface{}{r, v.NestThis()}
+		return CustomPredicate{
+			Format: "? IN (?)",
+			Values: []interface{}{r, v.NestThis()},
+		}
 	default:
-		format = "? IN (?)"
-		values = []interface{}{r, v}
-	}
-	return CustomPredicate{
-		Format: format,
-		Values: values,
+		return CustomPredicate{
+			Format: "? IN (?)",
+			Values: []interface{}{r, v},
+		}
 	}
 }
 
@@ -67,21 +67,21 @@ func (set CustomAssignment) AppendSQLExclude(buf *strings.Builder, args *[]inter
 func (set CustomAssignment) AssertAssignment() {}
 
 func (r RowValue) Set(v interface{}) CustomAssignment {
-	var format string
-	var values []interface{}
 	switch v := v.(type) {
 	case RowValue:
-		format = "? = ?"
-		values = []interface{}{r, v}
+		return CustomAssignment{
+			Format: "? = ?",
+			Values: []interface{}{r, v},
+		}
 	case Query:
-		format = "? = (?)"
-		values = []interface{}{r, v.NestThis()}
+		return CustomAssignment{
+			Format: "? = (?)",
+			Values: []interface{}{r, v.NestThis()},
+		}
 	default:
-		format = "? = (?)"
-		values = []interface{}{r, v}
-	}
-	return CustomAssignment{
-		Format: format,
-		Values: values,
+		return CustomAssignment{
+			Format: "? = (?)",
+			Values: []interface{}{r, v},
+		}
 	}
 }

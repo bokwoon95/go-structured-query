@@ -8,11 +8,11 @@ type RowValues []RowValue
 
 // AppendSQL marshals the RowValues into a buffer and an args slice.
 func (rs RowValues) AppendSQL(buf *strings.Builder, args *[]interface{}) {
-	for i := range rs {
+	for i, rowvalue := range rs {
 		if i > 0 {
 			buf.WriteString(", ")
 		}
-		rs[i].AppendSQL(buf, args)
+		rowvalue.AppendSQL(buf, args)
 	}
 }
 
@@ -28,27 +28,28 @@ func (r RowValue) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 // propagates the excludedTableQualifiers down to its child elements.
 func (r RowValue) AppendSQLExclude(buf *strings.Builder, args *[]interface{}, excludedTableQualifiers []string) {
 	buf.WriteString("(")
-	for i := range r {
+	for i, value := range r {
 		if i > 0 {
 			buf.WriteString(", ")
 		}
-		AppendSQLValue(buf, args, excludedTableQualifiers, r[i])
+		AppendSQLValue(buf, args, excludedTableQualifiers, value)
 	}
 	buf.WriteString(")")
 }
 
 // In returns an 'X IN (Y)' Predicate.
 func (r RowValue) In(v interface{}) CustomPredicate {
-	var format string
 	switch v.(type) {
 	case RowValue:
-		format = "? IN ?"
+		return CustomPredicate{
+			Format: "? IN ?",
+			Values: []interface{}{r, v},
+		}
 	default:
-		format = "? IN (?)"
-	}
-	return CustomPredicate{
-		Format: format,
-		Values: []interface{}{r, v},
+		return CustomPredicate{
+			Format: "? IN (?)",
+			Values: []interface{}{r, v},
+		}
 	}
 }
 
@@ -70,15 +71,16 @@ func (set CustomAssignment) AssertAssignment() {}
 
 // Set returns an Assignment assigning v to the RowValue.
 func (r RowValue) Set(v interface{}) CustomAssignment {
-	var format string
 	switch v.(type) {
 	case RowValue:
-		format = "? = ?"
+		return CustomAssignment{
+			Format: "? = ?",
+			Values: []interface{}{r, v},
+		}
 	default:
-		format = "? = (?)"
-	}
-	return CustomAssignment{
-		Format: format,
-		Values: []interface{}{r, v},
+		return CustomAssignment{
+			Format: "? = (?)",
+			Values: []interface{}{r, v},
+		}
 	}
 }

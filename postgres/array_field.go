@@ -52,8 +52,8 @@ func (f ArrayField) AppendSQLExclude(buf *strings.Builder, args *[]interface{}, 
 				buf.WriteString("ARRAY[?")
 				buf.WriteString(strings.Repeat(", ?", len(array)-1))
 				buf.WriteString("]")
-				for i := range array {
-					*args = append(*args, array[i])
+				for _, arg := range array {
+					*args = append(*args, arg)
 				}
 			}
 		case []float64:
@@ -63,8 +63,8 @@ func (f ArrayField) AppendSQLExclude(buf *strings.Builder, args *[]interface{}, 
 				buf.WriteString("ARRAY[?")
 				buf.WriteString(strings.Repeat(", ?", len(array)-1))
 				buf.WriteString("]")
-				for i := range array {
-					*args = append(*args, array[i])
+				for _, arg := range array {
+					*args = append(*args, arg)
 				}
 			}
 		case []int:
@@ -74,8 +74,8 @@ func (f ArrayField) AppendSQLExclude(buf *strings.Builder, args *[]interface{}, 
 				buf.WriteString("ARRAY[?")
 				buf.WriteString(strings.Repeat(", ?", len(array)-1))
 				buf.WriteString("]")
-				for i := range array {
-					*args = append(*args, array[i])
+				for _, arg := range array {
+					*args = append(*args, arg)
 				}
 			}
 		case []int64:
@@ -85,8 +85,8 @@ func (f ArrayField) AppendSQLExclude(buf *strings.Builder, args *[]interface{}, 
 				buf.WriteString("ARRAY[?")
 				buf.WriteString(strings.Repeat(", ?", len(array)-1))
 				buf.WriteString("]")
-				for i := range array {
-					*args = append(*args, array[i])
+				for _, arg := range array {
+					*args = append(*args, arg)
 				}
 			}
 		case []string:
@@ -96,8 +96,8 @@ func (f ArrayField) AppendSQLExclude(buf *strings.Builder, args *[]interface{}, 
 				buf.WriteString("ARRAY[?")
 				buf.WriteString(strings.Repeat(", ?", len(array)-1))
 				buf.WriteString("]")
-				for i := range array {
-					*args = append(*args, array[i])
+				for _, arg := range array {
+					*args = append(*args, arg)
 				}
 			}
 		default:

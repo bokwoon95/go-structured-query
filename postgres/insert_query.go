@@ -184,9 +184,9 @@ func (q InsertQuery) Values(values ...interface{}) InsertQuery {
 
 func (q InsertQuery) InsertRow(assignments ...FieldAssignment) InsertQuery {
 	fields, values := make([]Field, len(assignments)), make([]interface{}, len(assignments))
-	for i := range assignments {
-		fields[i] = assignments[i].Field
-		values[i] = assignments[i].Value
+	for i, assignment := range assignments {
+		fields[i] = assignment.Field
+		values[i] = assignment.Value
 	}
 	if len(q.InsertColumns) == 0 {
 		q.InsertColumns = fields

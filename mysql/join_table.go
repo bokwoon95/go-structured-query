@@ -111,10 +111,10 @@ type JoinTables []JoinTable
 
 // AppendSQL marshals the JoinTables into a buffer and an args slice.
 func (joins JoinTables) AppendSQL(buf *strings.Builder, args *[]interface{}) {
-	for i := range joins {
+	for i, join := range joins {
 		if i > 0 {
 			buf.WriteString(" ")
 		}
-		joins[i].AppendSQL(buf, args)
+		join.AppendSQL(buf, args)
 	}
 }
