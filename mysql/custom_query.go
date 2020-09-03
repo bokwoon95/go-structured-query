@@ -20,7 +20,7 @@ func (q CustomQuery) ToSQL() (string, []interface{}) {
 }
 
 // AppendSQL marshals CustomQuery into a buffer and an args slice.
-func (q CustomQuery) AppendSQL(buf Buffer, args *[]interface{}) {
+func (q CustomQuery) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 	ExpandValues(buf, args, nil, q.Format, q.Values)
 }
 

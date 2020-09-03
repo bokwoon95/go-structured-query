@@ -43,7 +43,7 @@ func (q InsertQuery) ToSQL() (string, []interface{}) {
 }
 
 // AppendSQL marshals the InsertQuery into a buffer and args slice.
-func (q InsertQuery) AppendSQL(buf Buffer, args *[]interface{}) {
+func (q InsertQuery) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 	var excludedTableQualifiers []string
 	// INSERT INTO
 	if q.Ignore {

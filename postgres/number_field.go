@@ -41,7 +41,7 @@ type NumberField struct {
 
 // AppendSQLExclude marshals the NumberField into an SQL query and args as
 // described in the NumberField internal struct comments.
-func (f NumberField) AppendSQLExclude(buf Buffer, args *[]interface{}, excludedTableQualifiers []string) {
+func (f NumberField) AppendSQLExclude(buf *strings.Builder, args *[]interface{}, excludedTableQualifiers []string) {
 	switch {
 	case f.format != nil:
 		// 1) Number expression

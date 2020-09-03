@@ -1,5 +1,7 @@
 package sq
 
+import "strings"
+
 // PredicateCase represents a Predicate and the Result if the Predicate is
 // true.
 type PredicateCase struct {
@@ -16,7 +18,7 @@ type PredicateCases struct {
 
 // AppendSQLExclude marshals the PredicateCases into a buffer and an args
 // slice. It propagates the excludedTableQualifiers down to its child elements.
-func (f PredicateCases) AppendSQLExclude(buf Buffer, args *[]interface{}, excludedTableQualifiers []string) {
+func (f PredicateCases) AppendSQLExclude(buf *strings.Builder, args *[]interface{}, excludedTableQualifiers []string) {
 	buf.WriteString("CASE")
 	for i := range f.Cases {
 		buf.WriteString(" WHEN ")
@@ -90,7 +92,7 @@ type SimpleCases struct {
 
 // AppendSQLExclude marshals the SimpleCases into a buffer and an args slice.
 // It propagates the excludedTableQualifiers down to its child elements.
-func (f SimpleCases) AppendSQLExclude(buf Buffer, args *[]interface{}, excludedTableQualifiers []string) {
+func (f SimpleCases) AppendSQLExclude(buf *strings.Builder, args *[]interface{}, excludedTableQualifiers []string) {
 	buf.WriteString("CASE ")
 	AppendSQLValue(buf, args, excludedTableQualifiers, f.Expression)
 	for i := range f.Cases {

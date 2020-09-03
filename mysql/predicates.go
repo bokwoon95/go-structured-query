@@ -1,5 +1,7 @@
 package sq
 
+import "strings"
+
 // Not inverts the Predicate i.e. 'NOT Predicate'.
 func Not(predicate Predicate) Predicate {
 	return predicate.Not()
@@ -16,7 +18,7 @@ type CustomPredicate struct {
 
 // AppendSQLExclude marshals the CustomPredicate into a buffer and an args
 // slice. It propagates the excludedTableQualifiers down to its child elements.
-func (p CustomPredicate) AppendSQLExclude(buf Buffer, args *[]interface{}, excludedTableQualifiers []string) {
+func (p CustomPredicate) AppendSQLExclude(buf *strings.Builder, args *[]interface{}, excludedTableQualifiers []string) {
 	if p.Negative {
 		buf.WriteString("NOT ")
 	}
@@ -86,7 +88,7 @@ type VariadicPredicate struct {
 
 // AppendSQLExclude marshals the VariadicPredicate into a buffer and an args
 // slice. It propagates the excludedTableQualifiers down to its child elements.
-func (p VariadicPredicate) AppendSQLExclude(buf Buffer, args *[]interface{}, excludedTableQualifiers []string) {
+func (p VariadicPredicate) AppendSQLExclude(buf *strings.Builder, args *[]interface{}, excludedTableQualifiers []string) {
 	if p.Operator == "" {
 		p.Operator = PredicateAnd
 	}

@@ -12,7 +12,7 @@ type TableInfo struct {
 }
 
 // AppendSQLExclude marshals the TableInfo into a buffer and an args slice.
-func (tbl *TableInfo) AppendSQL(buf Buffer, args *[]interface{}) {
+func (tbl *TableInfo) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 	if tbl == nil {
 		return
 	}

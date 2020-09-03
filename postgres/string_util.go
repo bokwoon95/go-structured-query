@@ -15,7 +15,7 @@ import (
 // ExpandValues will expand each value one by one into successive question mark
 // ? placeholders in the format string, writing the results into the buffer and
 // args slice. It propagates the excludedTableQualifiers down to its child elements.
-func ExpandValues(buf Buffer, args *[]interface{}, excludedTableQualifiers []string, format string, values []interface{}) {
+func ExpandValues(buf *strings.Builder, args *[]interface{}, excludedTableQualifiers []string, format string, values []interface{}) {
 	for i := strings.Index(format, "?"); i >= 0 && len(values) > 0; i = strings.Index(format, "?") {
 		buf.WriteString(format[:i])
 		// TODO: I don't know if ?? should be unescaped to ?
@@ -34,18 +34,18 @@ func ExpandValues(buf Buffer, args *[]interface{}, excludedTableQualifiers []str
 // AppendSQLValue will write the SQL representation of the interface{} value
 // into the buffer and args slice. It propagates excludedTableQualifiers where
 // relevant.
-func AppendSQLValue(buf Buffer, args *[]interface{}, excludedTableQualifiers []string, value interface{}) {
+func AppendSQLValue(buf *strings.Builder, args *[]interface{}, excludedTableQualifiers []string, value interface{}) {
 	switch v := value.(type) {
 	case nil:
 		buf.WriteString("NULL")
 		return
 	case interface {
-		AppendSQLExclude(Buffer, *[]interface{}, []string)
+		AppendSQLExclude(*strings.Builder, *[]interface{}, []string)
 	}:
 		v.AppendSQLExclude(buf, args, excludedTableQualifiers)
 		return
 	case interface {
-		AppendSQL(Buffer, *[]interface{})
+		AppendSQL(*strings.Builder, *[]interface{})
 	}:
 		v.AppendSQL(buf, args)
 		return
@@ -190,7 +190,7 @@ func AppendSQLDisplay(arg interface{}) string {
 // QuestionToDollarPlaceholders will replace all MySQL style ? with Postgres
 // style incrementing placeholders i.e. $1, $2, $3 etc. To escape a literal
 // question mark ? , use two question marks ?? instead.
-func QuestionToDollarPlaceholders(buf Buffer, query string) {
+func QuestionToDollarPlaceholders(buf *strings.Builder, query string) {
 	i := 0
 	for {
 		p := strings.Index(query, "?")

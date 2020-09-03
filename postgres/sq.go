@@ -3,13 +3,13 @@ package sq
 import (
 	"context"
 	"database/sql"
-	"io"
+	"strings"
 )
 
 // Table is an interface representing anything that you can SELECT FROM or
 // JOIN.
 type Table interface {
-	AppendSQL(buf Buffer, args *[]interface{})
+	AppendSQL(buf *strings.Builder, args *[]interface{})
 	GetAlias() string
 	GetName() string // Table name must exclude the schema (if any)
 }
@@ -39,7 +39,7 @@ type Field interface {
 	//
 	// This is to play nice with certain clauses in the INSERT and UPDATE
 	// queries that expressly forbid table qualified columns.
-	AppendSQLExclude(buf Buffer, args *[]interface{}, excludedTableQualifiers []string)
+	AppendSQLExclude(buf *strings.Builder, args *[]interface{}, excludedTableQualifiers []string)
 	GetAlias() string
 	GetName() string
 }
@@ -51,7 +51,7 @@ type Predicate interface {
 }
 
 type Assignment interface {
-	AppendSQLExclude(buf Buffer, args *[]interface{}, excludedTableQualifiers []string)
+	AppendSQLExclude(buf *strings.Builder, args *[]interface{}, excludedTableQualifiers []string)
 	AssertAssignment()
 }
 
@@ -65,10 +65,4 @@ type DB interface {
 // Logger is an interface that provides logging.
 type Logger interface {
 	Output(calldepth int, s string) error
-}
-
-type Buffer interface {
-	io.StringWriter
-	String() string
-	Reset()
 }

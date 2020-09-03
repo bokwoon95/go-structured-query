@@ -1,5 +1,7 @@
 package sq
 
+import "strings"
+
 type Window struct {
 	WindowName        string
 	RenderName        bool
@@ -8,7 +10,7 @@ type Window struct {
 	FrameDefinition   string
 }
 
-func (w Window) AppendSQL(buf Buffer, args *[]interface{}) {
+func (w Window) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 	if w.RenderName {
 		buf.WriteString(w.WindowName)
 		return
@@ -79,7 +81,7 @@ func (w Window) Frame(frameDefinition string) Window {
 
 type Windows []Window
 
-func (ws Windows) AppendSQL(buf Buffer, args *[]interface{}) {
+func (ws Windows) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 	for i := range ws {
 		if i > 0 {
 			buf.WriteString(", ")

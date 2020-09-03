@@ -25,7 +25,7 @@ func (q CustomQuery) ToSQL() (string, []interface{}) {
 }
 
 // AppendSQL marshals the CustomQuery into an SQL query.
-func (q CustomQuery) AppendSQL(buf Buffer, args *[]interface{}) {
+func (q CustomQuery) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 	ExpandValues(buf, args, nil, q.Format, q.Values)
 }
 

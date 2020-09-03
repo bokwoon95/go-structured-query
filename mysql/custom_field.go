@@ -13,7 +13,7 @@ type CustomField struct {
 
 // AppendSQLExclude marshals the CustomField into a buffer and an args slice.
 // It propagates the excludedTableQualifiers down to its child elements.
-func (f CustomField) AppendSQLExclude(buf Buffer, args *[]interface{}, excludedTableQualifiers []string) {
+func (f CustomField) AppendSQLExclude(buf *strings.Builder, args *[]interface{}, excludedTableQualifiers []string) {
 	ExpandValues(buf, args, excludedTableQualifiers, f.Format, f.Values)
 	if f.IsDesc != nil {
 		if *f.IsDesc {

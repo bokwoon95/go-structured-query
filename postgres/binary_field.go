@@ -18,7 +18,7 @@ type BinaryField struct {
 // AppendSQLExclude marshals the BinaryField into a buffer and an args slice. It
 // will not table qualify itself if its table qualifer appears in the
 // excludedTableQualifiers list.
-func (f BinaryField) AppendSQLExclude(buf Buffer, args *[]interface{}, excludedTableQualifiers []string) {
+func (f BinaryField) AppendSQLExclude(buf *strings.Builder, args *[]interface{}, excludedTableQualifiers []string) {
 	switch {
 	case f.value != nil:
 		// 1) Literal []byte value

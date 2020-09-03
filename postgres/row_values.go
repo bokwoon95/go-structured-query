@@ -1,5 +1,7 @@
 package sq
 
+import "strings"
+
 // RowValues represents a list of RowValues (a, b, c...), (d, e, f...), (g, h, i...)
 type RowValues []RowValue
 
@@ -7,7 +9,7 @@ type RowValues []RowValue
 // in the RowValues description. If there are no values it will not write
 // anything into the buffer. It returns a flag indicating whether anything was
 // written into the buffer.
-func (rs RowValues) AppendSQL(buf Buffer, args *[]interface{}) {
+func (rs RowValues) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 	for i := range rs {
 		if i > 0 {
 			buf.WriteString(", ")
@@ -18,11 +20,11 @@ func (rs RowValues) AppendSQL(buf Buffer, args *[]interface{}) {
 
 type RowValue []interface{}
 
-func (r RowValue) AppendSQL(buf Buffer, args *[]interface{}) {
+func (r RowValue) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 	r.AppendSQLExclude(buf, args, nil)
 }
 
-func (r RowValue) AppendSQLExclude(buf Buffer, args *[]interface{}, excludedTableQualifiers []string) {
+func (r RowValue) AppendSQLExclude(buf *strings.Builder, args *[]interface{}, excludedTableQualifiers []string) {
 	buf.WriteString("(")
 	for i := range r {
 		if i > 0 {
@@ -58,7 +60,7 @@ type CustomAssignment struct {
 	Values []interface{}
 }
 
-func (set CustomAssignment) AppendSQLExclude(buf Buffer, args *[]interface{}, excludedTableQualifiers []string) {
+func (set CustomAssignment) AppendSQLExclude(buf *strings.Builder, args *[]interface{}, excludedTableQualifiers []string) {
 	ExpandValues(buf, args, excludedTableQualifiers, set.Format, set.Values)
 }
 

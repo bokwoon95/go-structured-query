@@ -1,5 +1,7 @@
 package sq
 
+import "strings"
+
 // JoinType represents the various types of SQL joins.
 type JoinType string
 
@@ -75,7 +77,7 @@ func CustomJoin(joinType JoinType, table Table, predicates ...Predicate) JoinTab
 }
 
 // AppendSQL marshals the JoinTable into a buffer and an args slice.
-func (join JoinTable) AppendSQL(buf Buffer, args *[]interface{}) {
+func (join JoinTable) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 	if join.JoinType == "" {
 		join.JoinType = JoinTypeInner
 	}
@@ -108,7 +110,7 @@ func (join JoinTable) AppendSQL(buf Buffer, args *[]interface{}) {
 type JoinTables []JoinTable
 
 // AppendSQL marshals the JoinTables into a buffer and an args slice.
-func (joins JoinTables) AppendSQL(buf Buffer, args *[]interface{}) {
+func (joins JoinTables) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 	for i := range joins {
 		if i > 0 {
 			buf.WriteString(" ")

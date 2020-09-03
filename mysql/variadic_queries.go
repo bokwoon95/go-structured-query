@@ -34,7 +34,7 @@ func (q VariadicQuery) ToSQL() (string, []interface{}) {
 }
 
 // AppendSQL marshals the VariadicQuery into a buffer and args slice.
-func (q VariadicQuery) AppendSQL(buf Buffer, args *[]interface{}) {
+func (q VariadicQuery) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 	if q.Operator == "" {
 		q.Operator = QueryUnion
 	}

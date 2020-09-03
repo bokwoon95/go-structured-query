@@ -46,7 +46,7 @@ func (q DeleteQuery) ToSQL() (string, []interface{}) {
 }
 
 // AppendSQL marshals the DeleteQuery into a buffer and args slice.
-func (q DeleteQuery) AppendSQL(buf Buffer, args *[]interface{}) {
+func (q DeleteQuery) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 	// WITH
 	if len(q.CTEs) > 0 {
 		q.CTEs.AppendSQL(buf, args)

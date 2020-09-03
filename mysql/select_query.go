@@ -67,7 +67,7 @@ func (q SelectQuery) ToSQL() (string, []interface{}) {
 }
 
 // AppendSQL marshals the SelectQuery into a buffer and args slice.
-func (q SelectQuery) AppendSQL(buf Buffer, args *[]interface{}) {
+func (q SelectQuery) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 	// WITH
 	if len(q.CTEs) > 0 {
 		q.CTEs.AppendSQL(buf, args)

@@ -11,7 +11,7 @@ type CTE struct {
 }
 
 // AppendSQL marshals the CTE name into a buffer and an args slice.
-func (cte CTE) AppendSQL(buf Buffer, args *[]interface{}) {
+func (cte CTE) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 	buf.WriteString(cte.Name)
 }
 
@@ -56,7 +56,7 @@ func (cte CTE) Get(fieldName string) CustomField {
 type CTEs []CTE
 
 // AppendSQL marshals the CTEs into a buffer and an args slice.
-func (ctes CTEs) AppendSQL(buf Buffer, args *[]interface{}) {
+func (ctes CTEs) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 	var hasRecursiveCTE bool
 	for i := range ctes {
 		if ctes[i].Recursive {
@@ -107,7 +107,7 @@ type AliasedCTE struct {
 // AppendSQL marshals the AliasedCTE name into a buffer and an args slice.
 // There is no need for it to write the alias into the buffer, as the caller of
 // AppendSQL should be responsible for checking for the alias as well.
-func (cte AliasedCTE) AppendSQL(buf Buffer, _ *[]interface{}) {
+func (cte AliasedCTE) AppendSQL(buf *strings.Builder, _ *[]interface{}) {
 	buf.WriteString(cte.Name)
 }
 

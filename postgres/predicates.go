@@ -1,5 +1,7 @@
 package sq
 
+import "strings"
+
 func Not(predicate Predicate) Predicate {
 	return predicate.Not()
 }
@@ -15,7 +17,7 @@ type CustomPredicate struct {
 }
 
 // ToSQL marshals the CustomPredicate into an SQL query.
-func (p CustomPredicate) AppendSQLExclude(buf Buffer, args *[]interface{}, excludedTableQualifiers []string) {
+func (p CustomPredicate) AppendSQLExclude(buf *strings.Builder, args *[]interface{}, excludedTableQualifiers []string) {
 	if p.Negative {
 		buf.WriteString("NOT ")
 	}
@@ -81,7 +83,7 @@ type VariadicPredicate struct {
 
 // ToSQL marshals the VariadicPredicate into an SQL query and args as described
 // in the VariadicPredicate struct description.
-func (p VariadicPredicate) AppendSQLExclude(buf Buffer, args *[]interface{}, excludedTableQualifiers []string) {
+func (p VariadicPredicate) AppendSQLExclude(buf *strings.Builder, args *[]interface{}, excludedTableQualifiers []string) {
 	if p.Operator == "" {
 		p.Operator = PredicateAnd
 	}

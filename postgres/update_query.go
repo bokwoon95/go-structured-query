@@ -46,7 +46,7 @@ func (q UpdateQuery) ToSQL() (string, []interface{}) {
 	return buf.String(), args
 }
 
-func (q UpdateQuery) AppendSQL(buf Buffer, args *[]interface{}) {
+func (q UpdateQuery) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 	var excludedTableQualifiers []string
 	// WITH
 	if len(q.CTEs) > 0 {

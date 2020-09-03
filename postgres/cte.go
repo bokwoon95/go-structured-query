@@ -11,7 +11,7 @@ type CTE struct {
 }
 
 // ToSQL simply returns the name of the CTE.
-func (cte CTE) AppendSQL(buf Buffer, args *[]interface{}) {
+func (cte CTE) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 	buf.WriteString(cte.Name)
 }
 
@@ -60,7 +60,7 @@ type CTEs []CTE
 // AppendSQL will write the CTE clause into the buffer and args. If there are no
 // CTEs to be written, it will simply write nothing. It returns a flag
 // indicating whether it wrote anything into the buffer.
-func (ctes CTEs) AppendSQL(buf Buffer, args *[]interface{}) {
+func (ctes CTEs) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 	var hasRecursiveCTE bool
 	for i := range ctes {
 		if ctes[i].Recursive {
@@ -112,7 +112,7 @@ type AliasedCTE struct {
 // ToSQL returns the name of the parent CTE the AliasedCTE was derived from.
 // There is no need to provide the alias, as the caller of ToSQL() should be
 // responsible for calling GetAlias() as well.
-func (cte AliasedCTE) AppendSQL(buf Buffer, _ *[]interface{}) {
+func (cte AliasedCTE) AppendSQL(buf *strings.Builder, _ *[]interface{}) {
 	buf.WriteString(cte.Name)
 }
 

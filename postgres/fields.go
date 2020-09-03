@@ -1,11 +1,13 @@
 package sq
 
+import "strings"
+
 // FieldLiteral is a Field where its underlying string is literally plugged
 // into the SQL query.
 type FieldLiteral string
 
 // ToSQL returns the underlying string of the FieldLiteral.
-func (f FieldLiteral) AppendSQLExclude(buf Buffer, _ *[]interface{}, _ []string) {
+func (f FieldLiteral) AppendSQLExclude(buf *strings.Builder, _ *[]interface{}, _ []string) {
 	buf.WriteString(string(f))
 }
 
@@ -27,7 +29,7 @@ type Fields []Field
 // AppendSQLExclude will write the a slice of Fields into the buffer and args as
 // described in the Fields description. The list of table qualifiers to be
 // excluded is propagated down to the individual Fields.
-func (fs Fields) AppendSQLExclude(buf Buffer, args *[]interface{}, excludedTableQualifiers []string) {
+func (fs Fields) AppendSQLExclude(buf *strings.Builder, args *[]interface{}, excludedTableQualifiers []string) {
 	for i := range fs {
 		if i > 0 {
 			buf.WriteString(", ")
@@ -43,7 +45,7 @@ func (fs Fields) AppendSQLExclude(buf Buffer, args *[]interface{}, excludedTable
 // AppendSQLExcludeWithAlias is exactly like AppendSQLExclude, but appends each
 // field (i.e.  field1 AS alias1, field2 AS alias2, ...) with its alias if it
 // has one.
-func (fs Fields) AppendSQLExcludeWithAlias(buf Buffer, args *[]interface{}, excludedTableQualifiers []string) {
+func (fs Fields) AppendSQLExcludeWithAlias(buf *strings.Builder, args *[]interface{}, excludedTableQualifiers []string) {
 	var alias string
 	for i := range fs {
 		if i > 0 {
@@ -71,7 +73,7 @@ type FieldAssignment struct {
 
 // AppendSQLExclude will write the FieldAssignment into the buffer and args as
 // described in the Assignments description.
-func (set FieldAssignment) AppendSQLExclude(buf Buffer, args *[]interface{}, excludedTableQualifiers []string) {
+func (set FieldAssignment) AppendSQLExclude(buf *strings.Builder, args *[]interface{}, excludedTableQualifiers []string) {
 	AppendSQLValue(buf, args, excludedTableQualifiers, set.Field)
 	buf.WriteString(" = ")
 	AppendSQLValue(buf, args, excludedTableQualifiers, set.Value)
@@ -85,7 +87,7 @@ type Assignments []Assignment
 
 // AppendSQLExclude will write the Assignments into the buffer and args as
 // described in the Assignments description.
-func (assignments Assignments) AppendSQLExclude(buf Buffer, args *[]interface{}, excludedTableQualifiers []string) {
+func (assignments Assignments) AppendSQLExclude(buf *strings.Builder, args *[]interface{}, excludedTableQualifiers []string) {
 	for i := range assignments {
 		if i > 0 {
 			buf.WriteString(", ")

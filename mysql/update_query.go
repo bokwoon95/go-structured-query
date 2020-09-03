@@ -47,7 +47,7 @@ func (q UpdateQuery) ToSQL() (string, []interface{}) {
 }
 
 // AppendSQL marshals the UpdateQuery into a buffer and args slice.
-func (q UpdateQuery) AppendSQL(buf Buffer, args *[]interface{}) {
+func (q UpdateQuery) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 	// WITH
 	if len(q.CTEs) > 0 {
 		q.CTEs.AppendSQL(buf, args)

@@ -14,7 +14,7 @@ type CustomField struct {
 
 // AppendSQL marshals the CustomField into an SQL query and args as described in
 // the CustomField struct description.
-func (f CustomField) AppendSQLExclude(buf Buffer, args *[]interface{}, excludedTableQualifiers []string) {
+func (f CustomField) AppendSQLExclude(buf *strings.Builder, args *[]interface{}, excludedTableQualifiers []string) {
 	ExpandValues(buf, args, excludedTableQualifiers, f.Format, f.Values)
 	if f.IsDesc != nil {
 		if *f.IsDesc {
