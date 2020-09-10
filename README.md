@@ -47,7 +47,7 @@ Generate tables from your database
 # for more options, check out --help
 
 # Postgres
-sqgen-postgres tables --database 'postgres://name:pass@localhost:5432/dbname'
+sqgen-postgres tables --database 'postgres://name:pass@localhost:5432/dbname?sslmode=disable'
 
 # MySQL
 sqgen-postgres tables --database 'name:pass@tcp(127.0.0.1:3306)/dbname' --schema dbname
