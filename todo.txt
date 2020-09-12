@@ -8,3 +8,38 @@ Postgres
 MySQL
 - COALESCE
 - JSON handling?
+
+Queries can be compiled into query + args
+    - Clauses can be added
+    - Clauses can be removed
+    - Clauses can be replaced (all or nothing, you can't modify just part of a clause)
+    - This could be achieved by noting down the index where the each clause begins and ends
+        i.e. adding clause == inserting a string after where the previous clause ends
+        removing clause == deleting the substring from start index to end index
+        replacing clause == deleting substring and reinserting a new string
+        The index of where the clause args begin and end need to be noted down too
+
+Queries can be precompiled to avoid the paying the price of string serialization over and over
+    - A good way of replacing the arguments should be thought of
+        - Just replace the args slice? That would be the easiest to implement, but it's positional in nature
+            - The query will mess up if the user provides fewer or more arguments than needed, it becomes up to the user to maintain that invariant
+        - The best way would be to allow users to rebind specific placeholders only
+            - Let users insert dummy placeholder arguments marked with a string name, then they can rebind those arguments later for that string name (that works)
+q := Select(tbl.col1, tbl.col2).From(tbl).Where(tbl.col1.Eq(sq.Placeholder("to_be_added_later"))).Compile()
+q.Bind("to_be_added_later", someVar)
+q.SelectRowx(user.RowMapper()).Fetch(db)
+
+CTEs and subqueries should have a nicer API
+// Go
+cte := Select(tbl.col1, tbl.col2, tbl.col3).From(tbl).Where(condition).CTE("cte")
+q := Select(cte["col1"], cte["col2"]).From(cte).Where(cte["col2"].Eq(cte["col3"])
+-- SQL
+WITH cte AS (
+    SELECT tbl.col1, tbl.col2, tbl.col3
+    FROM tbl
+    WHERE condition
+)
+SELECT cte.col1, cte.col2
+FROM cte
+WHERE cte.col2 = cte.col3
+// Honestly this is where dynamically typed languages like Python have an advantage, they can just cte.col1 without worrying that cte1.col is not verifiable at compile time.
