@@ -150,17 +150,32 @@ func (r *Row) NullBool(predicate Predicate) sql.NullBool {
 
 // Float64 returns the float64 value of the NumberField.
 func (r *Row) Float64(field NumberField) float64 {
-	return r.NullFloat64(field).Float64
+	return RowNullFloat64(r, field).Float64
 }
 
 // Float64Valid returns the bool value indicating if the NumberField is
 // non-NULL.
 func (r *Row) Float64Valid(field NumberField) bool {
-	return r.NullFloat64(field).Valid
+	return RowNullFloat64(r, field).Valid
 }
 
 // NullFloat64 returns the sql.NullFloat64 value of the NumberField.
 func (r *Row) NullFloat64(field NumberField) sql.NullFloat64 {
+	return RowNullFloat64(r, field)
+}
+
+// RowFloat64 returns the float64 value of a Field
+func RowFloat64(r *Row, field Field) float64 {
+	return RowNullFloat64(r, field).Float64
+}
+
+// RowFloat64Valid returns the bool value indicating if the Field is non-NULL.
+func RowFloat64Valid(r *Row, field Field) bool {
+	return RowNullFloat64(r, field).Valid
+}
+
+// RowNullFloat64 returns the sql.NullFloat64 value of the Field.
+func RowNullFloat64(r *Row, field Field) sql.NullFloat64 {
 	if r.rows == nil {
 		r.fields = append(r.fields, field)
 		r.dest = append(r.dest, &sql.NullFloat64{})
@@ -175,19 +190,29 @@ func (r *Row) NullFloat64(field NumberField) sql.NullFloat64 {
 
 // Int returns the int value of the NumberField.
 func (r *Row) Int(field NumberField) int {
-	return int(r.NullInt64(field).Int64)
+	return int(RowNullInt64(r, field).Int64)
 }
 
 // IntValid returns the bool value indicating if the NumberField is non-NULL.
 func (r *Row) IntValid(field NumberField) bool {
-	return r.NullInt64(field).Valid
+	return RowNullInt64(r, field).Valid
+}
+
+// RowInt returns the int value of the Field.
+func RowInt(r *Row, field Field) int {
+	return int(RowNullInt64(r, field).Int64)
+}
+
+// RowIntValid returns the bool value indicating if the Field is non-NULL.
+func RowIntValid(r *Row, field Field) bool {
+	return RowNullInt64(r, field).Valid
 }
 
 /* int64 */
 
 // Int64 returns the int64 value of the NumberField.
 func (r *Row) Int64(field NumberField) int64 {
-	return r.NullInt64(field).Int64
+	return RowNullInt64(r, field).Int64
 }
 
 // Int64Valid returns the bool value indicating if the NumberField is non-NULL.
@@ -197,6 +222,21 @@ func (r *Row) Int64Valid(field NumberField) bool {
 
 // NullInt64 returns the sql.NullInt64 value of the NumberField.
 func (r *Row) NullInt64(field NumberField) sql.NullInt64 {
+	return RowNullInt64(r, field)
+}
+
+// RowInt64 returns the int64 value of the Field.
+func RowInt64(r *Row, field NumberField) int64 {
+	return RowNullInt64(r, field).Int64
+}
+
+// Int64Valid_ returns the bool value indicating if the Field is non-NULL.
+func RowInt64Valid(r *Row, field NumberField) bool {
+	return RowNullInt64(r, field).Valid
+}
+
+// RowNullInt64 returns the sql.NullInt64 value of the Field.
+func RowNullInt64(r *Row, field Field) sql.NullInt64 {
 	if r.rows == nil {
 		r.fields = append(r.fields, field)
 		r.dest = append(r.dest, &sql.NullInt64{})
@@ -211,17 +251,32 @@ func (r *Row) NullInt64(field NumberField) sql.NullInt64 {
 
 // String returns the string value of the StringField.
 func (r *Row) String(field StringField) string {
-	return r.NullString(field).String
+	return RowNullString(r, field).String
 }
 
 // StringValid returns the bool value indicating if the StringField is
 // non-NULL.
 func (r *Row) StringValid(field StringField) bool {
-	return r.NullString(field).Valid
+	return RowNullString(r, field).Valid
 }
 
 // NullString returns the sql.NullString value of the StringField.
 func (r *Row) NullString(field StringField) sql.NullString {
+	return RowNullString(r, field)
+}
+
+// RowString returns the string value of the Field.
+func RowString(r *Row, field Field) string {
+	return RowNullString(r, field).String
+}
+
+// RowStringValid returns the bool value indicating if the Field is non-NULL.
+func RowStringValid(r *Row, field Field) bool {
+	return RowNullString(r, field).Valid
+}
+
+// RowNullString returns the sql.NullString value of the Field.
+func RowNullString(r *Row, field Field) sql.NullString {
 	if r.rows == nil {
 		r.fields = append(r.fields, field)
 		r.dest = append(r.dest, &sql.NullString{})
@@ -236,16 +291,31 @@ func (r *Row) NullString(field StringField) sql.NullString {
 
 // Time returns the time.Time value of the TimeField.
 func (r *Row) Time(field TimeField) time.Time {
-	return r.NullTime(field).Time
+	return RowNullTime(r, field).Time
 }
 
 // TimeValid returns a bool value indicating if the TimeField is non-NULL.
 func (r *Row) TimeValid(field TimeField) bool {
-	return r.NullTime(field).Valid
+	return RowNullTime(r, field).Valid
 }
 
 // NullTime returns the sql.NullTime value of the TimeField.
 func (r *Row) NullTime(field TimeField) sql.NullTime {
+	return RowNullTime(r, field)
+}
+
+// RowTime returns the time.Time value of the Field.
+func RowTime(r *Row, field Field) time.Time {
+	return RowNullTime(r, field).Time
+}
+
+// RowTimeValid returns a bool value indicating if the Field is non-NULL.
+func RowTimeValid(r *Row, field Field) bool {
+	return RowNullTime(r, field).Valid
+}
+
+// RowNullTime returns the sql.NullTime value of the Field.
+func RowNullTime(r *Row, field Field) sql.NullTime {
 	if r.rows == nil {
 		r.fields = append(r.fields, field)
 		r.dest = append(r.dest, &sql.NullTime{})

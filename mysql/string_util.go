@@ -125,9 +125,9 @@ func InterpolateSQLValue(buf *strings.Builder, value interface{}) {
 	case driver.Valuer:
 		Interface, err := v.Value()
 		if err != nil {
-			buf.WriteString("(")
+			buf.WriteString(":")
 			buf.WriteString(err.Error())
-			buf.WriteString(")")
+			buf.WriteString(":")
 		} else {
 			switch Concrete := Interface.(type) {
 			case string:
@@ -137,17 +137,17 @@ func InterpolateSQLValue(buf *strings.Builder, value interface{}) {
 			case nil:
 				buf.WriteString("NULL")
 			default:
-				buf.WriteString("(")
+				buf.WriteString(":")
 				buf.WriteString(fmt.Sprintf("%#v", value)) // give up, don't know what it is, resort to fmt.Sprintf
-				buf.WriteString(")")
+				buf.WriteString(":")
 			}
 		}
 	default:
 		b, err := json.Marshal(value)
 		if err != nil {
-			buf.WriteString("(")
+			buf.WriteString(":")
 			buf.WriteString(fmt.Sprintf("%#v", value)) // give up, don't know what it is, resort to fmt.Sprintf
-			buf.WriteString(")")
+			buf.WriteString(":")
 		} else {
 			buf.WriteString("'")
 			buf.Write(b)

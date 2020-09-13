@@ -25,7 +25,7 @@ func TestUpdateQuery_ToSQL(t *testing.T) {
 			"Joins",
 			WithDefaultLog(Lverbose).
 				Update(u).
-				From(SelectOne().From(u).As("subquery")).
+				From(SelectOne().From(u).Subquery("subquery")).
 				Join(u, u.USER_ID.Eq(u.USER_ID)).
 				LeftJoin(u, u.USER_ID.Eq(u.USER_ID)).
 				RightJoin(u, u.USER_ID.Eq(u.USER_ID)).
@@ -39,23 +39,29 @@ func TestUpdateQuery_ToSQL(t *testing.T) {
 				" CROSS JOIN public.users AS u",
 			nil,
 		},
-		{
-			"assorted",
-			WithLog(customLogger, Lverbose).
-				With(NewCTE("cte1", Update(u).Where(Bool(true)).ReturningOne())).
+		func() TT {
+			var tt TT
+			tt.description = "assorted"
+			cte1 := Update(u).Where(Bool(true)).ReturningOne().CTE("cte1")
+			cte2 := Update(u).Where(Bool(true)).ReturningOne().CTE("cte2")
+			tt.q = WithLog(customLogger, Lverbose).
 				Update(u).
-				From(Update(u).Where(Bool(false)).ReturningOne().As("subquery")).
+				From(Update(u).Where(Bool(false)).ReturningOne().Subquery("subquery")).
+				CustomJoin("NATURAL JOIN", cte1).
+				CustomJoin("NATURAL JOIN", cte2).
 				Where(u.USER_ID.Eq(u.USER_ID)).
-				Returning(u.USER_ID, u.DISPLAYNAME, u.EMAIL).
-				With(NewCTE("cte2", Update(u).Where(Bool(true)).ReturningOne())),
-			"WITH cte1 AS (UPDATE public.users AS u WHERE $1 RETURNING 1)" +
+				Returning(u.USER_ID, u.DISPLAYNAME, u.EMAIL)
+			tt.wantQuery = "WITH cte1 AS (UPDATE public.users AS u WHERE $1 RETURNING 1)" +
 				", cte2 AS (UPDATE public.users AS u WHERE $2 RETURNING 1)" +
 				" UPDATE public.users AS u" +
 				" FROM (UPDATE public.users AS u WHERE $3 RETURNING 1) AS subquery" +
+				" NATURAL JOIN cte1" +
+				" NATURAL JOIN cte2" +
 				" WHERE u.user_id = u.user_id" +
-				" RETURNING u.user_id, u.displayname, u.email",
-			[]interface{}{true, true, false},
-		},
+				" RETURNING u.user_id, u.displayname, u.email"
+			tt.wantArgs = []interface{}{true, true, false}
+			return tt
+		}(),
 	}
 	for _, tt := range tests {
 		tt := tt

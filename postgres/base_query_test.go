@@ -44,35 +44,30 @@ func TestBaseQuery(t *testing.T) {
 	buf.Reset()
 	sel.AppendSQL(buf, &args)
 	is.Equal("SELECT 1", buf.String())
-	is.True(sel.GetAlias() != "")
 
 	// SelectAll
 	sel = BaseQuery{}.SelectAll()
 	buf.Reset()
 	sel.AppendSQL(buf, &args)
 	is.Equal("SELECT *", buf.String())
-	is.True(sel.GetAlias() != "")
 
 	// SelectCount
 	sel = BaseQuery{}.SelectCount()
 	buf.Reset()
 	sel.AppendSQL(buf, &args)
 	is.Equal("SELECT COUNT(*)", buf.String())
-	is.True(sel.GetAlias() != "")
 
 	// SelectDistinct
 	sel = BaseQuery{}.SelectDistinct()
 	buf.Reset()
 	sel.AppendSQL(buf, &args)
 	is.Equal("SELECT DISTINCT", buf.String())
-	is.True(sel.GetAlias() != "")
 
 	// SelectDistinctOn
 	sel = BaseQuery{}.SelectDistinctOn()()
 	buf.Reset()
 	sel.AppendSQL(buf, &args)
 	is.Equal("SELECT DISTINCT ON ()", buf.String())
-	is.True(sel.GetAlias() != "")
 
 	// Selectx
 	mapper := func(_ *Row) {}
@@ -82,7 +77,6 @@ func TestBaseQuery(t *testing.T) {
 	sel.AppendSQL(buf, &args)
 	is.Equal(mapper, sel.Mapper)
 	is.Equal(accumulator, sel.Accumulator)
-	is.True(sel.GetAlias() != "")
 
 	// SelectRowx
 	sel = BaseQuery{}.SelectRowx(mapper)
@@ -90,26 +84,22 @@ func TestBaseQuery(t *testing.T) {
 	sel.AppendSQL(buf, &args)
 	is.Equal(mapper, sel.Mapper)
 	is.Equal(nil, sel.Accumulator)
-	is.True(sel.GetAlias() != "")
 
 	// InsertInto
 	ins = BaseQuery{}.InsertInto(nil)
 	buf.Reset()
 	ins.AppendSQL(buf, &args)
 	is.Equal("INSERT INTO NULL", buf.String())
-	is.True(sel.GetAlias() != "")
 
 	// Update
 	upd = BaseQuery{}.Update(nil)
 	buf.Reset()
 	upd.AppendSQL(buf, &args)
 	is.Equal("UPDATE NULL", buf.String())
-	is.True(sel.GetAlias() != "")
 
 	// DeleteFrom
 	del = BaseQuery{}.DeleteFrom(nil)
 	buf.Reset()
 	del.AppendSQL(buf, &args)
 	is.Equal("DELETE FROM NULL", buf.String())
-	is.True(sel.GetAlias() != "")
 }

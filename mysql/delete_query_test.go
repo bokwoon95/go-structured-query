@@ -47,27 +47,26 @@ func TestDeleteQuery_ToSQL(t *testing.T) {
 			wantArgs := []interface{}{1, int64(10)}
 			return TT{desc, q, wantQuery, wantArgs}
 		}(),
-		{
-			"assorted",
-			WithLog(customLogger, Lverbose).
-				With(CTE{
-					Name:  "cte1",
-					Query: SelectOne().From(u),
-				}).
+		func() TT {
+			var tt TT
+			tt.description = "assorted"
+			cte1 := SelectOne().From(u).CTE("cte1")
+			cte2 := SelectDistinct(u.EMAIL).From(u).CTE("cte2")
+			tt.q = WithLog(customLogger, Lverbose).
 				DeleteFrom(u).
 				Using(u).
-				Where(u.USER_ID.Eq(u.USER_ID)).
-				With(CTE{
-					Name:  "cte2",
-					Query: SelectDistinct(u.EMAIL).From(u),
-				}),
-			"WITH cte1 AS (SELECT 1 FROM devlab.users AS u)" +
+				CustomJoin("NATURAL JOIN", cte1).
+				CustomJoin("NATURAL JOIN", cte2).
+				Where(u.USER_ID.Eq(u.USER_ID))
+			tt.wantQuery = "WITH cte1 AS (SELECT 1 FROM devlab.users AS u)" +
 				", cte2 AS (SELECT DISTINCT u.email FROM devlab.users AS u)" +
 				" DELETE FROM u" +
 				" USING devlab.users AS u" +
-				" WHERE u.user_id = u.user_id",
-			nil,
-		},
+				" NATURAL JOIN cte1" +
+				" NATURAL JOIN cte2" +
+				" WHERE u.user_id = u.user_id"
+			return tt
+		}(),
 		func() TT {
 			desc := "aliasless table"
 			u := USERS()

@@ -62,6 +62,14 @@ func TestPredicateCases_AppendSQLExclude(t *testing.T) {
 	}
 }
 
+func TestPredicateCases_Basic(t *testing.T) {
+	is := is.New(t)
+
+	p := CaseWhen(nil, nil).As("test")
+	is.Equal("test", p.GetAlias())
+	is.Equal("", p.GetName())
+}
+
 func TestSimpleCases_AppendSQLExclude(t *testing.T) {
 	type TT struct {
 		description string
@@ -115,4 +123,12 @@ func TestSimpleCases_AppendSQLExclude(t *testing.T) {
 			is.Equal(tt.wantArgs, args)
 		})
 	}
+}
+
+func TestSimpleCases_Basic(t *testing.T) {
+	is := is.New(t)
+
+	p := Case(nil).When(nil, nil).As("test")
+	is.Equal("test", p.GetAlias())
+	is.Equal("", p.GetName())
 }

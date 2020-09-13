@@ -14,9 +14,8 @@ import (
 
 type UpdateQuery struct {
 	Nested bool
-	Alias  string
 	// WITH
-	CTEs CTEs
+	CTEs []CTE
 	// UPDATE
 	UpdateTable BaseTable
 	// SET
@@ -49,9 +48,8 @@ func (q UpdateQuery) ToSQL() (string, []interface{}) {
 func (q UpdateQuery) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 	var excludedTableQualifiers []string
 	// WITH
-	if len(q.CTEs) > 0 {
-		q.CTEs.AppendSQL(buf, args)
-		buf.WriteString(" ")
+	if !q.Nested {
+		AppendCTEs(buf, args, q.CTEs, q.FromTable, q.JoinTables)
 	}
 	// UPDATE
 	buf.WriteString("UPDATE ")
@@ -132,15 +130,9 @@ func (q UpdateQuery) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 	}
 }
 
-func (q UpdateQuery) As(alias string) UpdateQuery {
-	q.Alias = alias
-	return q
-}
-
 func Update(table BaseTable) UpdateQuery {
 	return UpdateQuery{
 		UpdateTable: table,
-		Alias:       RandomString(8),
 	}
 }
 
@@ -424,14 +416,6 @@ func (q UpdateQuery) ExecContext(ctx context.Context, db DB, flag ExecFlag) (row
 		}
 	}
 	return rowsAffected, nil
-}
-
-func (q UpdateQuery) GetAlias() string {
-	return q.Alias
-}
-
-func (q UpdateQuery) GetName() string {
-	return ""
 }
 
 func (q UpdateQuery) NestThis() Query {

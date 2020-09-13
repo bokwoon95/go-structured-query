@@ -1,8 +1,6 @@
 package sq
 
 import (
-	"fmt"
-	"strings"
 	"testing"
 
 	"github.com/matryer/is"
@@ -15,8 +13,9 @@ func TestVariadicQueries_AppendSQL(t *testing.T) {
 		wantQuery   string
 		wantArgs    []interface{}
 	}
-	const val = "lorem ipsum"
-	q := Queryf(val)
+	q1 := Select(Int(1))
+	q2 := Select(Int(2))
+	q3 := Select(Int(3))
 	tests := []TT{
 		{
 			"no queries",
@@ -27,71 +26,71 @@ func TestVariadicQueries_AppendSQL(t *testing.T) {
 		{
 			"nil queries",
 			VariadicQuery{
-				Queries: []Query{nil, nil, nil},
+				TopLevel: true,
+				Queries:  []Query{nil, nil, nil},
 			},
 			"NULL UNION NULL UNION NULL",
 			nil,
 		},
 		{
 			"one query",
-			VariadicQuery{
-				Queries: []Query{q},
-			},
-			val,
-			nil,
+			WithLog(customLogger, 0).Union(q1),
+			"SELECT $1",
+			[]interface{}{1},
 		},
 		{
-			"multiple queries",
+			"multiple queries (implicit UNION)",
 			VariadicQuery{
-				Queries: []Query{q, q, q},
+				TopLevel: true,
+				Queries:  []Query{q1, q2, q3},
 			},
-			fmt.Sprintf("%[1]s UNION %[1]s UNION %[1]s", val),
-			nil,
+			"SELECT $1 UNION SELECT $2 UNION SELECT $3",
+			[]interface{}{1, 2, 3},
 		},
 		{
 			"multiple queries (explicit UNION)",
-			VariadicQuery{
-				Operator: QueryUnion,
-				Queries:  []Query{q, q, q},
-			},
-			fmt.Sprintf("%[1]s UNION %[1]s UNION %[1]s", val),
-			nil,
+			WithDefaultLog(Lstats).Union(q1, q2, q3),
+			"SELECT $1 UNION SELECT $2 UNION SELECT $3",
+			[]interface{}{1, 2, 3},
 		},
 		{
 			"multiple queries (explicit UNION ALL)",
-			VariadicQuery{
-				Operator: QueryUnionAll,
-				Queries:  []Query{q, q, q},
-			},
-			fmt.Sprintf("%[1]s UNION ALL %[1]s UNION ALL %[1]s", val),
-			nil,
+			WithDefaultLog(Linterpolate).UnionAll(q1, q2, q3),
+			"SELECT $1 UNION ALL SELECT $2 UNION ALL SELECT $3",
+			[]interface{}{1, 2, 3},
 		},
 		{
-			"multiple queries (nested)",
+			"variadic query containing multiple variadic queries (toplevel)",
 			VariadicQuery{
+				TopLevel: true,
 				Operator: QueryUnionAll,
 				Queries: []Query{
 					VariadicQuery{
 						Operator: QueryUnion,
-						Queries:  []Query{q, q},
+						Queries:  []Query{q1, q2},
 					},
 					VariadicQuery{
 						Operator: QueryUnion,
-						Queries:  []Query{q, q},
+						Queries:  []Query{q2, q3},
 					},
 				},
 			},
-			fmt.Sprintf("(%[1]s UNION %[1]s) UNION ALL (%[1]s UNION %[1]s)", val),
-			nil,
+			"(SELECT $1 UNION SELECT $2) UNION ALL (SELECT $3 UNION SELECT $4)",
+			[]interface{}{1, 2, 2, 3},
 		},
 		{
-			"nested variadic query",
+			"variadic query containing one variadic query (toplevel)",
 			VariadicQuery{
-				Queries: []Query{q, q, q},
-				Nested:  true,
+				TopLevel: true,
+				Queries: []Query{
+					VariadicQuery{
+						Operator: QueryUnion,
+						Queries:  []Query{q1, q2, q3},
+					},
+				},
 			},
-			fmt.Sprintf("(%[1]s UNION %[1]s UNION %[1]s)", val),
-			nil,
+			"SELECT $1 UNION SELECT $2 UNION SELECT $3",
+			[]interface{}{1, 2, 3},
 		},
 	}
 	for _, tt := range tests {
@@ -99,36 +98,34 @@ func TestVariadicQueries_AppendSQL(t *testing.T) {
 		t.Run(tt.description, func(t *testing.T) {
 			t.Parallel()
 			is := is.New(t)
-			buf := &strings.Builder{}
-			var args []interface{}
 			var _ Query = tt.q
-			tt.q.AppendSQL(buf, &args)
-			is.Equal(tt.wantQuery, buf.String())
-			is.Equal(tt.wantArgs, args)
+			gotQuery, gotArgs := tt.q.ToSQL()
+			is.Equal(tt.wantQuery, gotQuery)
+			is.Equal(tt.wantArgs, gotArgs)
 		})
 	}
 }
 
-func TestVariadicQueries_BasicTesting(t *testing.T) {
+func TestVariadicQueries_Basic(t *testing.T) {
 	is := is.New(t)
-	q := Queryf("lorem ipsum")
-	vq := Union(q, q, q).As("union_query")
-	_ = vq.NestThis()
-	_ = UnionAll(q, q, q)
-	_ = Intersect(q, q, q)
-	_ = IntersectAll(q, q, q)
-	_ = Except(q, q, q)
-	_ = ExceptAll(q, q, q)
-	// ToSQL
-	query, _ := vq.ToSQL()
-	is.Equal("lorem ipsum UNION lorem ipsum UNION lorem ipsum", query)
-	// GetAlias
-	is.Equal("union_query", vq.GetAlias())
-	// GetName
-	is.Equal("", vq.GetName())
-	// Get
-	f := vq.Get("some_column")
-	buf := &strings.Builder{}
-	f.AppendSQLExclude(buf, nil, nil)
-	is.Equal("union_query.some_column", buf.String())
+	q1 := Select(Int(1))
+	q2 := Select(Int(2))
+	q3 := Select(Int(3))
+	var vq VariadicQuery
+
+	vq = Intersect(q1, q2, q3)
+	is.Equal(true, vq.TopLevel)
+	is.Equal(QueryIntersect, vq.Operator)
+
+	vq = IntersectAll(q1, q2, q3)
+	is.Equal(true, vq.TopLevel)
+	is.Equal(QueryIntersectAll, vq.Operator)
+
+	vq = Except(q1, q2, q3)
+	is.Equal(true, vq.TopLevel)
+	is.Equal(QueryExcept, vq.Operator)
+
+	vq = ExceptAll(q1, q2, q3)
+	is.Equal(true, vq.TopLevel)
+	is.Equal(QueryExceptAll, vq.Operator)
 }

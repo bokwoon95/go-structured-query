@@ -1,9 +1,16 @@
 package sq
 
-import "strings"
+import (
+	"fmt"
+	"log"
+	"strings"
+)
 
+// VariadicQueryOperator is an operator that can join a variadic number of
+// queries together.
 type VariadicQueryOperator string
 
+// VariadicQueryOperators
 const (
 	QueryUnion        VariadicQueryOperator = "UNION"
 	QueryUnionAll     VariadicQueryOperator = "UNION ALL"
@@ -13,81 +20,105 @@ const (
 	QueryExceptAll    VariadicQueryOperator = "EXCEPT ALL"
 )
 
+// VariadicQuery represents a variadic number of queries joined together by an
+// VariadicQueryOperator.
 type VariadicQuery struct {
 	Nested   bool
-	Alias    string
+	TopLevel bool
 	Operator VariadicQueryOperator
 	Queries  []Query
+	// DB
+	DB          DB
+	Mapper      func(*Row)
+	Accumulator func()
+	// Logging
+	Log     Logger
+	LogFlag LogFlag
+	LogSkip int
 }
 
-func (q VariadicQuery) ToSQL() (string, []interface{}) {
+func (vq VariadicQuery) ToSQL() (string, []interface{}) {
+	vq.LogSkip += 1
 	buf := &strings.Builder{}
 	var args []interface{}
-	q.AppendSQL(buf, &args)
+	vq.AppendSQL(buf, &args)
 	return buf.String(), args
 }
 
-func (q VariadicQuery) AppendSQL(buf *strings.Builder, args *[]interface{}) {
-	if q.Operator == "" {
-		q.Operator = QueryUnion
+func (vq VariadicQuery) AppendSQL(buf *strings.Builder, args *[]interface{}) {
+	if vq.Operator == "" {
+		vq.Operator = QueryUnion
 	}
-	switch len(q.Queries) {
+	switch len(vq.Queries) {
 	case 0:
 		break
 	case 1:
-		q.Queries[0].AppendSQL(buf, args)
+		switch q := vq.Queries[0].(type) {
+		case nil:
+			buf.WriteString("NULL")
+		case VariadicQuery:
+			q.TopLevel = true
+			q.NestThis().AppendSQL(buf, args)
+		default:
+			q.NestThis().AppendSQL(buf, args)
+		}
 	default:
-		if q.Nested {
+		if !vq.TopLevel {
 			buf.WriteString("(")
 		}
-		for i, query := range q.Queries {
+		for i, q := range vq.Queries {
 			if i > 0 {
 				buf.WriteString(" ")
-				buf.WriteString(string(q.Operator))
+				buf.WriteString(string(vq.Operator))
 				buf.WriteString(" ")
 			}
-			switch v := query.(type) {
+			switch q := q.(type) {
 			case nil:
 				buf.WriteString("NULL")
 			case VariadicQuery:
-				v.Nested = true
-				v.AppendSQL(buf, args)
+				q.TopLevel = false
+				q.NestThis().AppendSQL(buf, args)
 			default:
-				v.AppendSQL(buf, args)
+				q.NestThis().AppendSQL(buf, args)
 			}
 		}
-		if q.Nested {
+		if !vq.TopLevel {
 			buf.WriteString(")")
 		}
 	}
-}
-
-func (q VariadicQuery) As(alias string) VariadicQuery {
-	q.Alias = alias
-	return q
-}
-
-func (q VariadicQuery) Get(fieldName string) CustomField {
-	return CustomField{
-		Format: q.Alias + "." + fieldName,
+	if !vq.Nested {
+		query := buf.String()
+		buf.Reset()
+		QuestionToDollarPlaceholders(buf, query)
+		if vq.Log != nil {
+			var logOutput string
+			switch {
+			case Lstats&vq.LogFlag != 0:
+				logOutput = "\n----[ Executing query ]----\n" + buf.String() + " " + fmt.Sprint(*args) +
+					"\n----[ with bind values ]----\n" + QuestionInterpolate(query, *args...)
+			case Linterpolate&vq.LogFlag != 0:
+				logOutput = QuestionInterpolate(query, *args...)
+			default:
+				logOutput = buf.String() + " " + fmt.Sprint(*args)
+			}
+			switch vq.Log.(type) {
+			case *log.Logger:
+				vq.Log.Output(vq.LogSkip+2, logOutput)
+			default:
+				vq.Log.Output(vq.LogSkip+1, logOutput)
+			}
+		}
 	}
 }
 
-func (q VariadicQuery) GetAlias() string {
-	return q.Alias
-}
-
-func (q VariadicQuery) GetName() string {
-	return ""
-}
-
-func (q VariadicQuery) NestThis() Query {
-	q.Nested = true
-	return q
+func (vq VariadicQuery) NestThis() Query {
+	vq.Nested = true
+	return vq
 }
 
 func Union(queries ...Query) VariadicQuery {
 	return VariadicQuery{
+		TopLevel: true,
 		Operator: QueryUnion,
 		Queries:  queries,
 	}
@@ -95,6 +126,7 @@ func Union(queries ...Query) VariadicQuery {
 
 func UnionAll(queries ...Query) VariadicQuery {
 	return VariadicQuery{
+		TopLevel: true,
 		Operator: QueryUnionAll,
 		Queries:  queries,
 	}
@@ -102,6 +134,7 @@ func UnionAll(queries ...Query) VariadicQuery {
 
 func Intersect(queries ...Query) VariadicQuery {
 	return VariadicQuery{
+		TopLevel: true,
 		Operator: QueryIntersect,
 		Queries:  queries,
 	}
@@ -109,6 +142,7 @@ func Intersect(queries ...Query) VariadicQuery {
 
 func IntersectAll(queries ...Query) VariadicQuery {
 	return VariadicQuery{
+		TopLevel: true,
 		Operator: QueryIntersectAll,
 		Queries:  queries,
 	}
@@ -116,6 +150,7 @@ func IntersectAll(queries ...Query) VariadicQuery {
 
 func Except(queries ...Query) VariadicQuery {
 	return VariadicQuery{
+		TopLevel: true,
 		Operator: QueryExcept,
 		Queries:  queries,
 	}
@@ -123,6 +158,7 @@ func Except(queries ...Query) VariadicQuery {
 
 func ExceptAll(queries ...Query) VariadicQuery {
 	return VariadicQuery{
+		TopLevel: true,
 		Operator: QueryExceptAll,
 		Queries:  queries,
 	}

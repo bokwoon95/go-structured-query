@@ -31,7 +31,7 @@ func TestSelectQuery_ToSQL(t *testing.T) {
 		},
 		{
 			"Joins",
-			From(SelectOne().From(u).As("subquery")).
+			From(SelectOne().From(u).Subquery("subquery")).
 				Join(u, u.USER_ID.Eq(u.USER_ID)).
 				LeftJoin(u, u.USER_ID.Eq(u.USER_ID)).
 				RightJoin(u, u.USER_ID.Eq(u.USER_ID)).
@@ -49,25 +49,24 @@ func TestSelectQuery_ToSQL(t *testing.T) {
 			desc := "assorted"
 			w1 := PartitionBy(u.DISPLAYNAME).OrderBy(u.EMAIL).As("w1")
 			w2 := OrderBy(u.PASSWORD).As("w2")
+			cte1 := SelectOne().From(u).Where(Bool(true)).CTE("cte1")
+			cte2 := SelectDistinct(u.EMAIL).From(u).CTE("cte2")
 			q := WithLog(customLogger, Lverbose).
-				With(NewCTE("cte1", SelectOne().From(u).Where(Bool(true)))).
 				Select(
 					SumOver(u.USER_ID, PartitionBy(u.DISPLAYNAME).OrderBy(u.EMAIL)),
 					SumOver(u.USER_ID, w1),
 					SumOver(u.USER_ID, w1.Name()),
 				).
-				From(SelectDistinctOn(u.PASSWORD)(u.USER_ID).From(u).Where(Bool(false)).As("subquery")).
+				From(SelectDistinctOn(u.PASSWORD)(u.USER_ID).From(u).Where(Bool(false)).Subquery("subquery")).
+				CustomJoin("NATURAL JOIN", cte1).
+				CustomJoin("NATURAL JOIN", cte2).
 				Where(u.USER_ID.EqInt(1), u.DISPLAYNAME.Eq(u.PASSWORD)).
 				GroupBy(u.USER_ID, u.PASSWORD, u.DISPLAYNAME).
 				Having(u.USER_ID.GtInt(3), u.EMAIL.LikeString("%gmail%")).
 				Window(w1, w2).
 				OrderBy(u.PASSWORD, u.DISPLAYNAME.Desc().NullsFirst()).
 				Limit(10).
-				Offset(20).
-				With(CTE{
-					Name:  "cte2",
-					Query: SelectDistinct(u.EMAIL).From(u),
-				})
+				Offset(20)
 			wantQuery := "WITH cte1 AS (SELECT 1 FROM public.users AS u WHERE $1)" +
 				", cte2 AS (SELECT DISTINCT u.email FROM public.users AS u)" +
 				" SELECT" +
@@ -75,6 +74,8 @@ func TestSelectQuery_ToSQL(t *testing.T) {
 				", SUM(u.user_id) OVER (PARTITION BY u.displayname ORDER BY u.email)" +
 				", SUM(u.user_id) OVER w1" +
 				" FROM (SELECT DISTINCT ON (u.password) u.user_id FROM public.users AS u WHERE $2) AS subquery" +
+				" NATURAL JOIN cte1" +
+				" NATURAL JOIN cte2" +
 				" WHERE u.user_id = $3 AND u.displayname = u.password" +
 				" GROUP BY u.user_id, u.password, u.displayname" +
 				" HAVING u.user_id > $4 AND u.email LIKE $5" +

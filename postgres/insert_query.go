@@ -14,9 +14,8 @@ import (
 
 type InsertQuery struct {
 	Nested bool
-	Alias  string
 	// WITH
-	CTEs CTEs
+	CTEs []CTE
 	// INSERT INTO
 	IntoTable     BaseTable
 	InsertColumns Fields
@@ -54,9 +53,8 @@ func (q InsertQuery) ToSQL() (string, []interface{}) {
 func (q InsertQuery) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 	var excludedTableQualifiers []string
 	// WITH
-	if len(q.CTEs) > 0 {
-		q.CTEs.AppendSQL(buf, args)
-		buf.WriteString(" ")
+	if !q.Nested && q.SelectQuery != nil {
+		AppendCTEs(buf, args, q.CTEs, q.SelectQuery.FromTable, q.SelectQuery.JoinTables)
 	}
 	// INSERT INTO
 	buf.WriteString("INSERT INTO ")
@@ -158,7 +156,6 @@ func (q InsertQuery) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 func InsertInto(table BaseTable) InsertQuery {
 	return InsertQuery{
 		IntoTable: table,
-		Alias:     RandomString(8),
 	}
 }
 
@@ -441,19 +438,6 @@ func (q InsertQuery) ExecContext(ctx context.Context, db DB, flag ExecFlag) (row
 		}
 	}
 	return rowsAffected, nil
-}
-
-func (q InsertQuery) As(alias string) InsertQuery {
-	q.Alias = alias
-	return q
-}
-
-func (q InsertQuery) GetAlias() string {
-	return q.Alias
-}
-
-func (q InsertQuery) GetName() string {
-	return ""
 }
 
 func (q InsertQuery) NestThis() Query {

@@ -43,3 +43,5 @@ SELECT cte.col1, cte.col2
 FROM cte
 WHERE cte.col2 = cte.col3
 // Honestly this is where dynamically typed languages like Python have an advantage, they can just cte.col1 without worrying that cte1.col is not verifiable at compile time.
+
+Update windows to use the same logic as CTEs/subqueries: you don't have to explicitly include named windows in your queries anymore, simply referencing a named window will cause it to be included in the WINDOW clause.

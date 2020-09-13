@@ -35,7 +35,7 @@ type BaseQuery struct {
 	DB      DB
 	Log     Logger
 	LogFlag LogFlag
-	CTEs    CTEs
+	CTEs    []CTE
 }
 
 // WithLog creates a new BaseQuery with a custom logger and the LogFlag.
@@ -88,7 +88,7 @@ func (q BaseQuery) WithDB(db DB) BaseQuery {
 	return q
 }
 
-// With adds the CTEs to the BaseQuery.
+// With adds the CTEs to the BaseQuery
 func (q BaseQuery) With(CTEs ...CTE) BaseQuery {
 	q.CTEs = append(q.CTEs, CTEs...)
 	return q
@@ -98,7 +98,6 @@ func (q BaseQuery) With(CTEs ...CTE) BaseQuery {
 func (q BaseQuery) From(table Table) SelectQuery {
 	return SelectQuery{
 		FromTable: table,
-		Alias:     RandomString(8),
 		CTEs:      q.CTEs,
 		DB:        q.DB,
 		Log:       q.Log,
@@ -110,7 +109,6 @@ func (q BaseQuery) From(table Table) SelectQuery {
 func (q BaseQuery) Select(fields ...Field) SelectQuery {
 	return SelectQuery{
 		SelectFields: fields,
-		Alias:        RandomString(8),
 		CTEs:         q.CTEs,
 		DB:           q.DB,
 		Log:          q.Log,
@@ -122,7 +120,6 @@ func (q BaseQuery) Select(fields ...Field) SelectQuery {
 func (q BaseQuery) SelectOne() SelectQuery {
 	return SelectQuery{
 		SelectFields: Fields{FieldLiteral("1")},
-		Alias:        RandomString(8),
 		CTEs:         q.CTEs,
 		DB:           q.DB,
 		Log:          q.Log,
@@ -134,7 +131,6 @@ func (q BaseQuery) SelectOne() SelectQuery {
 func (q BaseQuery) SelectAll() SelectQuery {
 	return SelectQuery{
 		SelectFields: Fields{FieldLiteral("*")},
-		Alias:        RandomString(8),
 		CTEs:         q.CTEs,
 		DB:           q.DB,
 		Log:          q.Log,
@@ -146,7 +142,6 @@ func (q BaseQuery) SelectAll() SelectQuery {
 func (q BaseQuery) SelectCount() SelectQuery {
 	return SelectQuery{
 		SelectFields: Fields{FieldLiteral("COUNT(*)")},
-		Alias:        RandomString(8),
 		CTEs:         q.CTEs,
 		DB:           q.DB,
 		Log:          q.Log,
@@ -159,7 +154,6 @@ func (q BaseQuery) SelectDistinct(fields ...Field) SelectQuery {
 	return SelectQuery{
 		SelectType:   SelectTypeDistinct,
 		SelectFields: fields,
-		Alias:        RandomString(8),
 		CTEs:         q.CTEs,
 		DB:           q.DB,
 		Log:          q.Log,
@@ -172,7 +166,6 @@ func (q BaseQuery) Selectx(mapper func(*Row), accumulator func()) SelectQuery {
 	return SelectQuery{
 		Mapper:      mapper,
 		Accumulator: accumulator,
-		Alias:       RandomString(8),
 		CTEs:        q.CTEs,
 		DB:          q.DB,
 		Log:         q.Log,
@@ -184,7 +177,6 @@ func (q BaseQuery) Selectx(mapper func(*Row), accumulator func()) SelectQuery {
 func (q BaseQuery) SelectRowx(mapper func(*Row)) SelectQuery {
 	return SelectQuery{
 		Mapper:  mapper,
-		Alias:   RandomString(8),
 		CTEs:    q.CTEs,
 		DB:      q.DB,
 		Log:     q.Log,
@@ -196,7 +188,6 @@ func (q BaseQuery) SelectRowx(mapper func(*Row)) SelectQuery {
 func (q BaseQuery) InsertInto(table BaseTable) InsertQuery {
 	return InsertQuery{
 		IntoTable: table,
-		Alias:     RandomString(8),
 		DB:        q.DB,
 		Log:       q.Log,
 		LogFlag:   q.LogFlag,
@@ -208,7 +199,6 @@ func (q BaseQuery) InsertIgnoreInto(table BaseTable) InsertQuery {
 	return InsertQuery{
 		Ignore:    true,
 		IntoTable: table,
-		Alias:     RandomString(8),
 		DB:        q.DB,
 		Log:       q.Log,
 		LogFlag:   q.LogFlag,
@@ -219,7 +209,6 @@ func (q BaseQuery) InsertIgnoreInto(table BaseTable) InsertQuery {
 func (q BaseQuery) Update(table BaseTable) UpdateQuery {
 	return UpdateQuery{
 		UpdateTable: table,
-		Alias:       RandomString(8),
 		CTEs:        q.CTEs,
 		DB:          q.DB,
 		Log:         q.Log,
@@ -231,10 +220,33 @@ func (q BaseQuery) Update(table BaseTable) UpdateQuery {
 func (q BaseQuery) DeleteFrom(tables ...BaseTable) DeleteQuery {
 	return DeleteQuery{
 		FromTables: tables,
-		Alias:      RandomString(8),
 		CTEs:       q.CTEs,
 		DB:         q.DB,
 		Log:        q.Log,
 		LogFlag:    q.LogFlag,
+	}
+}
+
+// Union transforms the BaseQuery into a VariadicQuery.
+func (q BaseQuery) Union(queries ...Query) VariadicQuery {
+	return VariadicQuery{
+		TopLevel: true,
+		Operator: QueryUnion,
+		Queries:  queries,
+		DB:       q.DB,
+		Log:      q.Log,
+		LogFlag:  q.LogFlag,
+	}
+}
+
+// UnionAll transforms the BaseQuery into a VariadicQuery.
+func (q BaseQuery) UnionAll(queries ...Query) VariadicQuery {
+	return VariadicQuery{
+		TopLevel: true,
+		Operator: QueryUnionAll,
+		Queries:  queries,
+		DB:       q.DB,
+		Log:      q.Log,
+		LogFlag:  q.LogFlag,
 	}
 }

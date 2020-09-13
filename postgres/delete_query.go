@@ -14,9 +14,8 @@ import (
 
 type DeleteQuery struct {
 	Nested bool
-	Alias  string
 	// WITH
-	CTEs CTEs
+	CTEs []CTE
 	// DELETE FROM
 	FromTable BaseTable
 	// USING
@@ -46,9 +45,8 @@ func (q DeleteQuery) ToSQL() (string, []interface{}) {
 
 func (q DeleteQuery) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 	// WITH
-	if len(q.CTEs) > 0 {
-		q.CTEs.AppendSQL(buf, args)
-		buf.WriteString(" ")
+	if !q.Nested {
+		AppendCTEs(buf, args, q.CTEs, nil, q.JoinTables)
 	}
 	// DELETE FROM
 	buf.WriteString("DELETE FROM ")
@@ -127,10 +125,6 @@ func (q DeleteQuery) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 	}
 }
 
-func (q DeleteQuery) GetAlias() string {
-	return q.Alias
-}
-
 func (q DeleteQuery) GetName() string {
 	return ""
 }
@@ -140,21 +134,9 @@ func (q DeleteQuery) NestThis() Query {
 	return q
 }
 
-func (q DeleteQuery) Get(fieldName string) CustomField {
-	return CustomField{
-		Format: q.Alias + "." + fieldName,
-	}
-}
-
-func (q DeleteQuery) As(alias string) DeleteQuery {
-	q.Alias = alias
-	return q
-}
-
 func DeleteFrom(table BaseTable) DeleteQuery {
 	return DeleteQuery{
 		FromTable: table,
-		Alias:     RandomString(8),
 	}
 }
 

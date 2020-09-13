@@ -52,3 +52,12 @@ func TestFunctionInfo_AppendSQL(t *testing.T) {
 		})
 	}
 }
+
+func TestFunctionInfo_Basic(t *testing.T) {
+	is := is.New(t)
+
+	f := Functionf("SUM", 5)
+	f.Alias = "alias"
+	is.Equal("alias", f.GetAlias())
+	is.Equal("SUM", f.GetName())
+}

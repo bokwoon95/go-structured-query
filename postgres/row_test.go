@@ -23,6 +23,10 @@ var customLogger = logger{
 	Logger: log.New(os.Stdout, "[customLogger] ", log.Lshortfile),
 }
 
+func (l logger) Output(calldepth int, s string) error {
+	return l.Logger.Output(calldepth+2, s)
+}
+
 func init() {
 	err := godotenv.Load("../.env")
 	if err != nil {
@@ -331,6 +335,101 @@ func TestRow_Assorted(t *testing.T) {
 			data.gotStringValid = row.StringValid(a.PROJECT_LEVEL)
 			data.gotTime = row.Time(a.CREATED_AT)
 			data.gotTimeValid = row.TimeValid(a.CREATED_AT)
+		}).
+		Fetch(db)
+	is.NoErr(err)
+	is.Equal(data.wantBool, data.gotBool)
+	is.Equal(data.wantBoolValid, data.gotBoolValid)
+	is.Equal(data.wantFloat64, data.gotFloat64)
+	is.Equal(data.wantFloat64Valid, data.gotFloat64Valid)
+	is.Equal(data.wantInt64, data.gotInt64)
+	is.Equal(data.wantInt64Valid, data.gotInt64Valid)
+	is.Equal(data.wantInt, data.gotInt)
+	is.Equal(data.wantIntValid, data.gotIntValid)
+	is.Equal(data.wantString, data.gotString)
+	is.Equal(data.wantStringValid, data.gotStringValid)
+	is.True(data.gotTimeValid)
+}
+
+func TestRowFunctions(t *testing.T) {
+	if testing.Short() {
+		return
+	}
+	is := is.New(t)
+	db, err := sql.Open("txdb", "RowFunctions")
+	is.NoErr(err)
+	a := APPLICATIONS()
+	type Data struct {
+		wantBool         bool
+		wantBoolValid    bool
+		wantNullBool     sql.NullBool
+		wantFloat64      float64
+		wantFloat64Valid bool
+		wantNullFloat64  sql.NullFloat64
+		wantInt64        int64
+		wantInt64Valid   bool
+		wantNullInt64    sql.NullInt64
+		wantInt          int
+		wantIntValid     bool
+		wantString       string
+		wantStringValid  bool
+		wantNullString   sql.NullString
+
+		gotBool         bool
+		gotBoolValid    bool
+		gotNullBool     sql.NullBool
+		gotFloat64      float64
+		gotFloat64Valid bool
+		gotNullFloat64  sql.NullFloat64
+		gotInt64        int64
+		gotInt64Valid   bool
+		gotNullInt64    sql.NullInt64
+		gotInt          int
+		gotIntValid     bool
+		gotString       string
+		gotStringValid  bool
+		gotNullString   sql.NullString
+		gotTime         time.Time
+		gotTimeValid    bool
+		gotNullTime     sql.NullTime
+	}
+	data := Data{
+		wantBool:         true,
+		wantBoolValid:    true,
+		wantNullBool:     sql.NullBool{Bool: true, Valid: true},
+		wantFloat64:      1,
+		wantFloat64Valid: true,
+		wantNullFloat64:  sql.NullFloat64{Float64: 1, Valid: true},
+		wantInt64:        1,
+		wantInt64Valid:   true,
+		wantNullInt64:    sql.NullInt64{Int64: 1, Valid: true},
+		wantInt:          1,
+		wantIntValid:     true,
+		wantString:       "gemini",
+		wantStringValid:  true,
+		wantNullString:   sql.NullString{String: "gemini", Valid: true},
+	}
+	err = WithDefaultLog(Lverbose).
+		From(a).
+		Where(a.APPLICATION_ID.EqInt(1)).
+		SelectRowx(func(row *Row) {
+			data.gotBool = row.Bool(a.SUBMITTED)
+			data.gotBoolValid = row.BoolValid(a.SUBMITTED)
+			data.gotNullBool = row.NullBool(a.SUBMITTED)
+			data.gotFloat64 = RowFloat64(row, a.APPLICATION_ID)
+			data.gotFloat64Valid = RowFloat64Valid(row, a.APPLICATION_ID)
+			data.gotNullFloat64 = row.NullFloat64(a.APPLICATION_ID)
+			data.gotInt64 = RowInt64(row, a.APPLICATION_ID)
+			data.gotInt64Valid = RowInt64Valid(row, a.APPLICATION_ID)
+			data.gotNullInt64 = row.NullInt64(a.APPLICATION_ID)
+			data.gotInt = RowInt(row, a.APPLICATION_ID)
+			data.gotIntValid = RowIntValid(row, a.APPLICATION_ID)
+			data.gotString = RowString(row, a.PROJECT_LEVEL)
+			data.gotStringValid = RowStringValid(row, a.PROJECT_LEVEL)
+			data.gotNullString = row.NullString(a.PROJECT_LEVEL)
+			data.gotTime = RowTime(row, a.CREATED_AT)
+			data.gotTimeValid = RowTimeValid(row, a.CREATED_AT)
+			data.gotNullTime = row.NullTime(a.CREATED_AT)
 		}).
 		Fetch(db)
 	is.NoErr(err)

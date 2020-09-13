@@ -42,23 +42,29 @@ func TestDeleteQuery_ToSQL(t *testing.T) {
 				" RETURNING 1",
 			nil,
 		},
-		{
-			"assorted",
-			WithLog(customLogger, Lverbose).
-				With(NewCTE("cte1", DeleteFrom(u).Where(Bool(true)).Returning(u.USER_ID))).
+		func() TT {
+			var tt TT
+			tt.description = "assorted"
+			cte1 := DeleteFrom(u).Where(Bool(true)).Returning(u.USER_ID).CTE("cte1")
+			cte2 := DeleteFrom(u).Where(Bool(false)).ReturningOne().CTE("cte2")
+			tt.q = WithLog(customLogger, Lverbose).
 				DeleteFrom(u).
 				Using(u).
+				CustomJoin("NATURAL JOIN", cte1).
+				CustomJoin("NATURAL JOIN", cte2).
 				Where(u.USER_ID.Eq(u.USER_ID)).
-				Returning(u.USER_ID, u.DISPLAYNAME, u.EMAIL).
-				With(NewCTE("cte2", DeleteFrom(u).Where(Bool(false)).ReturningOne())),
-			"WITH cte1 AS (DELETE FROM public.users AS u WHERE $1 RETURNING u.user_id)" +
+				Returning(u.USER_ID, u.DISPLAYNAME, u.EMAIL)
+			tt.wantQuery = "WITH cte1 AS (DELETE FROM public.users AS u WHERE $1 RETURNING u.user_id)" +
 				", cte2 AS (DELETE FROM public.users AS u WHERE $2 RETURNING 1)" +
 				" DELETE FROM public.users AS u" +
 				" USING public.users AS u" +
+				" NATURAL JOIN cte1" +
+				" NATURAL JOIN cte2" +
 				" WHERE u.user_id = u.user_id" +
-				" RETURNING u.user_id, u.displayname, u.email",
-			[]interface{}{true, false},
-		},
+				" RETURNING u.user_id, u.displayname, u.email"
+			tt.wantArgs = []interface{}{true, false}
+			return tt
+		}(),
 		func() TT {
 			desc := "aliasless table"
 			u := USERS()
@@ -67,24 +73,27 @@ func TestDeleteQuery_ToSQL(t *testing.T) {
 			return TT{desc, q, wantQuery, nil}
 		}(),
 		func() TT {
-			desc := "subqueries"
-			cte1 := NewCTE("cte1", DeleteFrom(u).Where(Bool(true)).Returning(u.USER_ID))
-			cte2 := NewCTE("cte2", DeleteFrom(u).Where(Bool(false)).ReturningOne())
-			subquery1 := DeleteFrom(u).Where(Bool(true)).Returning(u.USER_ID).As("subquery1")
-			subquery2 := DeleteFrom(u).Where(Bool(false)).ReturningOne().As("subquery2")
-			q := WithDefaultLog(0).
-				With(cte1).
+			var tt TT
+			tt.description = "subqueries"
+			cte1 := DeleteFrom(u).Where(Bool(true)).Returning(u.USER_ID).CTE("cte1")
+			cte2 := DeleteFrom(u).Where(Bool(false)).ReturningOne().CTE("cte2")
+			subquery1 := DeleteFrom(u).Where(Bool(true)).Returning(u.USER_ID).Subquery("subquery1")
+			subquery2 := DeleteFrom(u).Where(Bool(false)).ReturningOne().Subquery("subquery2")
+			tt.q = WithDefaultLog(0).
 				DeleteFrom(u).
 				Using(subquery1).
-				Join(subquery2, subquery1.Get("user_id").Eq(cte1.Get("user_id"))).
-				With(cte2)
-			wantQuery := "WITH cte1 AS (DELETE FROM public.users AS u WHERE $1 RETURNING u.user_id)" +
+				CustomJoin("NATURAL JOIN", cte1).
+				CustomJoin("NATURAL JOIN", cte2).
+				Join(subquery2, subquery1["user_id"].Eq(cte1["user_id"]))
+			tt.wantQuery = "WITH cte1 AS (DELETE FROM public.users AS u WHERE $1 RETURNING u.user_id)" +
 				", cte2 AS (DELETE FROM public.users AS u WHERE $2 RETURNING 1)" +
 				" DELETE FROM public.users AS u" +
 				" USING (DELETE FROM public.users AS u WHERE $3 RETURNING u.user_id) AS subquery1" +
+				" NATURAL JOIN cte1" +
+				" NATURAL JOIN cte2" +
 				" JOIN (DELETE FROM public.users AS u WHERE $4 RETURNING 1) AS subquery2 ON subquery1.user_id = cte1.user_id"
-			wantArgs := []interface{}{true, false, true, false}
-			return TT{desc, q, wantQuery, wantArgs}
+			tt.wantArgs = []interface{}{true, false, true, false}
+			return tt
 		}(),
 	}
 	for _, tt := range tests {

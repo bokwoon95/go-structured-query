@@ -257,23 +257,6 @@ func (q InsertQuery) ExecContext(ctx context.Context, db DB, flag ExecFlag) (las
 	return lastInsertID, rowsAffected, nil
 }
 
-// As aliases the InsertQuery i.e. 'query AS alias'.
-func (q InsertQuery) As(alias string) InsertQuery {
-	q.Alias = alias
-	return q
-}
-
-// GetAlias returns the alias of the InsertQuery.
-func (q InsertQuery) GetAlias() string {
-	return q.Alias
-}
-
-// GetName returns the name of the InsertQuery, which is always an empty
-// string.
-func (q InsertQuery) GetName() string {
-	return ""
-}
-
 // NestThis indicates to the InsertQuery that it is nested.
 func (q InsertQuery) NestThis() Query {
 	q.Nested = true

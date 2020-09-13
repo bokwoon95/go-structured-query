@@ -14,10 +14,25 @@ type Table interface {
 	GetName() string // Table name must exclude the schema (if any)
 }
 
+func getAliasOrName(val interface {
+	GetAlias() string
+	GetName() string
+}) string {
+	s := val.GetAlias()
+	if s == "" {
+		s = val.GetName()
+	}
+	return s
+}
+
 // Query is an interface that specialises the Table interface. It covers only
 // queries like SELECT/INSERT/UPDATE/DELETE.
 type Query interface {
-	Table
+	AppendSQL(buf *strings.Builder, args *[]interface{})
+	// When NestThis is called on a query, it signals to the query that it is
+	// being nested as part of a larger query. The nested query should:
+	// - hold off rebinding question mark ?, ? to dollar $1, $2 placeholders because the parent query will do it
+	// - hold off logging anything because the parent query will do it
 	NestThis() Query
 	ToSQL() (string, []interface{})
 }

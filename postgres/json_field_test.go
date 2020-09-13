@@ -1,6 +1,7 @@
 package sq
 
 import (
+	"database/sql/driver"
 	"strings"
 	"testing"
 
@@ -185,4 +186,21 @@ func TestJSONField_Predicates(t *testing.T) {
 			is.Equal(tt.wantArgs, args)
 		})
 	}
+}
+
+type customValuer string
+
+func (v customValuer) Value() (driver.Value, error) {
+	return driver.Value(v), nil
+}
+
+func TestJSONField_Basic(t *testing.T) {
+	is := is.New(t)
+
+	var x customValuer = "lorem ipsum"
+	f := JSONValue(x)
+	is.Equal(x, f.value)
+	_ = f.SetValue(x)
+	is.Equal(`:"lorem ipsum":`, f.String())
+	is.Equal("", f.GetName())
 }

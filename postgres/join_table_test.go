@@ -1,7 +1,6 @@
 package sq
 
 import (
-	"fmt"
 	"strings"
 	"testing"
 
@@ -41,25 +40,11 @@ func TestJoinTable_AppendSQL(t *testing.T) {
 		func() TT {
 			desc := "join query"
 			u := USERS().As("u")
-			q := Select(u.USER_ID, u.DISPLAYNAME, u.EMAIL).From(u).As("subquery")
-			j := CustomJoin(JoinTypeInner, q, q.Get("user_id").Eq(1), q.Get("displayname").Eq("John"))
+			q := Select(u.USER_ID, u.DISPLAYNAME, u.EMAIL).From(u).Subquery("subquery")
+			j := CustomJoin(JoinTypeInner, q, q["user_id"].Eq(1), q["displayname"].Eq("John"))
 			wantQuery := "JOIN (" +
 				"SELECT u.user_id, u.displayname, u.email FROM public.users AS u" +
 				") AS subquery ON subquery.user_id = ? AND subquery.displayname = ?"
-			wantArgs := []interface{}{1, "John"}
-			return TT{desc, j, wantQuery, wantArgs}
-		}(),
-		func() TT {
-			desc := "join query (alias automatically added)"
-			u := USERS().As("u")
-			q := Select(u.USER_ID, u.DISPLAYNAME, u.EMAIL).From(u)
-			alias := q.GetAlias()
-			is := is.New(t)
-			is.True(alias != "")
-			j := CustomJoin(JoinTypeInner, q, q.Get("user_id").Eq(1), q.Get("displayname").Eq("John"))
-			wantQuery := fmt.Sprintf("JOIN ("+
-				"SELECT u.user_id, u.displayname, u.email FROM public.users AS u"+
-				") AS %[1]s ON %[1]s.user_id = ? AND %[1]s.displayname = ?", alias)
 			wantArgs := []interface{}{1, "John"}
 			return TT{desc, j, wantQuery, wantArgs}
 		}(),
@@ -106,6 +91,22 @@ func TestJoinTables_AppendSQL(t *testing.T) {
 			wantArgs := []interface{}{1, "John", "Jane", 2}
 			return TT{desc, j, wantQuery, wantArgs}
 		}(),
+		func() TT {
+			desc := "more joins"
+			u := USERS().As("u")
+			j := JoinTables{
+				Join(u, u.USER_ID.EqInt(1), u.DISPLAYNAME.EqString("John")),
+				LeftJoin(u, u.DISPLAYNAME.EqString("Jane"), u.USER_ID.EqInt(2)),
+				RightJoin(u, u.DISPLAYNAME.EqString("Street"), u.USER_ID.EqInt(3)),
+				FullJoin(u),
+			}
+			wantQuery := "JOIN public.users AS u ON u.user_id = ? AND u.displayname = ?" +
+				" LEFT JOIN public.users AS u ON u.displayname = ? AND u.user_id = ?" +
+				" RIGHT JOIN public.users AS u ON u.displayname = ? AND u.user_id = ?" +
+				" FULL JOIN public.users AS u"
+			wantArgs := []interface{}{1, "John", "Jane", 2, "Street", 3}
+			return TT{desc, j, wantQuery, wantArgs}
+		}(),
 	}
 	for _, tt := range tests {
 		tt := tt
@@ -119,4 +120,7 @@ func TestJoinTables_AppendSQL(t *testing.T) {
 			is.Equal(tt.wantArgs, args)
 		})
 	}
+}
+
+func TestJoinTable_Basic(t *testing.T) {
 }

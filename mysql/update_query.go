@@ -16,7 +16,7 @@ type UpdateQuery struct {
 	Nested bool
 	Alias  string
 	// WITH
-	CTEs CTEs
+	CTEs []CTE
 	// UPDATE
 	UpdateTable BaseTable
 	// SET
@@ -49,9 +49,8 @@ func (q UpdateQuery) ToSQL() (string, []interface{}) {
 // AppendSQL marshals the UpdateQuery into a buffer and args slice.
 func (q UpdateQuery) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 	// WITH
-	if len(q.CTEs) > 0 {
-		q.CTEs.AppendSQL(buf, args)
-		buf.WriteString(" ")
+	if !q.Nested {
+		AppendCTEs(buf, args, q.CTEs, nil, q.JoinTables)
 	}
 	// UPDATE
 	buf.WriteString("UPDATE ")
@@ -138,7 +137,6 @@ func Update(table BaseTable) UpdateQuery {
 	}
 }
 
-// With appends a list of CTEs into the UpdateQuery.
 func (q UpdateQuery) With(ctes ...CTE) UpdateQuery {
 	q.CTEs = append(q.CTEs, ctes...)
 	return q
@@ -299,17 +297,6 @@ func (q UpdateQuery) ExecContext(ctx context.Context, db DB, flag ExecFlag) (row
 		}
 	}
 	return rowsAffected, nil
-}
-
-// GetAlias returns the alias of the UpdateQuery.
-func (q UpdateQuery) GetAlias() string {
-	return q.Alias
-}
-
-// GetName returns the name of the UpdateQuery, which is always an empty
-// string.
-func (q UpdateQuery) GetName() string {
-	return ""
 }
 
 // NestThis indicates to the UpdateQuery that it is nested.

@@ -16,7 +16,7 @@ type DeleteQuery struct {
 	Nested bool
 	Alias  string
 	// WITH
-	CTEs CTEs
+	CTEs []CTE
 	// DELETE FROM
 	FromTables []BaseTable
 	// USING
@@ -48,9 +48,8 @@ func (q DeleteQuery) ToSQL() (string, []interface{}) {
 // AppendSQL marshals the DeleteQuery into a buffer and args slice.
 func (q DeleteQuery) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 	// WITH
-	if len(q.CTEs) > 0 {
-		q.CTEs.AppendSQL(buf, args)
-		buf.WriteString(" ")
+	if !q.Nested {
+		AppendCTEs(buf, args, q.CTEs, nil, q.JoinTables)
 	}
 	// DELETE FROM
 	buf.WriteString("DELETE FROM ")
@@ -137,26 +136,9 @@ func (q DeleteQuery) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 	}
 }
 
-// GetAlias returns the alias of the DeleteQuery.
-func (q DeleteQuery) GetAlias() string {
-	return q.Alias
-}
-
-// GetName returns the name of the DeleteQuery, which is always an empty
-// string.
-func (q DeleteQuery) GetName() string {
-	return ""
-}
-
 // NestThis indicates to the DeleteQuery that it is nested.
 func (q DeleteQuery) NestThis() Query {
 	q.Nested = true
-	return q
-}
-
-// As aliases the DeleteQuery i.e. 'query AS alias'.
-func (q DeleteQuery) As(alias string) DeleteQuery {
-	q.Alias = alias
 	return q
 }
 
@@ -168,7 +150,6 @@ func DeleteFrom(tables ...BaseTable) DeleteQuery {
 	}
 }
 
-// With appends a list of CTEs into the DeleteQuery.
 func (q DeleteQuery) With(ctes ...CTE) DeleteQuery {
 	q.CTEs = append(q.CTEs, ctes...)
 	return q

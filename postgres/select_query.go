@@ -25,9 +25,8 @@ const (
 // SelectQuery represents a SELECT query.
 type SelectQuery struct {
 	Nested bool
-	Alias  string
 	// WITH
-	CTEs CTEs
+	CTEs []CTE
 	// SELECT
 	SelectType   SelectType
 	SelectFields Fields
@@ -71,9 +70,8 @@ func (q SelectQuery) ToSQL() (string, []interface{}) {
 // AppendSQL marshals the SelectQuery into a buffer and args slice.
 func (q SelectQuery) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 	// WITH
-	if len(q.CTEs) > 0 {
-		q.CTEs.AppendSQL(buf, args)
-		buf.WriteString(" ")
+	if !q.Nested {
+		AppendCTEs(buf, args, q.CTEs, q.FromTable, q.JoinTables)
 	}
 	// SELECT
 	if q.SelectType == "" {
@@ -183,7 +181,6 @@ func (q SelectQuery) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 func From(table Table) SelectQuery {
 	return SelectQuery{
 		FromTable: table,
-		Alias:     RandomString(8),
 	}
 }
 
@@ -191,7 +188,6 @@ func From(table Table) SelectQuery {
 func Select(fields ...Field) SelectQuery {
 	return SelectQuery{
 		SelectFields: fields,
-		Alias:        RandomString(8),
 	}
 }
 
@@ -199,7 +195,6 @@ func Select(fields ...Field) SelectQuery {
 func SelectOne() SelectQuery {
 	return SelectQuery{
 		SelectFields: Fields{FieldLiteral("1")},
-		Alias:        RandomString(8),
 	}
 }
 
@@ -208,7 +203,6 @@ func SelectDistinct(fields ...Field) SelectQuery {
 	return SelectQuery{
 		SelectType:   SelectTypeDistinct,
 		SelectFields: fields,
-		Alias:        RandomString(8),
 	}
 }
 
@@ -219,7 +213,6 @@ func SelectDistinctOn(distinctFields ...Field) func(...Field) SelectQuery {
 			SelectType:   SelectTypeDistinctOn,
 			SelectFields: fields,
 			DistinctOn:   distinctFields,
-			Alias:        RandomString(8),
 		}
 	}
 }
@@ -229,7 +222,6 @@ func Selectx(mapper func(*Row), accumulator func()) SelectQuery {
 	return SelectQuery{
 		Mapper:      mapper,
 		Accumulator: accumulator,
-		Alias:       RandomString(8),
 	}
 }
 
@@ -237,7 +229,6 @@ func Selectx(mapper func(*Row), accumulator func()) SelectQuery {
 func SelectRowx(mapper func(*Row)) SelectQuery {
 	return SelectQuery{
 		Mapper: mapper,
-		Alias:  RandomString(8),
 	}
 }
 
@@ -601,30 +592,6 @@ func (q SelectQuery) ExecContext(ctx context.Context, db DB, flag ExecFlag) (row
 		}
 	}
 	return rowsAffected, nil
-}
-
-// As aliases the SelectQuery i.e. 'query AS alias'.
-func (q SelectQuery) As(alias string) SelectQuery {
-	q.Alias = alias
-	return q
-}
-
-// Get returns a Field from the SelectQuery, identified by fieldName.
-func (q SelectQuery) Get(fieldName string) CustomField {
-	return CustomField{
-		Format: q.Alias + "." + fieldName,
-	}
-}
-
-// GetAlias returns the alias of the SelectQuery.
-func (q SelectQuery) GetAlias() string {
-	return q.Alias
-}
-
-// GetName returns the name of the SelectQuery, which is always an empty
-// string.
-func (q SelectQuery) GetName() string {
-	return ""
 }
 
 // NestThis indicates to the SelectQuery that it is nested.

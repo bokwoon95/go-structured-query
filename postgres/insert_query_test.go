@@ -56,18 +56,19 @@ func TestInsertQuery_ToSQL(t *testing.T) {
 				" RETURNING 1",
 			[]interface{}{"aaa", "aaa@email.com", "bbb", "bbb@email.com"},
 		},
-		{
-			"Insert Select",
-			WithLog(customLogger, 0).
-				With(CTE{
-					Name:  "cte1",
-					Query: SelectOne().From(u),
-				}).
+		func() TT {
+			var tt TT
+			tt.description = "Insert Select"
+			cte1 := SelectOne().From(u).CTE("cte1")
+			cte2 := SelectDistinct(u.EMAIL).From(u).CTE("cte2")
+			tt.q = WithLog(customLogger, 0).
 				InsertInto(u).
 				Columns(u.DISPLAYNAME, u.EMAIL).
 				Select(
 					Select(u.DISPLAYNAME, u.EMAIL).
 						From(u).
+						CustomJoin("NATURAL JOIN", cte1).
+						CustomJoin("NATURAL JOIN", cte2).
 						Where(u.USER_ID.In([]int{1, 2, 3})),
 				).
 				OnConflict(u.DISPLAYNAME, u.EMAIL).
@@ -77,24 +78,23 @@ func TestInsertQuery_ToSQL(t *testing.T) {
 					u.EMAIL.Set(Excluded(u.EMAIL)),
 				).
 				Where(u.EMAIL.IsNotNull()).
-				Returning(u.DISPLAYNAME, u.EMAIL).
-				With(CTE{
-					Name:  "cte2",
-					Query: SelectDistinct(u.EMAIL).From(u),
-				}),
-			"WITH cte1 AS (SELECT 1 FROM public.users AS u)" +
+				Returning(u.DISPLAYNAME, u.EMAIL)
+			tt.wantQuery = "WITH cte1 AS (SELECT 1 FROM public.users AS u)" +
 				", cte2 AS (SELECT DISTINCT u.email FROM public.users AS u)" +
 				" INSERT INTO public.users AS u (displayname, email)" +
 				" SELECT u.displayname, u.email FROM public.users AS u" +
+				" NATURAL JOIN cte1" +
+				" NATURAL JOIN cte2" +
 				" WHERE u.user_id IN ($1, $2, $3)" +
 				" ON CONFLICT (displayname, email)" +
 				" WHERE displayname IS NOT NULL" +
 				" DO UPDATE SET" +
 				" displayname = EXCLUDED.displayname, email = EXCLUDED.email" +
 				" WHERE u.email IS NOT NULL" +
-				" RETURNING u.displayname, u.email",
-			[]interface{}{1, 2, 3},
-		},
+				" RETURNING u.displayname, u.email"
+			tt.wantArgs = []interface{}{1, 2, 3}
+			return tt
+		}(),
 		func() TT {
 			desc := "aliasless table"
 			u := USERS()

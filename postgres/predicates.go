@@ -88,8 +88,7 @@ func (p VariadicPredicate) AppendSQLExclude(buf *strings.Builder, args *[]interf
 		p.Operator = PredicateAnd
 	}
 	switch len(p.Predicates) {
-	case 0:
-		// nothing to do here
+	case 0: // nothing to do here
 	case 1:
 		if p.Negative {
 			buf.WriteString("NOT ")
@@ -161,5 +160,47 @@ func Or(predicates ...Predicate) VariadicPredicate {
 	return VariadicPredicate{
 		Operator:   PredicateOr,
 		Predicates: predicates,
+	}
+}
+
+func Eq(f1, f2 interface{}) Predicate {
+	return CustomPredicate{
+		Format: "? = ?",
+		Values: []interface{}{f1, f2},
+	}
+}
+
+func Ne(f1, f2 interface{}) Predicate {
+	return CustomPredicate{
+		Format: "? <> ?",
+		Values: []interface{}{f1, f2},
+	}
+}
+
+func Gt(f1, f2 interface{}) Predicate {
+	return CustomPredicate{
+		Format: "? > ?",
+		Values: []interface{}{f1, f2},
+	}
+}
+
+func Ge(f1, f2 interface{}) Predicate {
+	return CustomPredicate{
+		Format: "? >= ?",
+		Values: []interface{}{f1, f2},
+	}
+}
+
+func Lt(f1, f2 interface{}) Predicate {
+	return CustomPredicate{
+		Format: "? < ?",
+		Values: []interface{}{f1, f2},
+	}
+}
+
+func Le(f1, f2 interface{}) Predicate {
+	return CustomPredicate{
+		Format: "? <= ?",
+		Values: []interface{}{f1, f2},
 	}
 }

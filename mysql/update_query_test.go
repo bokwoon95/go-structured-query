@@ -24,7 +24,7 @@ func TestUpdateQuery_ToSQL(t *testing.T) {
 			"Joins",
 			WithDefaultLog(Lverbose).
 				Update(u).
-				Join(SelectOne().From(u).As("subquery"), Bool(true)).
+				Join(SelectOne().From(u).Subquery("subquery"), Bool(true)).
 				Join(u, u.USER_ID.Eq(u.USER_ID)).
 				LeftJoin(u, u.USER_ID.Eq(u.USER_ID)).
 				RightJoin(u, u.USER_ID.Eq(u.USER_ID)).
@@ -39,31 +39,31 @@ func TestUpdateQuery_ToSQL(t *testing.T) {
 				" CROSS JOIN devlab.users AS u",
 			[]interface{}{true},
 		},
-		{
-			"assorted",
-			WithLog(customLogger, Lverbose).
-				With(CTE{
-					Name:  "cte1",
-					Query: SelectOne().From(u),
-				}).
+		func() TT {
+			var tt TT
+			tt.description = "assorted"
+			cte1 := SelectOne().From(u).CTE("cte1")
+			cte2 := SelectDistinct(u.EMAIL).From(u).CTE("cte2")
+			tt.q = WithLog(customLogger, Lverbose).
 				Update(u).
 				Join(u, Bool(true)).
+				CustomJoin("NATURAL JOIN", cte1).
+				CustomJoin("NATURAL JOIN", cte2).
 				Where(u.USER_ID.Eq(u.USER_ID)).
 				OrderBy(u.DISPLAYNAME, u.EMAIL.Desc()).
-				Limit(-10).
-				With(CTE{
-					Name:  "cte2",
-					Query: SelectDistinct(u.EMAIL).From(u),
-				}),
-			"WITH cte1 AS (SELECT 1 FROM devlab.users AS u)" +
+				Limit(-10)
+			tt.wantQuery = "WITH cte1 AS (SELECT 1 FROM devlab.users AS u)" +
 				", cte2 AS (SELECT DISTINCT u.email FROM devlab.users AS u)" +
 				" UPDATE devlab.users AS u" +
 				" JOIN devlab.users AS u ON ?" +
+				" NATURAL JOIN cte1" +
+				" NATURAL JOIN cte2" +
 				" WHERE u.user_id = u.user_id" +
 				" ORDER BY u.displayname, u.email DESC" +
-				" LIMIT ?",
-			[]interface{}{true, int64(10)},
-		},
+				" LIMIT ?"
+			tt.wantArgs = []interface{}{true, int64(10)}
+			return tt
+		}(),
 		func() TT {
 			desc := "aliasless table"
 			u := USERS()

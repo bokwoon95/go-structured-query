@@ -38,6 +38,48 @@ func TestCustomPredicate_AppendSQLExclude(t *testing.T) {
 			"user_id = ?",
 			[]interface{}{"22"},
 		},
+		{
+			"Eq",
+			Eq(u.USER_ID, 22),
+			[]string{u.GetName()},
+			"user_id = ?",
+			[]interface{}{22},
+		},
+		{
+			"Ne",
+			Ne(u.USER_ID, 22),
+			[]string{u.GetName()},
+			"user_id <> ?",
+			[]interface{}{22},
+		},
+		{
+			"Gt",
+			Gt(u.USER_ID, 22),
+			[]string{u.GetName()},
+			"user_id > ?",
+			[]interface{}{22},
+		},
+		{
+			"Ge",
+			Ge(u.USER_ID, 22),
+			[]string{u.GetName()},
+			"user_id >= ?",
+			[]interface{}{22},
+		},
+		{
+			"Lt",
+			Lt(u.USER_ID, 22),
+			[]string{u.GetName()},
+			"user_id < ?",
+			[]interface{}{22},
+		},
+		{
+			"Le",
+			Le(u.USER_ID, 22),
+			[]string{u.GetName()},
+			"user_id <= ?",
+			[]interface{}{22},
+		},
 	}
 	for _, tt := range tests {
 		tt := tt

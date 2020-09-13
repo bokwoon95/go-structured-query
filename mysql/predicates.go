@@ -170,3 +170,45 @@ func Or(predicates ...Predicate) VariadicPredicate {
 		Predicates: predicates,
 	}
 }
+
+func Eq(f1, f2 interface{}) Predicate {
+	return CustomPredicate{
+		Format: "? = ?",
+		Values: []interface{}{f1, f2},
+	}
+}
+
+func Ne(f1, f2 interface{}) Predicate {
+	return CustomPredicate{
+		Format: "? <> ?",
+		Values: []interface{}{f1, f2},
+	}
+}
+
+func Gt(f1, f2 interface{}) Predicate {
+	return CustomPredicate{
+		Format: "? > ?",
+		Values: []interface{}{f1, f2},
+	}
+}
+
+func Ge(f1, f2 interface{}) Predicate {
+	return CustomPredicate{
+		Format: "? >= ?",
+		Values: []interface{}{f1, f2},
+	}
+}
+
+func Lt(f1, f2 interface{}) Predicate {
+	return CustomPredicate{
+		Format: "? < ?",
+		Values: []interface{}{f1, f2},
+	}
+}
+
+func Le(f1, f2 interface{}) Predicate {
+	return CustomPredicate{
+		Format: "? <= ?",
+		Values: []interface{}{f1, f2},
+	}
+}
