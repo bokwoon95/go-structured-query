@@ -37,10 +37,10 @@ go get github.com/bokwoon95/go-structured-query
 You will also need the dialect-specific code generator
 ```bash
 # Postgres
-go get github.com/bokwoon95/go-structured-query/cmd/sqgen-postgres
+go get github.com/bokwoon95/go-structured-query/cmd/sqgen-postgres --overwrite
 
 # MySQL
-go get github.com/bokwoon95/go-structured-query/cmd/sqgen-mysql
+go get github.com/bokwoon95/go-structured-query/cmd/sqgen-mysql --overwrite
 ```
 Generate tables from your database
 ```bash
