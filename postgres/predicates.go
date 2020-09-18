@@ -72,7 +72,7 @@ const (
 // VariadicPredicate represents the "x AND y AND z..." or "x OR y OR z..." SQL
 // construct.
 type VariadicPredicate struct {
-    // toplevel indicates if the variadic predicate is the top level predicate
+	// toplevel indicates if the variadic predicate is the top level predicate
 	// i.e. it does not need enclosing brackets
 	toplevel   bool
 	Alias      string

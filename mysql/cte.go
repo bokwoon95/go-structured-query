@@ -140,7 +140,7 @@ func (cte CTE) As(alias string) CTE {
 	return newcte
 }
 
-func (cte CTE) AppendSQL(buf *strings.Builder, args *[]interface{}) {
+func (cte CTE) AppendSQL(buf *strings.Builder, _ *[]interface{}) {
 	buf.WriteString(cte.GetName())
 }
 
@@ -209,53 +209,53 @@ func RecursiveCTE(name string, columns ...string) CTE {
 	return cte
 }
 
-type intermediateCTE map[string]CustomField
+type IntermediateCTE map[string]CustomField
 
-func (cte CTE) Initial(query Query) intermediateCTE {
+func (cte *CTE) Initial(query Query) IntermediateCTE {
 	if !cte.IsRecursive() {
-		return intermediateCTE(cte)
+		return IntermediateCTE(*cte)
 	}
-	if cte == nil {
-		cte = map[string]CustomField{}
+	if *cte == nil {
+		*cte = map[string]CustomField{}
 	}
-	cte[metadataQuery] = CustomField{Values: []interface{}{query}}
+	(*cte)[metadataQuery] = CustomField{Values: []interface{}{query}}
 	name := cte.GetName()
 	columns := cte.GetColumns()
 	if len(columns) > 0 {
-		return intermediateCTE(cte)
+		return IntermediateCTE(*cte)
 	}
 	switch q := query.(type) {
 	case SelectQuery:
 		for _, field := range q.SelectFields {
 			column := getAliasOrName(field)
-			cte[column] = CustomField{Format: name + "." + column}
+			(*cte)[column] = CustomField{Format: name + "." + column}
 		}
 	}
-	return intermediateCTE(cte)
+	return IntermediateCTE(*cte)
 }
 
-func (cte intermediateCTE) Union(queries ...Query) CTE {
+func (cte IntermediateCTE) Union(queries ...Query) CTE {
 	if !CTE(cte).IsRecursive() {
 		return CTE(cte)
 	}
 	return cte.union(queries, QueryUnion)
 }
 
-func (cte intermediateCTE) UnionAll(queries ...Query) CTE {
+func (cte IntermediateCTE) UnionAll(queries ...Query) CTE {
 	if !CTE(cte).IsRecursive() {
 		return CTE(cte)
 	}
 	return cte.union(queries, QueryUnionAll)
 }
 
-func (cte intermediateCTE) union(queries []Query, operator VariadicQueryOperator) CTE {
-	if cte == nil {
-		cte = map[string]CustomField{}
+func (cte *IntermediateCTE) union(queries []Query, operator VariadicQueryOperator) CTE {
+	if *cte == nil {
+		*cte = map[string]CustomField{}
 	}
-	initialQuery := CTE(cte).GetQuery()
-	cte[metadataQuery] = CustomField{Values: []interface{}{VariadicQuery{
+	initialQuery := CTE(*cte).GetQuery()
+	(*cte)[metadataQuery] = CustomField{Values: []interface{}{VariadicQuery{
 		Operator: operator,
 		Queries:  append([]Query{initialQuery}, queries...),
 	}}}
-	return CTE(cte)
+	return CTE(*cte)
 }

@@ -84,7 +84,8 @@ func TestCTEs_AppendSQL(t *testing.T) {
 			u := USERS().As("u")
 			q1 := Select(u.USER_ID, u.EMAIL).From(u).Where(u.USER_ID.EqInt(1))
 			q2 := Select(u.USER_ID, u.EMAIL).From(u).Where(u.USER_ID.EqInt(2))
-			cte := Select(u.USER_ID, u.DISPLAYNAME, u.EMAIL).From(u).Where(u.USER_ID.LtInt(5)).CTE("cte").Initial(q1).Union(q2)
+			cte := Select(u.USER_ID, u.DISPLAYNAME, u.EMAIL).From(u).Where(u.USER_ID.LtInt(5)).CTE("cte")
+			cte = cte.Initial(q1).Union(q2)
 			tt.q = Select(cte["user_id"], cte["displayname"]).From(cte).Where(cte["displayname"].Eq(cte["email"]))
 			tt.wantQuery = "WITH cte AS" +
 				" (SELECT u.user_id, u.displayname, u.email FROM devlab.users AS u WHERE u.user_id < ?)" +
