@@ -21,7 +21,7 @@ func (p CustomPredicate) AppendSQLExclude(buf *strings.Builder, args *[]interfac
 	if p.Negative {
 		buf.WriteString("NOT ")
 	}
-	ExpandValues(buf, args, excludedTableQualifiers, p.Format, p.Values)
+	expandValues(buf, args, excludedTableQualifiers, p.Format, p.Values)
 }
 
 func Predicatef(format string, values ...interface{}) CustomPredicate {
@@ -72,9 +72,9 @@ const (
 // VariadicPredicate represents the "x AND y AND z..." or "x OR y OR z..." SQL
 // construct.
 type VariadicPredicate struct {
-	// Toplevel indicates if the variadic predicate is the top level predicate
+    // toplevel indicates if the variadic predicate is the top level predicate
 	// i.e. it does not need enclosing brackets
-	Toplevel   bool
+	toplevel   bool
 	Alias      string
 	Operator   VariadicPredicateOperator
 	Predicates []Predicate
@@ -97,12 +97,12 @@ func (p VariadicPredicate) AppendSQLExclude(buf *strings.Builder, args *[]interf
 		case nil:
 			buf.WriteString("NULL")
 		case VariadicPredicate:
-			if !p.Toplevel {
+			if !p.toplevel {
 				buf.WriteString("(")
 			}
-			v.Toplevel = true
+			v.toplevel = true
 			v.AppendSQLExclude(buf, args, excludedTableQualifiers)
-			if !p.Toplevel {
+			if !p.toplevel {
 				buf.WriteString(")")
 			}
 		default:
@@ -112,7 +112,7 @@ func (p VariadicPredicate) AppendSQLExclude(buf *strings.Builder, args *[]interf
 		if p.Negative {
 			buf.WriteString("NOT ")
 		}
-		if !p.Toplevel {
+		if !p.toplevel {
 			buf.WriteString("(")
 		}
 		for i, predicate := range p.Predicates {
@@ -127,7 +127,7 @@ func (p VariadicPredicate) AppendSQLExclude(buf *strings.Builder, args *[]interf
 				predicate.AppendSQLExclude(buf, args, excludedTableQualifiers)
 			}
 		}
-		if !p.Toplevel {
+		if !p.toplevel {
 			buf.WriteString(")")
 		}
 	}

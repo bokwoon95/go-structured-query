@@ -104,7 +104,7 @@ func TestUpdateQuery_Exec(t *testing.T) {
 
 	// SQL syntax error
 	// use a tempDB so we don't foul up the current db transaction with the error
-	tempDB, err := sql.Open("txdb", RandomString(8))
+	tempDB, err := sql.Open("txdb", randomString(8))
 	is.NoErr(err)
 	_, err = WithLog(customLogger, Linterpolate).
 		WithDB(tempDB).
@@ -127,7 +127,7 @@ func TestUpdateQuery_Exec(t *testing.T) {
 	is.True(errors.Is(err, context.DeadlineExceeded))
 
 	// rowsAffected
-	tempDB, err = sql.Open("txdb", RandomString(8))
+	tempDB, err = sql.Open("txdb", randomString(8))
 	is.NoErr(err)
 	rowsAffected, err := WithDefaultLog(Lverbose).
 		WithDB(tempDB).

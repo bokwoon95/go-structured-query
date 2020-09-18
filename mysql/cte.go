@@ -74,7 +74,7 @@ func AppendCTEs(buf *strings.Builder, args *[]interface{}, CTEs []CTE, fromTable
 		case nil:
 			buf.WriteString("NULL")
 		case VariadicQuery:
-			q.TopLevel = true
+			q.topLevel = true
 			q.NestThis().AppendSQL(buf, args)
 		default:
 			q.NestThis().AppendSQL(buf, args)

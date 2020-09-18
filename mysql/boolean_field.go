@@ -169,7 +169,7 @@ func (f BooleanField) String() string {
 	buf := &strings.Builder{}
 	var args []interface{}
 	f.AppendSQLExclude(buf, &args, nil)
-	return QuestionInterpolate(buf.String(), args...)
+	return questionInterpolate(buf.String(), args...)
 }
 
 // GetAlias returns the alias of the BooleanField.

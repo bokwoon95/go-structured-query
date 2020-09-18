@@ -250,7 +250,7 @@ func TestVariadicPredicate_AppendSQLExclude(t *testing.T) {
 		{
 			"multiple predicates with toplevel enabled",
 			VariadicPredicate{
-				Toplevel: true,
+				toplevel: true,
 				Predicates: []Predicate{
 					u.USER_ID.EqInt(1),
 					u.EMAIL.EqString("lorem ipsum"),
@@ -288,7 +288,7 @@ func TestVariadicPredicate_AppendSQLExclude(t *testing.T) {
 		{
 			"excludedTableQualifiers",
 			VariadicPredicate{
-				Toplevel: true,
+				toplevel: true,
 				Predicates: []Predicate{
 					u.USER_ID.EqInt(1),
 					u.EMAIL.EqString("lorem ipsum"),

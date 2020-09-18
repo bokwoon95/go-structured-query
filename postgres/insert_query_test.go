@@ -134,7 +134,7 @@ func TestInsertQuery_Fetch(t *testing.T) {
 
 	// SQL syntax error
 	// use a tempDB so we don't foul up the current db transaction with the error
-	tempDB, err := sql.Open("txdb", RandomString(8))
+	tempDB, err := sql.Open("txdb", randomString(8))
 	is.NoErr(err)
 	var userID int
 	err = WithLog(customLogger, Linterpolate).
@@ -156,7 +156,7 @@ func TestInsertQuery_Fetch(t *testing.T) {
 	is.True(err != nil)
 
 	// Empty mapper
-	tempDB, err = sql.Open("txdb", RandomString(8))
+	tempDB, err = sql.Open("txdb", randomString(8))
 	is.NoErr(err)
 	err = WithDB(tempDB).
 		InsertInto(u).
@@ -168,7 +168,7 @@ func TestInsertQuery_Fetch(t *testing.T) {
 	tempDB.Close()
 
 	// Wrong Scan type
-	tempDB, err = sql.Open("txdb", RandomString(8))
+	tempDB, err = sql.Open("txdb", randomString(8))
 	is.NoErr(err)
 	err = WithLog(customLogger, Lverbose).
 		WithDB(tempDB).
@@ -209,7 +209,7 @@ func TestInsertQuery_Fetch(t *testing.T) {
 	is.True(errors.Is(err, context.DeadlineExceeded))
 
 	// Mapper
-	tempDB, err = sql.Open("txdb", RandomString(8))
+	tempDB, err = sql.Open("txdb", randomString(8))
 	is.NoErr(err)
 	var email string
 	err = WithLog(customLogger, Lverbose).
@@ -226,7 +226,7 @@ func TestInsertQuery_Fetch(t *testing.T) {
 	tempDB.Close()
 
 	// Accumulator
-	tempDB, err = sql.Open("txdb", RandomString(8))
+	tempDB, err = sql.Open("txdb", randomString(8))
 	is.NoErr(err)
 	var emails []string
 	err = WithLog(customLogger, Lverbose).
@@ -254,7 +254,7 @@ func TestInsertQuery_Fetch(t *testing.T) {
 	tempDB.Close()
 
 	// Panic with ExitPeacefully
-	tempDB, err = sql.Open("txdb", RandomString(8))
+	tempDB, err = sql.Open("txdb", randomString(8))
 	is.NoErr(err)
 	emails = emails[:0]
 	err = WithDefaultLog(Linterpolate).
@@ -273,7 +273,7 @@ func TestInsertQuery_Fetch(t *testing.T) {
 	tempDB.Close()
 
 	// Panic with any other ExitCode
-	tempDB, err = sql.Open("txdb", RandomString(8))
+	tempDB, err = sql.Open("txdb", randomString(8))
 	is.NoErr(err)
 	emails = emails[:0]
 	err = WithDefaultLog(Linterpolate).
@@ -291,7 +291,7 @@ func TestInsertQuery_Fetch(t *testing.T) {
 	tempDB.Close()
 
 	// Panic with error
-	tempDB, err = sql.Open("txdb", RandomString(8))
+	tempDB, err = sql.Open("txdb", randomString(8))
 	is.NoErr(err)
 	ErrTest := errors.New("this is a test error")
 	emails = emails[:0]
@@ -310,7 +310,7 @@ func TestInsertQuery_Fetch(t *testing.T) {
 	tempDB.Close()
 
 	// Panic with 0
-	tempDB, err = sql.Open("txdb", RandomString(8))
+	tempDB, err = sql.Open("txdb", randomString(8))
 	is.NoErr(err)
 	emails = emails[:0]
 	err = WithDefaultLog(Linterpolate).
@@ -346,7 +346,7 @@ func TestInsertQuery_Exec(t *testing.T) {
 
 	// SQL syntax error
 	// use a tempDB so we don't foul up the current db transaction with the error
-	tempDB, err := sql.Open("txdb", RandomString(8))
+	tempDB, err := sql.Open("txdb", randomString(8))
 	is.NoErr(err)
 	_, err = WithLog(customLogger, Linterpolate).
 		WithDB(tempDB).

@@ -13,7 +13,7 @@ import (
 )
 
 type UpdateQuery struct {
-	Nested bool
+	nested bool
 	// WITH
 	CTEs []CTE
 	// UPDATE
@@ -34,11 +34,11 @@ type UpdateQuery struct {
 	// Logging
 	Log     Logger
 	LogFlag LogFlag
-	LogSkip int
+	logSkip int
 }
 
 func (q UpdateQuery) ToSQL() (string, []interface{}) {
-	q.LogSkip += 1
+	q.logSkip += 1
 	buf := &strings.Builder{}
 	var args []interface{}
 	q.AppendSQL(buf, &args)
@@ -48,7 +48,7 @@ func (q UpdateQuery) ToSQL() (string, []interface{}) {
 func (q UpdateQuery) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 	var excludedTableQualifiers []string
 	// WITH
-	if !q.Nested {
+	if !q.nested {
 		AppendCTEs(buf, args, q.CTEs, q.FromTable, q.JoinTables)
 	}
 	// UPDATE
@@ -97,7 +97,7 @@ func (q UpdateQuery) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 	// WHERE
 	if len(q.WherePredicate.Predicates) > 0 {
 		buf.WriteString(" WHERE ")
-		q.WherePredicate.Toplevel = true
+		q.WherePredicate.toplevel = true
 		q.WherePredicate.AppendSQLExclude(buf, args, nil)
 	}
 	// RETURNING
@@ -105,26 +105,26 @@ func (q UpdateQuery) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 		buf.WriteString(" RETURNING ")
 		q.ReturningFields.AppendSQLExcludeWithAlias(buf, args, nil)
 	}
-	if !q.Nested {
+	if !q.nested {
 		query := buf.String()
 		buf.Reset()
-		QuestionToDollarPlaceholders(buf, query)
+		questionToDollarPlaceholders(buf, query)
 		if q.Log != nil {
 			var logOutput string
 			switch {
 			case Lstats&q.LogFlag != 0:
 				logOutput = "\n----[ Executing query ]----\n" + buf.String() + " " + fmt.Sprint(*args) +
-					"\n----[ with bind values ]----\n" + QuestionInterpolate(query, *args...)
+					"\n----[ with bind values ]----\n" + questionInterpolate(query, *args...)
 			case Linterpolate&q.LogFlag != 0:
-				logOutput = QuestionInterpolate(query, *args...)
+				logOutput = questionInterpolate(query, *args...)
 			default:
 				logOutput = buf.String() + " " + fmt.Sprint(*args)
 			}
 			switch q.Log.(type) {
 			case *log.Logger:
-				q.Log.Output(q.LogSkip+2, logOutput)
+				_ = q.Log.Output(q.logSkip+2, logOutput)
 			default:
-				q.Log.Output(q.LogSkip+1, logOutput)
+				_ = q.Log.Output(q.logSkip+1, logOutput)
 			}
 		}
 	}
@@ -242,7 +242,7 @@ func (q UpdateQuery) ReturningRowx(mapper func(*Row)) UpdateQuery {
 }
 
 func (q UpdateQuery) Fetch(db DB) (err error) {
-	q.LogSkip += 1
+	q.logSkip += 1
 	return q.FetchContext(nil, db)
 }
 
@@ -254,7 +254,7 @@ func (q UpdateQuery) FetchContext(ctx context.Context, db DB) (err error) {
 		db = q.DB
 	}
 	if q.Mapper == nil {
-		return fmt.Errorf("Cannot call Fetch without a mapper")
+		return fmt.Errorf("cannot call Fetch/FetchContext without a mapper")
 	}
 	logBuf := &strings.Builder{}
 	start := time.Now()
@@ -290,9 +290,9 @@ func (q UpdateQuery) FetchContext(ctx context.Context, db DB) (err error) {
 		if logBuf.Len() > 0 {
 			switch q.Log.(type) {
 			case *log.Logger:
-				q.Log.Output(q.LogSkip+2, logBuf.String())
+				_ = q.Log.Output(q.logSkip+2, logBuf.String())
 			default:
-				q.Log.Output(q.LogSkip+1, logBuf.String())
+				_ = q.Log.Output(q.logSkip+1, logBuf.String())
 			}
 		}
 	}()
@@ -301,7 +301,7 @@ func (q UpdateQuery) FetchContext(ctx context.Context, db DB) (err error) {
 	q.ReturningFields = r.fields
 	tmpbuf := &strings.Builder{}
 	var tmpargs []interface{}
-	q.LogSkip += 1
+	q.logSkip += 1
 	q.AppendSQL(tmpbuf, &tmpargs)
 	if ctx == nil {
 		r.rows, err = db.Query(tmpbuf.String(), tmpargs...)
@@ -326,7 +326,7 @@ func (q UpdateQuery) FetchContext(ctx context.Context, db DB) (err error) {
 				r.fields[i].AppendSQLExclude(tmpbuf, &tmpargs, nil)
 				errbuf.WriteString("\n" +
 					strconv.Itoa(i) + ") " +
-					DollarInterpolate(tmpbuf.String(), tmpargs...) + " => " +
+					dollarInterpolate(tmpbuf.String(), tmpargs...) + " => " +
 					reflect.TypeOf(r.dest[i]).String())
 			}
 			return fmt.Errorf("Please check if your mapper function is correct:%s\n%w", errbuf.String(), err)
@@ -340,9 +340,9 @@ func (q UpdateQuery) FetchContext(ctx context.Context, db DB) (err error) {
 				tmpargs = tmpargs[:0]
 				r.fields[i].AppendSQLExclude(tmpbuf, &tmpargs, nil)
 				logBuf.WriteString("\n")
-				logBuf.WriteString(DollarInterpolate(tmpbuf.String(), tmpargs...))
+				logBuf.WriteString(dollarInterpolate(tmpbuf.String(), tmpargs...))
 				logBuf.WriteString(": ")
-				logBuf.WriteString(AppendSQLDisplay(r.dest[i]))
+				logBuf.WriteString(appendSQLDisplay(r.dest[i]))
 			}
 		}
 		r.index = 0
@@ -362,7 +362,7 @@ func (q UpdateQuery) FetchContext(ctx context.Context, db DB) (err error) {
 }
 
 func (q UpdateQuery) Exec(db DB, flag ExecFlag) (rowsAffected int64, err error) {
-	q.LogSkip += 1
+	q.logSkip += 1
 	return q.ExecContext(nil, db, flag)
 }
 
@@ -390,16 +390,16 @@ func (q UpdateQuery) ExecContext(ctx context.Context, db DB, flag ExecFlag) (row
 		if logBuf.Len() > 0 {
 			switch q.Log.(type) {
 			case *log.Logger:
-				q.Log.Output(q.LogSkip+2, logBuf.String())
+				_ = q.Log.Output(q.logSkip+2, logBuf.String())
 			default:
-				q.Log.Output(q.LogSkip+1, logBuf.String())
+				_ = q.Log.Output(q.logSkip+1, logBuf.String())
 			}
 		}
 	}()
 	var res sql.Result
 	tmpbuf := &strings.Builder{}
 	var tmpargs []interface{}
-	q.LogSkip += 1
+	q.logSkip += 1
 	q.AppendSQL(tmpbuf, &tmpargs)
 	if ctx == nil {
 		res, err = db.Exec(tmpbuf.String(), tmpargs...)
@@ -419,6 +419,6 @@ func (q UpdateQuery) ExecContext(ctx context.Context, db DB, flag ExecFlag) (row
 }
 
 func (q UpdateQuery) NestThis() Query {
-	q.Nested = true
+	q.nested = true
 	return q
 }

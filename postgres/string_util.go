@@ -12,10 +12,10 @@ import (
 	"time"
 )
 
-// ExpandValues will expand each value one by one into successive question mark
+// expandValues will expand each value one by one into successive question mark
 // ? placeholders in the format string, writing the results into the buffer and
 // args slice. It propagates the excludedTableQualifiers down to its child elements.
-func ExpandValues(buf *strings.Builder, args *[]interface{}, excludedTableQualifiers []string, format string, values []interface{}) {
+func expandValues(buf *strings.Builder, args *[]interface{}, excludedTableQualifiers []string, format string, values []interface{}) {
 	for i := strings.Index(format, "?"); i >= 0 && len(values) > 0; i = strings.Index(format, "?") {
 		buf.WriteString(format[:i])
 		// TODO: I don't know if ?? should be unescaped to ?
@@ -24,17 +24,17 @@ func ExpandValues(buf *strings.Builder, args *[]interface{}, excludedTableQualif
 		// 	format = format[i+2:]
 		// 	continue
 		// }
-		AppendSQLValue(buf, args, excludedTableQualifiers, values[0])
+		appendSQLValue(buf, args, excludedTableQualifiers, values[0])
 		format = format[i+1:]
 		values = values[1:]
 	}
 	buf.WriteString(format)
 }
 
-// AppendSQLValue will write the SQL representation of the interface{} value
+// appendSQLValue will write the SQL representation of the interface{} value
 // into the buffer and args slice. It propagates excludedTableQualifiers where
 // relevant.
-func AppendSQLValue(buf *strings.Builder, args *[]interface{}, excludedTableQualifiers []string, value interface{}) {
+func appendSQLValue(buf *strings.Builder, args *[]interface{}, excludedTableQualifiers []string, value interface{}) {
 	switch v := value.(type) {
 	case nil:
 		buf.WriteString("NULL")
@@ -68,10 +68,10 @@ func AppendSQLValue(buf *strings.Builder, args *[]interface{}, excludedTableQual
 	*args = append(*args, value)
 }
 
-// RandomString is the RandStringBytesMaskImprSrcSB function taken from
+// randomString is the RandStringBytesMaskImprSrcSB function taken from
 // https://stackoverflow.com/a/31832326. It generates a random alphabetical
 // string of length n.
-func RandomString(n int) string {
+func randomString(n int) string {
 	const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	const (
 		letterIdxBits = 6                    // 6 bits to represent a letter index
@@ -97,7 +97,7 @@ func RandomString(n int) string {
 }
 
 // TODO: write a version that takes in a buffer and writes into it instead
-func InterpolateSQLValue(arg interface{}) string {
+func interpolateSQLValue(arg interface{}) string {
 	var str string // str is the SQL string representation of arg
 	switch v := arg.(type) {
 	case nil:
@@ -141,8 +141,8 @@ func InterpolateSQLValue(arg interface{}) string {
 	return str
 }
 
-// AppendSQLRowResult
-func AppendSQLDisplay(arg interface{}) string {
+// AppendSQLDisplay
+func appendSQLDisplay(arg interface{}) string {
 	var str string // str is the SQL string representation of arg
 	switch v := arg.(type) {
 	case nil:
@@ -187,10 +187,10 @@ func AppendSQLDisplay(arg interface{}) string {
 	return str
 }
 
-// QuestionToDollarPlaceholders will replace all MySQL style ? with Postgres
+// questionToDollarPlaceholders will replace all MySQL style ? with Postgres
 // style incrementing placeholders i.e. $1, $2, $3 etc. To escape a literal
 // question mark ? , use two question marks ?? instead.
-func QuestionToDollarPlaceholders(buf *strings.Builder, query string) {
+func questionToDollarPlaceholders(buf *strings.Builder, query string) {
 	i := 0
 	for {
 		p := strings.Index(query, "?")
@@ -210,11 +210,11 @@ func QuestionToDollarPlaceholders(buf *strings.Builder, query string) {
 	buf.WriteString(query)
 }
 
-// QuestionInterpolate interpolates the question mark ? placeholders in a query
+// questionInterpolate interpolates the question mark ? placeholders in a query
 // string with the args in the args slice. It is vulnerable to SQL injection
 // and should be used for display purposes only, not for actually running
 // against a database.
-func QuestionInterpolate(query string, args ...interface{}) string {
+func questionInterpolate(query string, args ...interface{}) string {
 	buf := &strings.Builder{}
 	// i is the position of the ? in the query
 	for i := strings.Index(query, "?"); i >= 0 && len(args) > 0; i = strings.Index(query, "?") {
@@ -224,7 +224,7 @@ func QuestionInterpolate(query string, args ...interface{}) string {
 			query = query[i+2:]
 			continue
 		}
-		buf.WriteString(InterpolateSQLValue(args[0]))
+		buf.WriteString(interpolateSQLValue(args[0]))
 		query = query[i+1:]
 		args = args[1:]
 	}
@@ -232,14 +232,14 @@ func QuestionInterpolate(query string, args ...interface{}) string {
 	return buf.String()
 }
 
-// DollarInterpolate interpolates the dollar $1 ($2, $3 etc) placeholders in a
+// dollarInterpolate interpolates the dollar $1 ($2, $3 etc) placeholders in a
 // query string with the args in the args slice. It is vulnerable to SQL
 // injection and should be used for display purposes only, not for actually
 // running against a database.
-func DollarInterpolate(query string, args ...interface{}) string {
+func dollarInterpolate(query string, args ...interface{}) string {
 	oldnewSets := make(map[int][]string)
 	for i, arg := range args {
-		str := InterpolateSQLValue(arg)
+		str := interpolateSQLValue(arg)
 		placeholder := "$" + strconv.Itoa(i+1)
 		oldnewSets[len(placeholder)] = append(oldnewSets[len(placeholder)], placeholder, str)
 	}

@@ -33,7 +33,7 @@ func (f *FunctionInfo) AppendSQLExclude(buf *strings.Builder, args *[]interface{
 	default:
 		format = format + f.Name + "(?" + strings.Repeat(", ?", len(f.Arguments)-1) + ")"
 	}
-	ExpandValues(buf, args, excludedTableQualifiers, format, f.Arguments)
+	expandValues(buf, args, excludedTableQualifiers, format, f.Arguments)
 }
 
 func Functionf(name string, args ...interface{}) *FunctionInfo {

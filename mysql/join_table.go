@@ -101,7 +101,7 @@ func (join JoinTable) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 	}
 	if len(join.OnPredicates.Predicates) > 0 {
 		buf.WriteString(" ON ")
-		join.OnPredicates.Toplevel = true
+		join.OnPredicates.toplevel = true
 		join.OnPredicates.AppendSQLExclude(buf, args, nil)
 	}
 }

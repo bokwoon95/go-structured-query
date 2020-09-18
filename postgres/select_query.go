@@ -112,7 +112,7 @@ func (q SelectQuery) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 	// WHERE
 	if len(q.WherePredicate.Predicates) > 0 {
 		buf.WriteString(" WHERE ")
-		q.WherePredicate.Toplevel = true
+		q.WherePredicate.toplevel = true
 		q.WherePredicate.AppendSQLExclude(buf, args, nil)
 	}
 	// GROUP BY
@@ -123,7 +123,7 @@ func (q SelectQuery) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 	// HAVING
 	if len(q.HavingPredicate.Predicates) > 0 {
 		buf.WriteString(" HAVING ")
-		q.HavingPredicate.Toplevel = true
+		q.HavingPredicate.toplevel = true
 		q.HavingPredicate.AppendSQLExclude(buf, args, nil)
 	}
 	// WINDOW
@@ -155,23 +155,23 @@ func (q SelectQuery) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 	if !q.Nested {
 		query := buf.String()
 		buf.Reset()
-		QuestionToDollarPlaceholders(buf, query)
+		questionToDollarPlaceholders(buf, query)
 		if q.Log != nil {
 			var logOutput string
 			switch {
 			case Lstats&q.LogFlag != 0:
 				logOutput = "\n----[ Executing query ]----\n" + buf.String() + " " + fmt.Sprint(*args) +
-					"\n----[ with bind values ]----\n" + QuestionInterpolate(query, *args...)
+					"\n----[ with bind values ]----\n" + questionInterpolate(query, *args...)
 			case Linterpolate&q.LogFlag != 0:
-				logOutput = QuestionInterpolate(query, *args...)
+				logOutput = questionInterpolate(query, *args...)
 			default:
 				logOutput = buf.String() + " " + fmt.Sprint(*args)
 			}
 			switch q.Log.(type) {
 			case *log.Logger:
-				q.Log.Output(q.LogSkip+2, logOutput)
+				_ = q.Log.Output(q.LogSkip+2, logOutput)
 			default:
-				q.Log.Output(q.LogSkip+1, logOutput)
+				_ = q.Log.Output(q.LogSkip+1, logOutput)
 			}
 		}
 	}
@@ -426,7 +426,7 @@ func (q SelectQuery) FetchContext(ctx context.Context, db DB) (err error) {
 		db = q.DB
 	}
 	if q.Mapper == nil {
-		return fmt.Errorf("Cannot call Fetch without a mapper")
+		return fmt.Errorf("cannot call Fetch/FetchContext without a mapper")
 	}
 	logBuf := &strings.Builder{}
 	start := time.Now()
@@ -462,9 +462,9 @@ func (q SelectQuery) FetchContext(ctx context.Context, db DB) (err error) {
 		if logBuf.Len() > 0 {
 			switch q.Log.(type) {
 			case *log.Logger:
-				q.Log.Output(q.LogSkip+2, logBuf.String())
+				_ = q.Log.Output(q.LogSkip+2, logBuf.String())
 			default:
-				q.Log.Output(q.LogSkip+1, logBuf.String())
+				_ = q.Log.Output(q.LogSkip+1, logBuf.String())
 			}
 		}
 	}()
@@ -498,7 +498,7 @@ func (q SelectQuery) FetchContext(ctx context.Context, db DB) (err error) {
 				r.fields[i].AppendSQLExclude(tmpbuf, &tmpargs, nil)
 				errbuf.WriteString("\n" +
 					strconv.Itoa(i) + ") " +
-					DollarInterpolate(tmpbuf.String(), tmpargs...) + " => " +
+					dollarInterpolate(tmpbuf.String(), tmpargs...) + " => " +
 					reflect.TypeOf(r.dest[i]).String())
 			}
 			return fmt.Errorf("Please check if your mapper function is correct:%s\n%w", errbuf.String(), err)
@@ -512,9 +512,9 @@ func (q SelectQuery) FetchContext(ctx context.Context, db DB) (err error) {
 				tmpargs = tmpargs[:0]
 				r.fields[i].AppendSQLExclude(tmpbuf, &tmpargs, nil)
 				logBuf.WriteString("\n")
-				logBuf.WriteString(DollarInterpolate(tmpbuf.String(), tmpargs...))
+				logBuf.WriteString(dollarInterpolate(tmpbuf.String(), tmpargs...))
 				logBuf.WriteString(": ")
-				logBuf.WriteString(AppendSQLDisplay(r.dest[i]))
+				logBuf.WriteString(appendSQLDisplay(r.dest[i]))
 			}
 		}
 		r.index = 0
@@ -566,9 +566,9 @@ func (q SelectQuery) ExecContext(ctx context.Context, db DB, flag ExecFlag) (row
 		if logBuf.Len() > 0 {
 			switch q.Log.(type) {
 			case *log.Logger:
-				q.Log.Output(q.LogSkip+2, logBuf.String())
+				_ = q.Log.Output(q.LogSkip+2, logBuf.String())
 			default:
-				q.Log.Output(q.LogSkip+1, logBuf.String())
+				_ = q.Log.Output(q.LogSkip+1, logBuf.String())
 			}
 		}
 	}()

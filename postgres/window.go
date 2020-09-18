@@ -4,14 +4,14 @@ import "strings"
 
 type Window struct {
 	WindowName        string
-	RenderName        bool
+	renderName        bool
 	PartitionByFields Fields
 	OrderByFields     Fields
 	FrameDefinition   string
 }
 
 func (w Window) AppendSQL(buf *strings.Builder, args *[]interface{}) {
-	if w.RenderName {
+	if w.renderName {
 		buf.WriteString(w.WindowName)
 		return
 	}
@@ -46,9 +46,9 @@ func (w Window) As(name string) Window {
 
 func (w Window) Name() Window {
 	if w.WindowName == "" {
-		w.WindowName = RandomString(8)
+		w.WindowName = randomString(8)
 	}
-	w.RenderName = true
+	w.renderName = true
 	return w
 }
 
@@ -89,7 +89,7 @@ func (ws Windows) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 		if window.WindowName != "" {
 			buf.WriteString(window.WindowName)
 		} else {
-			buf.WriteString(RandomString(8))
+			buf.WriteString(randomString(8))
 		}
 		buf.WriteString(" AS ")
 		window.AppendSQL(buf, args)

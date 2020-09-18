@@ -22,13 +22,13 @@ func (f PredicateCases) AppendSQLExclude(buf *strings.Builder, args *[]interface
 	buf.WriteString("CASE")
 	for _, Case := range f.Cases {
 		buf.WriteString(" WHEN ")
-		AppendSQLValue(buf, args, excludedTableQualifiers, Case.Condition)
+		appendSQLValue(buf, args, excludedTableQualifiers, Case.Condition)
 		buf.WriteString(" THEN ")
-		AppendSQLValue(buf, args, excludedTableQualifiers, Case.Result)
+		appendSQLValue(buf, args, excludedTableQualifiers, Case.Result)
 	}
 	if f.Fallback != nil {
 		buf.WriteString(" ELSE ")
-		AppendSQLValue(buf, args, excludedTableQualifiers, f.Fallback)
+		appendSQLValue(buf, args, excludedTableQualifiers, f.Fallback)
 	}
 	buf.WriteString(" END")
 }
@@ -94,16 +94,16 @@ type SimpleCases struct {
 // It propagates the excludedTableQualifiers down to its child elements.
 func (f SimpleCases) AppendSQLExclude(buf *strings.Builder, args *[]interface{}, excludedTableQualifiers []string) {
 	buf.WriteString("CASE ")
-	AppendSQLValue(buf, args, excludedTableQualifiers, f.Expression)
+	appendSQLValue(buf, args, excludedTableQualifiers, f.Expression)
 	for _, Case := range f.Cases {
 		buf.WriteString(" WHEN ")
-		AppendSQLValue(buf, args, excludedTableQualifiers, Case.Value)
+		appendSQLValue(buf, args, excludedTableQualifiers, Case.Value)
 		buf.WriteString(" THEN ")
-		AppendSQLValue(buf, args, excludedTableQualifiers, Case.Result)
+		appendSQLValue(buf, args, excludedTableQualifiers, Case.Result)
 	}
 	if f.Fallback != nil {
 		buf.WriteString(" ELSE ")
-		AppendSQLValue(buf, args, excludedTableQualifiers, f.Fallback)
+		appendSQLValue(buf, args, excludedTableQualifiers, f.Fallback)
 	}
 	buf.WriteString(" END")
 }

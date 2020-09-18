@@ -74,9 +74,9 @@ type FieldAssignment struct {
 // AppendSQLExclude will write the FieldAssignment into the buffer and args as
 // described in the Assignments description.
 func (set FieldAssignment) AppendSQLExclude(buf *strings.Builder, args *[]interface{}, excludedTableQualifiers []string) {
-	AppendSQLValue(buf, args, excludedTableQualifiers, set.Field)
+	appendSQLValue(buf, args, excludedTableQualifiers, set.Field)
 	buf.WriteString(" = ")
-	AppendSQLValue(buf, args, excludedTableQualifiers, set.Value)
+	appendSQLValue(buf, args, excludedTableQualifiers, set.Value)
 }
 
 func (set FieldAssignment) AssertAssignment() {}

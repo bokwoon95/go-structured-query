@@ -13,7 +13,7 @@ type ArrayField struct {
 	// slices are supported.) Nested slices are also not supported even though
 	// both Go and Postgres support nested slices/arrays because I'm not even
 	// sure if it's possible to convert between the two with lib/pq.
-	// Addtionally []int is supported, but note that it only works when
+	// Additionally []int is supported, but note that it only works when
 	// converting from Go slices to Postgres arrays. When converting from
 	// postgres arrays to Go slices, you have to use []int64 instead.
 	// Examples of literal array values:
@@ -316,7 +316,7 @@ func (f ArrayField) String() string {
 	buf := &strings.Builder{}
 	var args []interface{}
 	f.AppendSQLExclude(buf, &args, nil)
-	return QuestionInterpolate(buf.String(), args...)
+	return questionInterpolate(buf.String(), args...)
 }
 
 // GetAlias implements the Field interface. It returns the Alias of the

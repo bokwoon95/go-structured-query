@@ -13,7 +13,7 @@ const (
 	Linterpolate LogFlag = 1 << iota
 	Lstats
 	Lresults
-	Lparse
+	// Lparse
 	Lverbose = Lstats | Lresults
 )
 
@@ -22,8 +22,7 @@ type ExecFlag int
 
 // ExecFlags
 const (
-	ElastInsertID ExecFlag = 1 << iota
-	ErowsAffected
+	ErowsAffected ExecFlag = 1 << iota
 )
 
 var defaultLogger = log.New(os.Stdout, "[sq] ", log.Ldate|log.Ltime|log.Lshortfile|log.Lmsgprefix)
@@ -235,7 +234,7 @@ func (q BaseQuery) DeleteFrom(table BaseTable) DeleteQuery {
 // Union transforms the BaseQuery into a VariadicQuery.
 func (q BaseQuery) Union(queries ...Query) VariadicQuery {
 	return VariadicQuery{
-		TopLevel: true,
+		topLevel: true,
 		Operator: QueryUnion,
 		Queries:  queries,
 		DB:       q.DB,
@@ -247,7 +246,7 @@ func (q BaseQuery) Union(queries ...Query) VariadicQuery {
 // UnionAll transforms the BaseQuery into a VariadicQuery.
 func (q BaseQuery) UnionAll(queries ...Query) VariadicQuery {
 	return VariadicQuery{
-		TopLevel: true,
+		topLevel: true,
 		Operator: QueryUnionAll,
 		Queries:  queries,
 		DB:       q.DB,

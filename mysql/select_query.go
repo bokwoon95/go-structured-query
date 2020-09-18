@@ -23,7 +23,7 @@ const (
 
 // SelectQuery represents a SELECT query.
 type SelectQuery struct {
-	Nested bool
+	nested bool
 	Alias  string
 	// WITH
 	CTEs []CTE
@@ -54,12 +54,12 @@ type SelectQuery struct {
 	// Logging
 	Log     Logger
 	LogFlag LogFlag
-	LogSkip int
+	logSkip int
 }
 
 // ToSQL marshals the SelectQuery into a query string and args slice.
 func (q SelectQuery) ToSQL() (string, []interface{}) {
-	q.LogSkip += 1
+	q.logSkip += 1
 	buf := &strings.Builder{}
 	var args []interface{}
 	q.AppendSQL(buf, &args)
@@ -69,7 +69,7 @@ func (q SelectQuery) ToSQL() (string, []interface{}) {
 // AppendSQL marshals the SelectQuery into a buffer and args slice.
 func (q SelectQuery) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 	// WITH
-	if !q.Nested {
+	if !q.nested {
 		AppendCTEs(buf, args, q.CTEs, q.FromTable, q.JoinTables)
 	}
 	// SELECT
@@ -106,7 +106,7 @@ func (q SelectQuery) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 	// WHERE
 	if len(q.WherePredicate.Predicates) > 0 {
 		buf.WriteString(" WHERE ")
-		q.WherePredicate.Toplevel = true
+		q.WherePredicate.toplevel = true
 		q.WherePredicate.AppendSQLExclude(buf, args, nil)
 	}
 	// GROUP BY
@@ -117,7 +117,7 @@ func (q SelectQuery) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 	// HAVING
 	if len(q.HavingPredicate.Predicates) > 0 {
 		buf.WriteString(" HAVING ")
-		q.HavingPredicate.Toplevel = true
+		q.HavingPredicate.toplevel = true
 		q.HavingPredicate.AppendSQLExclude(buf, args, nil)
 	}
 	// WINDOW
@@ -146,24 +146,24 @@ func (q SelectQuery) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 		}
 		*args = append(*args, *q.OffsetValue)
 	}
-	if !q.Nested {
+	if !q.nested {
 		if q.Log != nil {
 			query := buf.String()
 			var logOutput string
 			switch {
 			case Lstats&q.LogFlag != 0:
 				logOutput = "\n----[ Executing query ]----\n" + query + " " + fmt.Sprint(*args) +
-					"\n----[ with bind values ]----\n" + QuestionInterpolate(query, *args...)
+					"\n----[ with bind values ]----\n" + questionInterpolate(query, *args...)
 			case Linterpolate&q.LogFlag != 0:
-				logOutput = QuestionInterpolate(query, *args...)
+				logOutput = questionInterpolate(query, *args...)
 			default:
 				logOutput = query + " " + fmt.Sprint(*args)
 			}
 			switch q.Log.(type) {
 			case *log.Logger:
-				q.Log.Output(q.LogSkip+2, logOutput)
+				_ = q.Log.Output(q.logSkip+2, logOutput)
 			default:
-				q.Log.Output(q.LogSkip+1, logOutput)
+				_ = q.Log.Output(q.logSkip+1, logOutput)
 			}
 		}
 	}
@@ -173,7 +173,7 @@ func (q SelectQuery) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 func From(table Table) SelectQuery {
 	return SelectQuery{
 		FromTable: table,
-		Alias:     RandomString(8),
+		Alias:     randomString(8),
 	}
 }
 
@@ -181,7 +181,7 @@ func From(table Table) SelectQuery {
 func Select(fields ...Field) SelectQuery {
 	return SelectQuery{
 		SelectFields: fields,
-		Alias:        RandomString(8),
+		Alias:        randomString(8),
 	}
 }
 
@@ -189,7 +189,7 @@ func Select(fields ...Field) SelectQuery {
 func SelectOne() SelectQuery {
 	return SelectQuery{
 		SelectFields: Fields{FieldLiteral("1")},
-		Alias:        RandomString(8),
+		Alias:        randomString(8),
 	}
 }
 
@@ -198,7 +198,7 @@ func SelectDistinct(fields ...Field) SelectQuery {
 	return SelectQuery{
 		SelectType:   SelectTypeDistinct,
 		SelectFields: fields,
-		Alias:        RandomString(8),
+		Alias:        randomString(8),
 	}
 }
 
@@ -207,7 +207,7 @@ func Selectx(mapper func(*Row), accumulator func()) SelectQuery {
 	return SelectQuery{
 		Mapper:      mapper,
 		Accumulator: accumulator,
-		Alias:       RandomString(8),
+		Alias:       randomString(8),
 	}
 }
 
@@ -215,7 +215,7 @@ func Selectx(mapper func(*Row), accumulator func()) SelectQuery {
 func SelectRowx(mapper func(*Row)) SelectQuery {
 	return SelectQuery{
 		Mapper: mapper,
-		Alias:  RandomString(8),
+		Alias:  randomString(8),
 	}
 }
 
@@ -387,7 +387,7 @@ func (q SelectQuery) SelectRowx(mapper func(*Row)) SelectQuery {
 // Fetch will run SelectQuery with the given DB. It then maps the results based
 // on the mapper function (and optionally runs the accumulator function).
 func (q SelectQuery) Fetch(db DB) (err error) {
-	q.LogSkip += 1
+	q.logSkip += 1
 	return q.FetchContext(nil, db)
 }
 
@@ -402,7 +402,7 @@ func (q SelectQuery) FetchContext(ctx context.Context, db DB) (err error) {
 		db = q.DB
 	}
 	if q.Mapper == nil {
-		return fmt.Errorf("Cannot call Fetch without a mapper")
+		return fmt.Errorf("cannot call Fetch/FetchContext without a mapper")
 	}
 	logBuf := &strings.Builder{}
 	start := time.Now()
@@ -438,9 +438,9 @@ func (q SelectQuery) FetchContext(ctx context.Context, db DB) (err error) {
 		if logBuf.Len() > 0 {
 			switch q.Log.(type) {
 			case *log.Logger:
-				q.Log.Output(q.LogSkip+2, logBuf.String())
+				_ = q.Log.Output(q.logSkip+2, logBuf.String())
 			default:
-				q.Log.Output(q.LogSkip+1, logBuf.String())
+				_ = q.Log.Output(q.logSkip+1, logBuf.String())
 			}
 		}
 	}()
@@ -452,7 +452,7 @@ func (q SelectQuery) FetchContext(ctx context.Context, db DB) (err error) {
 	}
 	tmpbuf := &strings.Builder{}
 	var tmpargs []interface{}
-	q.LogSkip += 1
+	q.logSkip += 1
 	q.AppendSQL(tmpbuf, &tmpargs)
 	if ctx == nil {
 		r.rows, err = db.Query(tmpbuf.String(), tmpargs...)
@@ -477,7 +477,7 @@ func (q SelectQuery) FetchContext(ctx context.Context, db DB) (err error) {
 				r.fields[i].AppendSQLExclude(tmpbuf, &tmpargs, nil)
 				errbuf.WriteString("\n" +
 					strconv.Itoa(i) + ") " +
-					QuestionInterpolate(tmpbuf.String(), tmpargs...) + " => " +
+					questionInterpolate(tmpbuf.String(), tmpargs...) + " => " +
 					reflect.TypeOf(r.dest[i]).String())
 			}
 			return fmt.Errorf("Please check if your mapper function is correct:%s\n%w", errbuf.String(), err)
@@ -491,9 +491,9 @@ func (q SelectQuery) FetchContext(ctx context.Context, db DB) (err error) {
 				tmpargs = tmpargs[:0]
 				r.fields[i].AppendSQLExclude(tmpbuf, &tmpargs, nil)
 				logBuf.WriteString("\n")
-				logBuf.WriteString(QuestionInterpolate(tmpbuf.String(), tmpargs...))
+				logBuf.WriteString(questionInterpolate(tmpbuf.String(), tmpargs...))
 				logBuf.WriteString(": ")
-				AppendSQLDisplay(logBuf, r.dest[i])
+				appendSQLDisplay(logBuf, r.dest[i])
 			}
 		}
 		r.index = 0
@@ -514,6 +514,6 @@ func (q SelectQuery) FetchContext(ctx context.Context, db DB) (err error) {
 
 // NestThis indicates to the SelectQuery that it is nested.
 func (q SelectQuery) NestThis() Query {
-	q.Nested = true
+	q.nested = true
 	return q
 }

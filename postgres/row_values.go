@@ -30,7 +30,7 @@ func (r RowValue) AppendSQLExclude(buf *strings.Builder, args *[]interface{}, ex
 		if i > 0 {
 			buf.WriteString(", ")
 		}
-		AppendSQLValue(buf, args, excludedTableQualifiers, value)
+		appendSQLValue(buf, args, excludedTableQualifiers, value)
 	}
 	buf.WriteString(")")
 }
@@ -61,7 +61,7 @@ type CustomAssignment struct {
 }
 
 func (set CustomAssignment) AppendSQLExclude(buf *strings.Builder, args *[]interface{}, excludedTableQualifiers []string) {
-	ExpandValues(buf, args, excludedTableQualifiers, set.Format, set.Values)
+	expandValues(buf, args, excludedTableQualifiers, set.Format, set.Values)
 }
 
 func (set CustomAssignment) AssertAssignment() {}

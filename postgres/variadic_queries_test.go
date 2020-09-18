@@ -26,7 +26,7 @@ func TestVariadicQueries_AppendSQL(t *testing.T) {
 		{
 			"nil queries",
 			VariadicQuery{
-				TopLevel: true,
+				topLevel: true,
 				Queries:  []Query{nil, nil, nil},
 			},
 			"NULL UNION NULL UNION NULL",
@@ -41,7 +41,7 @@ func TestVariadicQueries_AppendSQL(t *testing.T) {
 		{
 			"multiple queries (implicit UNION)",
 			VariadicQuery{
-				TopLevel: true,
+				topLevel: true,
 				Queries:  []Query{q1, q2, q3},
 			},
 			"SELECT $1 UNION SELECT $2 UNION SELECT $3",
@@ -62,7 +62,7 @@ func TestVariadicQueries_AppendSQL(t *testing.T) {
 		{
 			"variadic query containing multiple variadic queries (toplevel)",
 			VariadicQuery{
-				TopLevel: true,
+				topLevel: true,
 				Operator: QueryUnionAll,
 				Queries: []Query{
 					VariadicQuery{
@@ -81,7 +81,7 @@ func TestVariadicQueries_AppendSQL(t *testing.T) {
 		{
 			"variadic query containing one variadic query (toplevel)",
 			VariadicQuery{
-				TopLevel: true,
+				topLevel: true,
 				Queries: []Query{
 					VariadicQuery{
 						Operator: QueryUnion,
@@ -114,18 +114,18 @@ func TestVariadicQueries_Basic(t *testing.T) {
 	var vq VariadicQuery
 
 	vq = Intersect(q1, q2, q3)
-	is.Equal(true, vq.TopLevel)
+	is.Equal(true, vq.topLevel)
 	is.Equal(QueryIntersect, vq.Operator)
 
 	vq = IntersectAll(q1, q2, q3)
-	is.Equal(true, vq.TopLevel)
+	is.Equal(true, vq.topLevel)
 	is.Equal(QueryIntersectAll, vq.Operator)
 
 	vq = Except(q1, q2, q3)
-	is.Equal(true, vq.TopLevel)
+	is.Equal(true, vq.topLevel)
 	is.Equal(QueryExcept, vq.Operator)
 
 	vq = ExceptAll(q1, q2, q3)
-	is.Equal(true, vq.TopLevel)
+	is.Equal(true, vq.topLevel)
 	is.Equal(QueryExceptAll, vq.Operator)
 }

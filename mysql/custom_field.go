@@ -3,7 +3,7 @@ package sq
 import "strings"
 
 // CustomField is a Field that can render itself in an arbitrary way by calling
-// ExpandValues on its Format and Values.
+// expandValues on its Format and Values.
 type CustomField struct {
 	Alias  string
 	Format string
@@ -14,7 +14,7 @@ type CustomField struct {
 // AppendSQLExclude marshals the CustomField into a buffer and an args slice.
 // It propagates the excludedTableQualifiers down to its child elements.
 func (f CustomField) AppendSQLExclude(buf *strings.Builder, args *[]interface{}, excludedTableQualifiers []string) {
-	ExpandValues(buf, args, excludedTableQualifiers, f.Format, f.Values)
+	expandValues(buf, args, excludedTableQualifiers, f.Format, f.Values)
 	if f.IsDesc != nil {
 		if *f.IsDesc {
 			buf.WriteString(" DESC")
@@ -139,7 +139,7 @@ func (f CustomField) String() string {
 	buf := &strings.Builder{}
 	var args []interface{}
 	f.AppendSQLExclude(buf, &args, nil)
-	return QuestionInterpolate(buf.String(), args...)
+	return questionInterpolate(buf.String(), args...)
 }
 
 // GetAlias returns the alias of the CustomField.

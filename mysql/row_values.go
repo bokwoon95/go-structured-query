@@ -32,7 +32,7 @@ func (r RowValue) AppendSQLExclude(buf *strings.Builder, args *[]interface{}, ex
 		if i > 0 {
 			buf.WriteString(", ")
 		}
-		AppendSQLValue(buf, args, excludedTableQualifiers, value)
+		appendSQLValue(buf, args, excludedTableQualifiers, value)
 	}
 	buf.WriteString(")")
 }
@@ -54,7 +54,7 @@ func (r RowValue) In(v interface{}) CustomPredicate {
 }
 
 // CustomAssignment is an Assignment that can render itself in an arbitrary way by calling
-// ExpandValues on its Format and Values.
+// expandValues on its Format and Values.
 type CustomAssignment struct {
 	Format string
 	Values []interface{}
@@ -63,7 +63,7 @@ type CustomAssignment struct {
 // AppendSQLExclude marshals the CustomAssignment into a buffer and an args
 // slice. It propagates the excludedTableQualifiers down to its child elements.
 func (set CustomAssignment) AppendSQLExclude(buf *strings.Builder, args *[]interface{}, excludedTableQualifiers []string) {
-	ExpandValues(buf, args, excludedTableQualifiers, set.Format, set.Values)
+	expandValues(buf, args, excludedTableQualifiers, set.Format, set.Values)
 }
 
 // AssertAssignment implements the Assignment interface.

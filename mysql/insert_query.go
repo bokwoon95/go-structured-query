@@ -13,7 +13,7 @@ import (
 
 // InsertQuery represents an INSERT query.
 type InsertQuery struct {
-	Nested bool
+	nested bool
 	Alias  string
 	// INSERT INTO
 	Ignore        bool
@@ -30,12 +30,12 @@ type InsertQuery struct {
 	// Logging
 	Log     Logger
 	LogFlag LogFlag
-	LogSkip int
+	logSkip int
 }
 
 // ToSQL marshals the InsertQuery into a query string and args slice.
 func (q InsertQuery) ToSQL() (string, []interface{}) {
-	q.LogSkip += 1
+	q.logSkip += 1
 	buf := &strings.Builder{}
 	var args []interface{}
 	q.AppendSQL(buf, &args)
@@ -75,7 +75,7 @@ func (q InsertQuery) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 		q.RowValues.AppendSQL(buf, args)
 	case q.SelectQuery != nil:
 		buf.WriteString(" ")
-		q.SelectQuery.Nested = true
+		q.SelectQuery.nested = true
 		q.SelectQuery.AppendSQL(buf, args)
 	}
 	// ON DUPLICATE KEY UPDATE
@@ -83,24 +83,24 @@ func (q InsertQuery) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 		buf.WriteString(" ON DUPLICATE KEY UPDATE ")
 		q.Resolution.AppendSQLExclude(buf, args, excludedTableQualifiers)
 	}
-	if !q.Nested {
+	if !q.nested {
 		if q.Log != nil {
 			query := buf.String()
 			var logOutput string
 			switch {
 			case Lstats&q.LogFlag != 0:
 				logOutput = "\n----[ Executing query ]----\n" + query + " " + fmt.Sprint(*args) +
-					"\n----[ with bind values ]----\n" + QuestionInterpolate(query, *args...)
+					"\n----[ with bind values ]----\n" + questionInterpolate(query, *args...)
 			case Linterpolate&q.LogFlag != 0:
-				logOutput = "Executing query: " + QuestionInterpolate(query, *args...)
+				logOutput = "Executing query: " + questionInterpolate(query, *args...)
 			default:
 				logOutput = "Executing query: " + query + " " + fmt.Sprint(*args)
 			}
 			switch q.Log.(type) {
 			case *log.Logger:
-				q.Log.Output(q.LogSkip+2, logOutput)
+				_ = q.Log.Output(q.logSkip+2, logOutput)
 			default:
-				q.Log.Output(q.LogSkip+1, logOutput)
+				_ = q.Log.Output(q.logSkip+1, logOutput)
 			}
 		}
 	}
@@ -110,7 +110,7 @@ func (q InsertQuery) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 func InsertInto(table BaseTable) InsertQuery {
 	return InsertQuery{
 		IntoTable: table,
-		Alias:     RandomString(8),
+		Alias:     randomString(8),
 	}
 }
 
@@ -119,7 +119,7 @@ func InsertIgnoreInto(table BaseTable) InsertQuery {
 	return InsertQuery{
 		Ignore:    true,
 		IntoTable: table,
-		Alias:     RandomString(8),
+		Alias:     randomString(8),
 	}
 }
 
@@ -190,7 +190,7 @@ func Values(field Field) CustomField {
 // compute both, bitwise or the flags together i.e.
 // ElastInsertID|ErowsAffected.
 func (q InsertQuery) Exec(db DB, flag ExecFlag) (lastInsertID, rowsAffected int64, err error) {
-	q.LogSkip += 1
+	q.logSkip += 1
 	return q.ExecContext(nil, db, flag)
 }
 
@@ -223,16 +223,16 @@ func (q InsertQuery) ExecContext(ctx context.Context, db DB, flag ExecFlag) (las
 		if logBuf.Len() > 0 {
 			switch q.Log.(type) {
 			case *log.Logger:
-				q.Log.Output(q.LogSkip+2, logBuf.String())
+				_ = q.Log.Output(q.logSkip+2, logBuf.String())
 			default:
-				q.Log.Output(q.LogSkip+1, logBuf.String())
+				_ = q.Log.Output(q.logSkip+1, logBuf.String())
 			}
 		}
 	}()
 	var res sql.Result
 	tmpbuf := &strings.Builder{}
 	var tmpargs []interface{}
-	q.LogSkip += 1
+	q.logSkip += 1
 	q.AppendSQL(tmpbuf, &tmpargs)
 	if ctx == nil {
 		res, err = db.Exec(tmpbuf.String(), tmpargs...)
@@ -259,6 +259,6 @@ func (q InsertQuery) ExecContext(ctx context.Context, db DB, flag ExecFlag) (las
 
 // NestThis indicates to the InsertQuery that it is nested.
 func (q InsertQuery) NestThis() Query {
-	q.Nested = true
+	q.nested = true
 	return q
 }

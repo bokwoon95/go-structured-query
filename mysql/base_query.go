@@ -13,7 +13,7 @@ const (
 	Linterpolate LogFlag = 1 << iota
 	Lstats
 	Lresults
-	Lparse
+	// Lparse
 	Lverbose = Lstats | Lresults
 )
 
@@ -230,7 +230,7 @@ func (q BaseQuery) DeleteFrom(tables ...BaseTable) DeleteQuery {
 // Union transforms the BaseQuery into a VariadicQuery.
 func (q BaseQuery) Union(queries ...Query) VariadicQuery {
 	return VariadicQuery{
-		TopLevel: true,
+		topLevel: true,
 		Operator: QueryUnion,
 		Queries:  queries,
 		DB:       q.DB,
@@ -242,7 +242,7 @@ func (q BaseQuery) Union(queries ...Query) VariadicQuery {
 // UnionAll transforms the BaseQuery into a VariadicQuery.
 func (q BaseQuery) UnionAll(queries ...Query) VariadicQuery {
 	return VariadicQuery{
-		TopLevel: true,
+		topLevel: true,
 		Operator: QueryUnionAll,
 		Queries:  queries,
 		DB:       q.DB,

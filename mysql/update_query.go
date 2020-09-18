@@ -13,7 +13,7 @@ import (
 
 // UpdateQuery represents an UPDATE query.
 type UpdateQuery struct {
-	Nested bool
+	nested bool
 	Alias  string
 	// WITH
 	CTEs []CTE
@@ -34,12 +34,12 @@ type UpdateQuery struct {
 	// Logging
 	Log     Logger
 	LogFlag LogFlag
-	LogSkip int
+	logSkip int
 }
 
 // ToSQL marshals the UpdateQuery into a query string and args slice.
 func (q UpdateQuery) ToSQL() (string, []interface{}) {
-	q.LogSkip += 1
+	q.logSkip += 1
 	buf := &strings.Builder{}
 	var args []interface{}
 	q.AppendSQL(buf, &args)
@@ -49,7 +49,7 @@ func (q UpdateQuery) ToSQL() (string, []interface{}) {
 // AppendSQL marshals the UpdateQuery into a buffer and args slice.
 func (q UpdateQuery) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 	// WITH
-	if !q.Nested {
+	if !q.nested {
 		AppendCTEs(buf, args, q.CTEs, nil, q.JoinTables)
 	}
 	// UPDATE
@@ -84,7 +84,7 @@ func (q UpdateQuery) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 	// WHERE
 	if len(q.WherePredicate.Predicates) > 0 {
 		buf.WriteString(" WHERE ")
-		q.WherePredicate.Toplevel = true
+		q.WherePredicate.toplevel = true
 		q.WherePredicate.AppendSQLExclude(buf, args, nil)
 	}
 	// ORDER BY
@@ -100,24 +100,24 @@ func (q UpdateQuery) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 		}
 		*args = append(*args, *q.LimitValue)
 	}
-	if !q.Nested {
+	if !q.nested {
 		if q.Log != nil {
 			query := buf.String()
 			var logOutput string
 			switch {
 			case Lstats&q.LogFlag != 0:
 				logOutput = "\n----[ Executing query ]----\n" + query + " " + fmt.Sprint(*args) +
-					"\n----[ with bind values ]----\n" + QuestionInterpolate(query, *args...)
+					"\n----[ with bind values ]----\n" + questionInterpolate(query, *args...)
 			case Linterpolate&q.LogFlag != 0:
-				logOutput = "Executing query: " + QuestionInterpolate(query, *args...)
+				logOutput = "Executing query: " + questionInterpolate(query, *args...)
 			default:
 				logOutput = "Executing query: " + query + " " + fmt.Sprint(*args)
 			}
 			switch q.Log.(type) {
 			case *log.Logger:
-				q.Log.Output(q.LogSkip+2, logOutput)
+				_ = q.Log.Output(q.logSkip+2, logOutput)
 			default:
-				q.Log.Output(q.LogSkip+1, logOutput)
+				_ = q.Log.Output(q.logSkip+1, logOutput)
 			}
 		}
 	}
@@ -133,7 +133,7 @@ func (q UpdateQuery) As(alias string) UpdateQuery {
 func Update(table BaseTable) UpdateQuery {
 	return UpdateQuery{
 		UpdateTable: table,
-		Alias:       RandomString(8),
+		Alias:       randomString(8),
 	}
 }
 
@@ -241,7 +241,7 @@ func (q UpdateQuery) Limit(limit int) UpdateQuery {
 // Exec will execute the UpdateQuery with the given DB. It will only compute
 // the rowsAffected if the ErowsAffected Execflag is passed to it.
 func (q UpdateQuery) Exec(db DB, flag ExecFlag) (rowsAffected int64, err error) {
-	q.LogSkip += 1
+	q.logSkip += 1
 	return q.ExecContext(nil, db, flag)
 }
 
@@ -271,16 +271,16 @@ func (q UpdateQuery) ExecContext(ctx context.Context, db DB, flag ExecFlag) (row
 		if logBuf.Len() > 0 {
 			switch q.Log.(type) {
 			case *log.Logger:
-				q.Log.Output(q.LogSkip+2, logBuf.String())
+				_ = q.Log.Output(q.logSkip+2, logBuf.String())
 			default:
-				q.Log.Output(q.LogSkip+1, logBuf.String())
+				_ = q.Log.Output(q.logSkip+1, logBuf.String())
 			}
 		}
 	}()
 	var res sql.Result
 	tmpbuf := &strings.Builder{}
 	var tmpargs []interface{}
-	q.LogSkip += 1
+	q.logSkip += 1
 	q.AppendSQL(tmpbuf, &tmpargs)
 	if ctx == nil {
 		res, err = db.Exec(tmpbuf.String(), tmpargs...)
@@ -301,6 +301,6 @@ func (q UpdateQuery) ExecContext(ctx context.Context, db DB, flag ExecFlag) (row
 
 // NestThis indicates to the UpdateQuery that it is nested.
 func (q UpdateQuery) NestThis() Query {
-	q.Nested = true
+	q.nested = true
 	return q
 }

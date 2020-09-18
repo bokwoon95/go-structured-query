@@ -60,7 +60,7 @@ func TestInterpolateSQLValue(t *testing.T) {
 			t.Parallel()
 			is := is.New(t)
 			buf := &strings.Builder{}
-			InterpolateSQLValue(buf, tt.value)
+			interpolateSQLValue(buf, tt.value)
 			is.Equal(tt.want, buf.String())
 		})
 	}

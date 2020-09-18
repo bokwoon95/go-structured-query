@@ -72,9 +72,9 @@ type FieldAssignment struct {
 // AppendSQLExclude marshals the FieldAssignment into a buffer and an args
 // slice. It propagates the excludedTableQualifiers down to its child elements.
 func (set FieldAssignment) AppendSQLExclude(buf *strings.Builder, args *[]interface{}, excludedTableQualifiers []string) {
-	AppendSQLValue(buf, args, excludedTableQualifiers, set.Field)
+	appendSQLValue(buf, args, excludedTableQualifiers, set.Field)
 	buf.WriteString(" = ")
-	AppendSQLValue(buf, args, excludedTableQualifiers, set.Value)
+	appendSQLValue(buf, args, excludedTableQualifiers, set.Value)
 }
 
 // AssertAssignment implements the Assignment interface.

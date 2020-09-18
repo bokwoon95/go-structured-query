@@ -146,7 +146,7 @@ func TestSelectQuery_Fetch(t *testing.T) {
 
 	// SQL syntax error
 	// use a tempDB so we don't foul up the current db transaction with the error
-	tempDB, err := sql.Open("txdb", RandomString(8))
+	tempDB, err := sql.Open("txdb", randomString(8))
 	is.NoErr(err)
 	var uid int
 	err = WithLog(customLogger, Linterpolate).
@@ -274,7 +274,7 @@ func TestSelectQuery_Exec(t *testing.T) {
 
 	// SQL syntax error
 	// use a tempDB so we don't foul up the current db transaction with the error
-	tempDB, err := sql.Open("txdb", RandomString(8))
+	tempDB, err := sql.Open("txdb", randomString(8))
 	is.NoErr(err)
 	_, err = WithLog(customLogger, Linterpolate).
 		WithDB(tempDB).
@@ -308,4 +308,16 @@ func TestSelectQuery_Exec(t *testing.T) {
 		Exec(nil, ErowsAffected)
 	is.NoErr(err)
 	is.Equal(int64(1), rowsAffected)
+}
+
+func TestSelectQuery_Basic(t *testing.T) {
+	is := is.New(t)
+
+	var q SelectQuery
+	q = Selectx(nil, nil)
+	is.Equal(nil, q.Mapper)
+	is.Equal(nil, q.Accumulator)
+
+	q = SelectRowx(nil)
+	is.Equal(nil, q.Mapper)
 }

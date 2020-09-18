@@ -127,7 +127,7 @@ func TestDeleteQuery_Fetch(t *testing.T) {
 
 	// SQL syntax error
 	// use a tempDB so we don't foul up the current db transaction with the error
-	tempDB, err := sql.Open("txdb", RandomString(8))
+	tempDB, err := sql.Open("txdb", randomString(8))
 	is.NoErr(err)
 	var submissionID int
 	err = WithLog(customLogger, Linterpolate).
@@ -155,7 +155,7 @@ func TestDeleteQuery_Fetch(t *testing.T) {
 	is.NoErr(err)
 
 	// Wrong Scan type
-	tempDB, err = sql.Open("txdb", RandomString(8))
+	tempDB, err = sql.Open("txdb", randomString(8))
 	is.NoErr(err)
 	err = WithLog(customLogger, Lverbose).
 		WithDB(tempDB).
@@ -191,7 +191,7 @@ func TestDeleteQuery_Fetch(t *testing.T) {
 	is.True(errors.Is(err, context.DeadlineExceeded))
 
 	// Mapper
-	tempDB, err = sql.Open("txdb", RandomString(8))
+	tempDB, err = sql.Open("txdb", randomString(8))
 	is.NoErr(err)
 	err = WithLog(customLogger, Lverbose).
 		WithDB(tempDB).
@@ -206,7 +206,7 @@ func TestDeleteQuery_Fetch(t *testing.T) {
 	tempDB.Close()
 
 	// Accumulator
-	tempDB, err = sql.Open("txdb", RandomString(8))
+	tempDB, err = sql.Open("txdb", randomString(8))
 	is.NoErr(err)
 	var submissionIDs []int
 	err = WithLog(customLogger, Lverbose).
@@ -300,7 +300,7 @@ func TestDeleteQuery_Exec(t *testing.T) {
 
 	// SQL syntax error
 	// use a tempDB so we don't foul up the current db transaction with the error
-	tempDB, err := sql.Open("txdb", RandomString(8))
+	tempDB, err := sql.Open("txdb", randomString(8))
 	is.NoErr(err)
 	_, err = WithLog(customLogger, Linterpolate).
 		WithDB(tempDB).

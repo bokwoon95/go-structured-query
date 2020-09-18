@@ -13,7 +13,7 @@ import (
 
 // DeleteQuery represents a DELETE query.
 type DeleteQuery struct {
-	Nested bool
+	nested bool
 	Alias  string
 	// WITH
 	CTEs []CTE
@@ -33,12 +33,12 @@ type DeleteQuery struct {
 	// Logging
 	Log     Logger
 	LogFlag LogFlag
-	LogSkip int
+	logSkip int
 }
 
 // ToSQL marshals the DeleteQuery into a query string and args slice.
 func (q DeleteQuery) ToSQL() (string, []interface{}) {
-	q.LogSkip += 1
+	q.logSkip += 1
 	buf := &strings.Builder{}
 	var args []interface{}
 	q.AppendSQL(buf, &args)
@@ -48,7 +48,7 @@ func (q DeleteQuery) ToSQL() (string, []interface{}) {
 // AppendSQL marshals the DeleteQuery into a buffer and args slice.
 func (q DeleteQuery) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 	// WITH
-	if !q.Nested {
+	if !q.nested {
 		AppendCTEs(buf, args, q.CTEs, nil, q.JoinTables)
 	}
 	// DELETE FROM
@@ -97,7 +97,7 @@ func (q DeleteQuery) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 	// WHERE
 	if len(q.WherePredicate.Predicates) > 0 {
 		buf.WriteString(" WHERE ")
-		q.WherePredicate.Toplevel = true
+		q.WherePredicate.toplevel = true
 		q.WherePredicate.AppendSQLExclude(buf, args, nil)
 	}
 	// ORDER BY
@@ -113,24 +113,24 @@ func (q DeleteQuery) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 		}
 		*args = append(*args, *q.LimitValue)
 	}
-	if !q.Nested {
+	if !q.nested {
 		if q.Log != nil {
 			query := buf.String()
 			var logOutput string
 			switch {
 			case Lstats&q.LogFlag != 0:
 				logOutput = "\n----[ Executing query ]----\n" + query + " " + fmt.Sprint(*args) +
-					"\n----[ with bind values ]----\n" + QuestionInterpolate(query, *args...)
+					"\n----[ with bind values ]----\n" + questionInterpolate(query, *args...)
 			case Linterpolate&q.LogFlag != 0:
-				logOutput = "Executing query: " + QuestionInterpolate(query, *args...)
+				logOutput = "Executing query: " + questionInterpolate(query, *args...)
 			default:
 				logOutput = "Executing query: " + query + " " + fmt.Sprint(*args)
 			}
 			switch q.Log.(type) {
 			case *log.Logger:
-				q.Log.Output(q.LogSkip+2, logOutput)
+				_ = q.Log.Output(q.logSkip+2, logOutput)
 			default:
-				q.Log.Output(q.LogSkip+1, logOutput)
+				_ = q.Log.Output(q.logSkip+1, logOutput)
 			}
 		}
 	}
@@ -138,7 +138,7 @@ func (q DeleteQuery) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 
 // NestThis indicates to the DeleteQuery that it is nested.
 func (q DeleteQuery) NestThis() Query {
-	q.Nested = true
+	q.nested = true
 	return q
 }
 
@@ -146,7 +146,7 @@ func (q DeleteQuery) NestThis() Query {
 func DeleteFrom(tables ...BaseTable) DeleteQuery {
 	return DeleteQuery{
 		FromTables: tables,
-		Alias:      RandomString(8),
+		Alias:      randomString(8),
 	}
 }
 
@@ -254,7 +254,7 @@ func (q DeleteQuery) Limit(limit int) DeleteQuery {
 // Exec will execute the DeleteQuery with the given DB. It will only compute
 // the rowsAffected if the ErowsAffected Execflag is passed to it.
 func (q DeleteQuery) Exec(db DB, flag ExecFlag) (rowsAffected int64, err error) {
-	q.LogSkip += 1
+	q.logSkip += 1
 	return q.ExecContext(nil, db, flag)
 }
 
@@ -284,16 +284,16 @@ func (q DeleteQuery) ExecContext(ctx context.Context, db DB, flag ExecFlag) (row
 		if logBuf.Len() > 0 {
 			switch q.Log.(type) {
 			case *log.Logger:
-				q.Log.Output(q.LogSkip+2, logBuf.String())
+				_ = q.Log.Output(q.logSkip+2, logBuf.String())
 			default:
-				q.Log.Output(q.LogSkip+1, logBuf.String())
+				_ = q.Log.Output(q.logSkip+1, logBuf.String())
 			}
 		}
 	}()
 	var res sql.Result
 	tmpbuf := &strings.Builder{}
 	var tmpargs []interface{}
-	q.LogSkip += 1
+	q.logSkip += 1
 	q.AppendSQL(tmpbuf, &tmpargs)
 	if ctx == nil {
 		res, err = db.Exec(tmpbuf.String(), tmpargs...)

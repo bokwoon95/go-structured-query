@@ -118,13 +118,13 @@ func TestCTEs_AppendSQL(t *testing.T) {
 			q1 := Select(u.USER_ID, u.EMAIL).From(u).Where(u.USER_ID.EqInt(1))
 			q2 := Select(u.USER_ID, u.EMAIL).From(u).Where(u.USER_ID.EqInt(2))
 			q3 := Select(u.USER_ID, u.EMAIL).From(u).Where(u.USER_ID.EqInt(3))
-			q := Union(q1, q2, q3).CTE("cte")
+			q := UnionAll(q1, q2, q3).CTE("cte")
 			tt.q = Select(q["user_id"], q["email"]).From(q)
 			tt.wantQuery = "WITH cte AS" +
 				" (SELECT u.user_id, u.email FROM devlab.users AS u WHERE u.user_id = ?" +
-				" UNION" +
+				" UNION ALL" +
 				" SELECT u.user_id, u.email FROM devlab.users AS u WHERE u.user_id = ?" +
-				" UNION" +
+				" UNION ALL" +
 				" SELECT u.user_id, u.email FROM devlab.users AS u WHERE u.user_id = ?)" +
 				" SELECT cte.user_id, cte.email FROM cte"
 			tt.wantArgs = []interface{}{1, 2, 3}

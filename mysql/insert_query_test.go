@@ -125,7 +125,7 @@ func TestInsertQuery_Exec(t *testing.T) {
 
 	// SQL syntax error
 	// use a tempDB so we don't foul up the current db transaction with the error
-	tempDB, err := sql.Open("txdb", RandomString(8))
+	tempDB, err := sql.Open("txdb", randomString(8))
 	is.NoErr(err)
 	_, _, err = WithLog(customLogger, Linterpolate).
 		WithDB(tempDB).
@@ -176,4 +176,12 @@ func TestInsertQuery_Exec(t *testing.T) {
 		Exec(nil, ElastInsertID|ErowsAffected)
 	is.NoErr(err)
 	is.Equal(int64(0), rowsAffected)
+}
+
+func TestInsertQuery_Basic(t *testing.T) {
+	is := is.New(t)
+	var q InsertQuery
+	q = InsertIgnoreInto(nil)
+	is.Equal(true, q.Ignore)
+	is.Equal(nil, q.IntoTable)
 }

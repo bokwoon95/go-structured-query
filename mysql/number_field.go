@@ -45,7 +45,7 @@ func (f NumberField) AppendSQLExclude(buf *strings.Builder, args *[]interface{},
 	switch {
 	case f.format != nil:
 		// 1) Number expression
-		ExpandValues(buf, args, excludedTableQualifiers, *f.format, f.values)
+		expandValues(buf, args, excludedTableQualifiers, *f.format, f.values)
 	case f.value != nil:
 		// 2) Literal number value
 		buf.WriteString("?")
@@ -356,7 +356,7 @@ func (f NumberField) String() string {
 	buf := &strings.Builder{}
 	var args []interface{}
 	f.AppendSQLExclude(buf, &args, nil)
-	return QuestionInterpolate(buf.String(), args...)
+	return questionInterpolate(buf.String(), args...)
 }
 
 // GetAlias returns the alias of the NumberField.
