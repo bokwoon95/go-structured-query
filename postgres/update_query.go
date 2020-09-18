@@ -49,7 +49,7 @@ func (q UpdateQuery) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 	var excludedTableQualifiers []string
 	// WITH
 	if !q.nested {
-		AppendCTEs(buf, args, q.CTEs, q.FromTable, q.JoinTables)
+		appendCTEs(buf, args, q.CTEs, q.FromTable, q.JoinTables)
 	}
 	// UPDATE
 	buf.WriteString("UPDATE ")

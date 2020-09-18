@@ -49,7 +49,7 @@ func (q DeleteQuery) ToSQL() (string, []interface{}) {
 func (q DeleteQuery) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 	// WITH
 	if !q.nested {
-		AppendCTEs(buf, args, q.CTEs, nil, q.JoinTables)
+		appendCTEs(buf, args, q.CTEs, nil, q.JoinTables)
 	}
 	// DELETE FROM
 	buf.WriteString("DELETE FROM ")

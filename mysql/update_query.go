@@ -50,7 +50,7 @@ func (q UpdateQuery) ToSQL() (string, []interface{}) {
 func (q UpdateQuery) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 	// WITH
 	if !q.nested {
-		AppendCTEs(buf, args, q.CTEs, nil, q.JoinTables)
+		appendCTEs(buf, args, q.CTEs, nil, q.JoinTables)
 	}
 	// UPDATE
 	buf.WriteString("UPDATE ")

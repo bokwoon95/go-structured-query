@@ -15,7 +15,7 @@ const (
 
 type CTE map[string]CustomField
 
-func AppendCTEs(buf *strings.Builder, args *[]interface{}, CTEs []CTE, fromTable Table, joinTables []JoinTable) {
+func appendCTEs(buf *strings.Builder, args *[]interface{}, CTEs []CTE, fromTable Table, joinTables []JoinTable) {
 	type TmpCTE struct {
 		name    string
 		columns []string

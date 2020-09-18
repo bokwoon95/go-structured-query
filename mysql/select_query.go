@@ -70,7 +70,7 @@ func (q SelectQuery) ToSQL() (string, []interface{}) {
 func (q SelectQuery) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 	// WITH
 	if !q.nested {
-		AppendCTEs(buf, args, q.CTEs, q.FromTable, q.JoinTables)
+		appendCTEs(buf, args, q.CTEs, q.FromTable, q.JoinTables)
 	}
 	// SELECT
 	if q.SelectType == "" {

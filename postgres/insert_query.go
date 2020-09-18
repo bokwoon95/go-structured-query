@@ -54,7 +54,7 @@ func (q InsertQuery) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 	var excludedTableQualifiers []string
 	// WITH
 	if !q.nested && q.SelectQuery != nil {
-		AppendCTEs(buf, args, q.CTEs, q.SelectQuery.FromTable, q.SelectQuery.JoinTables)
+		appendCTEs(buf, args, q.CTEs, q.SelectQuery.FromTable, q.SelectQuery.JoinTables)
 	}
 	// INSERT INTO
 	buf.WriteString("INSERT INTO ")
