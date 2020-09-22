@@ -155,7 +155,7 @@ func (p VariadicPredicate) GetName() string {
 	return ""
 }
 
-// And joins the list of predicates together by the AND operator.
+// And joins the list of predicates together with the AND operator.
 func And(predicates ...Predicate) VariadicPredicate {
 	return VariadicPredicate{
 		Operator:   PredicateAnd,
@@ -163,7 +163,7 @@ func And(predicates ...Predicate) VariadicPredicate {
 	}
 }
 
-// Or joins the list of predicates together by the OR operator.
+// Or joins the list of predicates together with the OR operator.
 func Or(predicates ...Predicate) VariadicPredicate {
 	return VariadicPredicate{
 		Operator:   PredicateOr,
@@ -171,6 +171,7 @@ func Or(predicates ...Predicate) VariadicPredicate {
 	}
 }
 
+// Eq returns an 'X = Y' Predicate.
 func Eq(f1, f2 interface{}) Predicate {
 	return CustomPredicate{
 		Format: "? = ?",
@@ -178,6 +179,7 @@ func Eq(f1, f2 interface{}) Predicate {
 	}
 }
 
+// Ne returns an 'X <> Y' Predicate.
 func Ne(f1, f2 interface{}) Predicate {
 	return CustomPredicate{
 		Format: "? <> ?",
@@ -185,6 +187,7 @@ func Ne(f1, f2 interface{}) Predicate {
 	}
 }
 
+// Gt returns an 'X > Y' Predicate.
 func Gt(f1, f2 interface{}) Predicate {
 	return CustomPredicate{
 		Format: "? > ?",
@@ -192,6 +195,7 @@ func Gt(f1, f2 interface{}) Predicate {
 	}
 }
 
+// Ge returns an 'X >= Y' Predicate.
 func Ge(f1, f2 interface{}) Predicate {
 	return CustomPredicate{
 		Format: "? >= ?",
@@ -199,6 +203,7 @@ func Ge(f1, f2 interface{}) Predicate {
 	}
 }
 
+// Lt returns an 'X < Y' Predicate.
 func Lt(f1, f2 interface{}) Predicate {
 	return CustomPredicate{
 		Format: "? < ?",
@@ -206,6 +211,7 @@ func Lt(f1, f2 interface{}) Predicate {
 	}
 }
 
+// Le returns an 'X <= Y' Predicate.
 func Le(f1, f2 interface{}) Predicate {
 	return CustomPredicate{
 		Format: "? <= ?",

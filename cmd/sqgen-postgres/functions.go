@@ -15,6 +15,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// Go Types
 const (
 	GoTypeInterface    = "interface{}"
 	GoTypeBool         = "bool"
@@ -102,6 +103,7 @@ func (f {{$function.StructName.Export}}) As(alias string) {{$function.StructName
 {{- end}}
 {{- end}}`
 
+// Function contains metadata for a plpgsql function.
 type Function struct {
 	Schema       string
 	Name         string
@@ -113,6 +115,7 @@ type Function struct {
 	Arguments    []FunctionField
 }
 
+// FunctionField represents a Function that is also a Field.
 type FunctionField struct {
 	RawField    string
 	Name        String

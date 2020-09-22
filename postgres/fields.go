@@ -6,7 +6,7 @@ import "strings"
 // into the SQL query.
 type FieldLiteral string
 
-// ToSQL returns the underlying string of the FieldLiteral.
+// AppendSQLExclude marshals the FieldLiteral into a buffer.
 func (f FieldLiteral) AppendSQLExclude(buf *strings.Builder, _ *[]interface{}, _ []string) {
 	buf.WriteString(string(f))
 }
@@ -86,6 +86,7 @@ func (set FieldAssignment) AppendSQLExclude(buf *strings.Builder, args *[]interf
 	}
 }
 
+// AssertAssignment implements the Assignment interface.
 func (set FieldAssignment) AssertAssignment() {}
 
 // Assignments is a list of Assignments, when translated to SQL it looks

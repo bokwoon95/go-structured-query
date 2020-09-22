@@ -2,6 +2,7 @@ package sq
 
 import "strings"
 
+// Not inverts the Predicate i.e. 'NOT Predicate'.
 func Not(predicate Predicate) Predicate {
 	return predicate.Not()
 }
@@ -16,7 +17,7 @@ type CustomPredicate struct {
 	Negative bool
 }
 
-// ToSQL marshals the CustomPredicate into an SQL query.
+// AppendSQLExclude marshals the CustomPredicate into a buffer and args slice.
 func (p CustomPredicate) AppendSQLExclude(buf *strings.Builder, args *[]interface{}, excludedTableQualifiers []string) {
 	if p.Negative {
 		buf.WriteString("NOT ")
@@ -24,6 +25,7 @@ func (p CustomPredicate) AppendSQLExclude(buf *strings.Builder, args *[]interfac
 	expandValues(buf, args, excludedTableQualifiers, p.Format, p.Values)
 }
 
+// Predicatef creates a new CustomPredicate.
 func Predicatef(format string, values ...interface{}) CustomPredicate {
 	return CustomPredicate{
 		Format: format,
@@ -31,6 +33,7 @@ func Predicatef(format string, values ...interface{}) CustomPredicate {
 	}
 }
 
+// As aliases the CustomPredicate.
 func (p CustomPredicate) As(alias string) CustomPredicate {
 	p.Alias = alias
 	return p
@@ -52,6 +55,7 @@ func (p CustomPredicate) GetName() string {
 	return ""
 }
 
+// Exists represents the EXISTS() predicate.
 func Exists(query Query) CustomPredicate {
 	return CustomPredicate{
 		Format: "EXISTS(?)",
@@ -81,8 +85,8 @@ type VariadicPredicate struct {
 	Negative   bool
 }
 
-// ToSQL marshals the VariadicPredicate into an SQL query and args as described
-// in the VariadicPredicate struct description.
+// AppendSQLExclude marshals the VariadicPredicate into a buffer and an args
+// slice. It propagates the excludedTableQualifiers down to its child elements.
 func (p VariadicPredicate) AppendSQLExclude(buf *strings.Builder, args *[]interface{}, excludedTableQualifiers []string) {
 	if p.Operator == "" {
 		p.Operator = PredicateAnd
@@ -149,6 +153,7 @@ func (p VariadicPredicate) GetName() string {
 	return ""
 }
 
+// And joins the list of predicates together with the AND operator.
 func And(predicates ...Predicate) VariadicPredicate {
 	return VariadicPredicate{
 		Operator:   PredicateAnd,
@@ -156,6 +161,7 @@ func And(predicates ...Predicate) VariadicPredicate {
 	}
 }
 
+// Or joins the list of predicates together with the OR operator.
 func Or(predicates ...Predicate) VariadicPredicate {
 	return VariadicPredicate{
 		Operator:   PredicateOr,
@@ -163,6 +169,7 @@ func Or(predicates ...Predicate) VariadicPredicate {
 	}
 }
 
+// Eq returns an 'X = Y' Predicate.
 func Eq(f1, f2 interface{}) Predicate {
 	return CustomPredicate{
 		Format: "? = ?",
@@ -170,6 +177,7 @@ func Eq(f1, f2 interface{}) Predicate {
 	}
 }
 
+// Ne returns an 'X <> Y' Predicate.
 func Ne(f1, f2 interface{}) Predicate {
 	return CustomPredicate{
 		Format: "? <> ?",
@@ -177,6 +185,7 @@ func Ne(f1, f2 interface{}) Predicate {
 	}
 }
 
+// Gt returns an 'X > Y' Predicate.
 func Gt(f1, f2 interface{}) Predicate {
 	return CustomPredicate{
 		Format: "? > ?",
@@ -184,6 +193,7 @@ func Gt(f1, f2 interface{}) Predicate {
 	}
 }
 
+// Ge returns an 'X >= Y' Predicate.
 func Ge(f1, f2 interface{}) Predicate {
 	return CustomPredicate{
 		Format: "? >= ?",
@@ -191,6 +201,7 @@ func Ge(f1, f2 interface{}) Predicate {
 	}
 }
 
+// Lt returns an 'X < Y' Predicate.
 func Lt(f1, f2 interface{}) Predicate {
 	return CustomPredicate{
 		Format: "? < ?",
@@ -198,6 +209,7 @@ func Lt(f1, f2 interface{}) Predicate {
 	}
 }
 
+// Le returns an 'X <= Y' Predicate.
 func Le(f1, f2 interface{}) Predicate {
 	return CustomPredicate{
 		Format: "? <= ?",

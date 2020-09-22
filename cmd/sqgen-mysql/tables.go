@@ -14,6 +14,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// Field Types
 const (
 	FieldTypeBoolean = "sq.BooleanField"
 	FieldTypeJSON    = "sq.JSONField"

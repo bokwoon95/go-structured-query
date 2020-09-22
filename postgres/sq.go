@@ -65,11 +65,13 @@ type Predicate interface {
 	Not() Predicate
 }
 
+// Assignment is an interface representing an SQL Assignment 'Field = Value'.
 type Assignment interface {
 	AppendSQLExclude(buf *strings.Builder, args *[]interface{}, excludedTableQualifiers []string)
 	AssertAssignment()
 }
 
+// DB is an interface providing database querying abilities.
 type DB interface {
 	Query(query string, args ...interface{}) (*sql.Rows, error)
 	QueryContext(ctx context.Context, query string, args ...interface{}) (*sql.Rows, error)

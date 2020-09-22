@@ -2,8 +2,10 @@ package sq
 
 import "strings"
 
+// Subquery represents an SQL subquery.
 type Subquery map[string]CustomField
 
+// Subquery converys a SelectQuery into a Subquery.
 func (q SelectQuery) Subquery(alias string) Subquery {
 	subquery := Subquery{
 		metadataQuery: {Values: []interface{}{q}},
@@ -19,6 +21,7 @@ func (q SelectQuery) Subquery(alias string) Subquery {
 	return subquery
 }
 
+// Subquery converys an InsertQuery into a Subquery.
 func (q InsertQuery) Subquery(alias string) Subquery {
 	subquery := Subquery{
 		metadataQuery: {Values: []interface{}{q}},
@@ -34,6 +37,7 @@ func (q InsertQuery) Subquery(alias string) Subquery {
 	return subquery
 }
 
+// Subquery converys an UpdateQuery into a Subquery.
 func (q UpdateQuery) Subquery(alias string) Subquery {
 	subquery := Subquery{
 		metadataQuery: {Values: []interface{}{q}},
@@ -49,6 +53,7 @@ func (q UpdateQuery) Subquery(alias string) Subquery {
 	return subquery
 }
 
+// Subquery converys a DeleteQuery into a Subquery.
 func (q DeleteQuery) Subquery(alias string) Subquery {
 	subquery := Subquery{
 		metadataQuery: {Values: []interface{}{q}},
@@ -64,6 +69,7 @@ func (q DeleteQuery) Subquery(alias string) Subquery {
 	return subquery
 }
 
+// Subquery converys a VariadicQuery into a Subquery.
 func (vq VariadicQuery) Subquery(name string) Subquery {
 	subquery := map[string]CustomField{
 		metadataQuery: {Values: []interface{}{vq}},
@@ -96,6 +102,7 @@ func (vq VariadicQuery) Subquery(name string) Subquery {
 	return subquery
 }
 
+// ToSQL marshals the Subquery into a query string and args slice.
 func (subq Subquery) ToSQL() (string, []interface{}) {
 	buf := &strings.Builder{}
 	var args []interface{}
@@ -103,6 +110,7 @@ func (subq Subquery) ToSQL() (string, []interface{}) {
 	return buf.String(), args
 }
 
+// AppendSQL marshals the Subquery into a buffer and args slice.
 func (subq Subquery) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 	q := subq.GetQuery()
 	if q == nil {
@@ -111,6 +119,7 @@ func (subq Subquery) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 	q.NestThis().AppendSQL(buf, args)
 }
 
+// GetQuery returns the Subquery's underlying Query.
 func (subq Subquery) GetQuery() Query {
 	field := subq[metadataQuery]
 	if len(field.Values) > 0 {
@@ -121,10 +130,12 @@ func (subq Subquery) GetQuery() Query {
 	return nil
 }
 
+// GetName returns the name of the Subquery.
 func (subq Subquery) GetName() string {
 	return ""
 }
 
+// GetAlias returns the alias of the Subquery.
 func (subq Subquery) GetAlias() string {
 	field := subq[metadataAlias]
 	if len(field.Values) > 0 {
@@ -135,6 +146,7 @@ func (subq Subquery) GetAlias() string {
 	return ""
 }
 
+// NestThis indicates to the Subquery that it is nested.
 func (subq Subquery) NestThis() Query {
 	return subq
 }

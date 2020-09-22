@@ -2,6 +2,10 @@ package sq
 
 import "strings"
 
+// FunctionInfo is struct that implements the Table/Field interface, containing
+// all the information needed to call itself a Table/Field. It is meant to be
+// embedded in arbitrary structs to also transform them into valid
+// Tables/Fields.
 type FunctionInfo struct {
 	Schema    string
 	Name      string
@@ -36,6 +40,7 @@ func (f *FunctionInfo) AppendSQLExclude(buf *strings.Builder, args *[]interface{
 	expandValues(buf, args, excludedTableQualifiers, format, f.Arguments)
 }
 
+// Functionf creates a new FunctionInfo.
 func Functionf(name string, args ...interface{}) *FunctionInfo {
 	return &FunctionInfo{
 		Name:      name,

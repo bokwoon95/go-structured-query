@@ -150,6 +150,7 @@ func DeleteFrom(tables ...BaseTable) DeleteQuery {
 	}
 }
 
+// With appends the CTEs into the DeleteQuery.
 func (q DeleteQuery) With(ctes ...CTE) DeleteQuery {
 	q.CTEs = append(q.CTEs, ctes...)
 	return q

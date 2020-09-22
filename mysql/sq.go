@@ -64,8 +64,7 @@ type Predicate interface {
 	Not() Predicate
 }
 
-// Assignment is an interface representing an assignment used in the UPDATE or
-// INSERT query.
+// Assignment is an interface representing an SQL Assignment 'Field = Value'.
 type Assignment interface {
 	AppendSQLExclude(buf *strings.Builder, args *[]interface{}, excludedTableQualifiers []string)
 	AssertAssignment()

@@ -9,6 +9,7 @@ const (
 	colmodeUpdate
 )
 
+// Column keeps track of what the values mapped to what Field in an InsertQuery/SelectQuery.
 type Column struct {
 	// mode determines if INSERT or UPDATE
 	mode colmode
@@ -22,6 +23,7 @@ type Column struct {
 	assignments Assignments
 }
 
+// Set maps the value to the Field.
 func (col *Column) Set(field Field, value interface{}) {
 	if field == nil {
 		// should I panic with an error here instead?
@@ -60,26 +62,32 @@ func (col *Column) Set(field Field, value interface{}) {
 	}
 }
 
+// SetBool maps the bool value to the BooleanField.
 func (col *Column) SetBool(field BooleanField, value bool) {
 	col.Set(field, value)
 }
 
+// SetFloat64 maps the float64 value to the NumberField.
 func (col *Column) SetFloat64(field NumberField, value float64) {
 	col.Set(field, value)
 }
 
+// SetInt maps the int value to the NumberField.
 func (col *Column) SetInt(field NumberField, value int) {
 	col.Set(field, value)
 }
 
+// SetInt64 maps the int64 value to the NumberField.
 func (col *Column) SetInt64(field NumberField, value int64) {
 	col.Set(field, value)
 }
 
+// SetString maps the string value to the StringField.
 func (col *Column) SetString(field StringField, value string) {
 	col.Set(field, value)
 }
 
+// SetTime maps the time.Time value to the TimeField.
 func (col *Column) SetTime(field TimeField, value time.Time) {
 	col.Set(field, value)
 }

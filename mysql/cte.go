@@ -13,6 +13,7 @@ const (
 	metadataColumns   = "𝑐𝑜𝑙𝑢𝑚𝑛𝑠"
 )
 
+// CTE represents an SQL CTE.
 type CTE map[string]CustomField
 
 func appendCTEs(buf *strings.Builder, args *[]interface{}, CTEs []CTE, fromTable Table, joinTables []JoinTable) {
@@ -84,6 +85,7 @@ func appendCTEs(buf *strings.Builder, args *[]interface{}, CTEs []CTE, fromTable
 	buf.WriteString(" ")
 }
 
+// CTE converts a SelectQuery into a CTE.
 func (q SelectQuery) CTE(name string, columns ...string) CTE {
 	cte := map[string]CustomField{
 		metadataQuery:   {Values: []interface{}{q}},
@@ -98,6 +100,7 @@ func (q SelectQuery) CTE(name string, columns ...string) CTE {
 	return cte
 }
 
+// CTE converts a VariadicQuery into a CTE.
 func (vq VariadicQuery) CTE(name string, columns ...string) CTE {
 	cte := map[string]CustomField{
 		metadataQuery:   {Values: []interface{}{vq}},
@@ -123,6 +126,7 @@ func (vq VariadicQuery) CTE(name string, columns ...string) CTE {
 	return cte
 }
 
+// As returns a new CTE with the alias i.e. 'CTE AS alias'.
 func (cte CTE) As(alias string) CTE {
 	newcte := map[string]CustomField{
 		metadataQuery:   {Values: []interface{}{cte.GetQuery()}},
@@ -140,10 +144,12 @@ func (cte CTE) As(alias string) CTE {
 	return newcte
 }
 
+// AppendSQL marshals the CTE into a buffer and args slice.
 func (cte CTE) AppendSQL(buf *strings.Builder, _ *[]interface{}) {
 	buf.WriteString(cte.GetName())
 }
 
+// IsRecursive checks if the CTE is recursive.
 func (cte CTE) IsRecursive() bool {
 	field := cte[metadataRecursive]
 	if len(field.Values) > 0 {
@@ -154,6 +160,7 @@ func (cte CTE) IsRecursive() bool {
 	return false
 }
 
+// GetQuery returns the CTE's underlying Query.
 func (cte CTE) GetQuery() Query {
 	field := cte[metadataQuery]
 	if len(field.Values) > 0 {
@@ -164,6 +171,7 @@ func (cte CTE) GetQuery() Query {
 	return nil
 }
 
+// GetQuery returns the CTE's columns.
 func (cte CTE) GetColumns() []string {
 	field := cte[metadataColumns]
 	if len(field.Values) > 0 {
@@ -174,6 +182,7 @@ func (cte CTE) GetColumns() []string {
 	return nil
 }
 
+// GetName returns the name of the CTE.
 func (cte CTE) GetName() string {
 	field := cte[metadataName]
 	if len(field.Values) > 0 {
@@ -184,6 +193,7 @@ func (cte CTE) GetName() string {
 	return ""
 }
 
+// GetAlias returns the alias of the CTE.
 func (cte CTE) GetAlias() string {
 	field := cte[metadataAlias]
 	if len(field.Values) > 0 {
@@ -194,6 +204,7 @@ func (cte CTE) GetAlias() string {
 	return ""
 }
 
+// RecursiveCTE constructs a new recursive CTE.
 func RecursiveCTE(name string, columns ...string) CTE {
 	cte := map[string]CustomField{
 		metadataRecursive: {Values: []interface{}{true}},
@@ -209,8 +220,13 @@ func RecursiveCTE(name string, columns ...string) CTE {
 	return cte
 }
 
+// IntermediateCTE is a CTE used to hold the intermediate state of a recursive
+// CTE just after the CTE's initial query is declared. It can only be converted
+// back into a CTE by adding the recursive queries that UNION into the CTE.
 type IntermediateCTE map[string]CustomField
 
+// Initial specifies recursive CTE's initial query. If the CTE is not
+// recursive, this operation is a no-op.
 func (cte *CTE) Initial(query Query) IntermediateCTE {
 	if !cte.IsRecursive() {
 		return IntermediateCTE(*cte)
@@ -234,6 +250,8 @@ func (cte *CTE) Initial(query Query) IntermediateCTE {
 	return IntermediateCTE(*cte)
 }
 
+// Union specifies the queries to be UNIONed into the CTE. If the CTE is not
+// recursive, this operation is a no-op.
 func (cte IntermediateCTE) Union(queries ...Query) CTE {
 	if !CTE(cte).IsRecursive() {
 		return CTE(cte)
@@ -241,6 +259,8 @@ func (cte IntermediateCTE) Union(queries ...Query) CTE {
 	return cte.union(queries, QueryUnion)
 }
 
+// Union specifies the queries to be UNION-ALLed into the CTE. If the CTE is
+// not recursive, this operation is a no-op.
 func (cte IntermediateCTE) UnionAll(queries ...Query) CTE {
 	if !CTE(cte).IsRecursive() {
 		return CTE(cte)

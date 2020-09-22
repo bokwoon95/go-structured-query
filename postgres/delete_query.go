@@ -12,6 +12,7 @@ import (
 	"time"
 )
 
+// DeleteQuery represents a DELETE query.
 type DeleteQuery struct {
 	nested bool
 	// WITH
@@ -35,6 +36,7 @@ type DeleteQuery struct {
 	logSkip int
 }
 
+// ToSQL marshals the DeleteQuery into a query string and args slice.
 func (q DeleteQuery) ToSQL() (string, []interface{}) {
 	q.logSkip += 1
 	buf := &strings.Builder{}
@@ -43,6 +45,7 @@ func (q DeleteQuery) ToSQL() (string, []interface{}) {
 	return buf.String(), args
 }
 
+// AppendSQL marshals the DeleteQuery into a buffer and args slice.
 func (q DeleteQuery) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 	// WITH
 	if !q.nested {
@@ -125,36 +128,38 @@ func (q DeleteQuery) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 	}
 }
 
-func (q DeleteQuery) GetName() string {
-	return ""
-}
-
+// NestThis indicates to the DeleteQuery that it is nested.
 func (q DeleteQuery) NestThis() Query {
 	q.nested = true
 	return q
 }
 
+// DeleteFrom creates a new DeleteQuery.
 func DeleteFrom(table BaseTable) DeleteQuery {
 	return DeleteQuery{
 		FromTable: table,
 	}
 }
 
+// With appends the CTEs into the DeleteQuery.
 func (q DeleteQuery) With(ctes ...CTE) DeleteQuery {
 	q.CTEs = append(q.CTEs, ctes...)
 	return q
 }
 
+// DeleteFrom sets the table to be deleted from in the DeleteQuery.
 func (q DeleteQuery) DeleteFrom(table BaseTable) DeleteQuery {
 	q.FromTable = table
 	return q
 }
 
+// Using adds a new table to the DeleteQuery.
 func (q DeleteQuery) Using(table Table) DeleteQuery {
 	q.UsingTable = table
 	return q
 }
 
+// Join joins a new table to the DeleteQuery based on the predicates.
 func (q DeleteQuery) Join(table Table, predicate Predicate, predicates ...Predicate) DeleteQuery {
 	predicates = append([]Predicate{predicate}, predicates...)
 	q.JoinTables = append(q.JoinTables, JoinTable{
@@ -167,6 +172,7 @@ func (q DeleteQuery) Join(table Table, predicate Predicate, predicates ...Predic
 	return q
 }
 
+// LeftJoin left joins a new table to the DeleteQuery based on the predicates.
 func (q DeleteQuery) LeftJoin(table Table, predicate Predicate, predicates ...Predicate) DeleteQuery {
 	predicates = append([]Predicate{predicate}, predicates...)
 	q.JoinTables = append(q.JoinTables, JoinTable{
@@ -179,6 +185,7 @@ func (q DeleteQuery) LeftJoin(table Table, predicate Predicate, predicates ...Pr
 	return q
 }
 
+// RightJoin right joins a new table to the DeleteQuery based on the predicates.
 func (q DeleteQuery) RightJoin(table Table, predicate Predicate, predicates ...Predicate) DeleteQuery {
 	predicates = append([]Predicate{predicate}, predicates...)
 	q.JoinTables = append(q.JoinTables, JoinTable{
@@ -191,6 +198,7 @@ func (q DeleteQuery) RightJoin(table Table, predicate Predicate, predicates ...P
 	return q
 }
 
+// FullJoin full joins a table to the DeleteQuery based on the predicates.
 func (q DeleteQuery) FullJoin(table Table, predicate Predicate, predicates ...Predicate) DeleteQuery {
 	predicates = append([]Predicate{predicate}, predicates...)
 	q.JoinTables = append(q.JoinTables, JoinTable{
@@ -203,6 +211,8 @@ func (q DeleteQuery) FullJoin(table Table, predicate Predicate, predicates ...Pr
 	return q
 }
 
+// CustomJoin custom joins a table to the DeleteQuery. The join type can be
+// specified with a string, e.g. "CROSS JOIN".
 func (q DeleteQuery) CustomJoin(joinType JoinType, table Table, predicates ...Predicate) DeleteQuery {
 	q.JoinTables = append(q.JoinTables, JoinTable{
 		JoinType: joinType,
@@ -214,27 +224,32 @@ func (q DeleteQuery) CustomJoin(joinType JoinType, table Table, predicates ...Pr
 	return q
 }
 
+// Where appends the predicates to the WHERE clause in the DeleteQuery.
 func (q DeleteQuery) Where(predicates ...Predicate) DeleteQuery {
 	q.WherePredicate.Predicates = append(q.WherePredicate.Predicates, predicates...)
 	return q
 }
 
+// Returning appends the fields to the RETURNING clause of the DeleteQuery.
 func (q DeleteQuery) Returning(fields ...Field) DeleteQuery {
 	q.ReturningFields = append(q.ReturningFields, fields...)
 	return q
 }
 
+// ReturningOne sets the RETURNING clause to RETURNING 1 in the DeleteQuery.
 func (q DeleteQuery) ReturningOne() DeleteQuery {
 	q.ReturningFields = Fields{FieldLiteral("1")}
 	return q
 }
 
+// Returningx sets the rowmapper and accumulator function of the DeleteQuery.
 func (q DeleteQuery) Returningx(mapper func(*Row), accumulator func()) DeleteQuery {
 	q.RowMapper = mapper
 	q.Accumulator = accumulator
 	return q
 }
 
+// Returningx sets the rowmapper function of the DeleteQuery.
 func (q DeleteQuery) ReturningRowx(mapper func(*Row)) DeleteQuery {
 	q.RowMapper = mapper
 	return q
