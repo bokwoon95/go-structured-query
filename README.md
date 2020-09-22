@@ -61,9 +61,9 @@ You just want to see code, right? Here's some.
 #### SELECT
 ```sql
 -- SQL
-SELECT u.user_id, u.name, u.email
+SELECT u.user_id, u.name, u.email, u.created_at
 FROM public.users AS u
-WHERE u.name = 'bob';
+WHERE u.name = 'Bob';
 ```
 ```go
 // Go
@@ -71,7 +71,7 @@ u := tables.USERS().As("u") // table is code generated
 var user User
 var users []User
 err := sq.From(u).
-    Where(u.NAME.EqString("bob")).
+    Where(u.NAME.EqString("Bob")).
     Selectx(func(row *sq.Row) {
         user.UserID = row.Int(u.USER_ID)
         user.Name = row.String(u.NAME)
@@ -96,9 +96,9 @@ VALUES ('Bob', 'bob@email.com'), ('Alice', 'alice@email.com'), ('Eve', 'eve@emai
 // Go
 u := tables.USERS().As("u") // table is code generated
 users := []User{
-    {Name: "Bob",   Email: "bob@email.com",   CreatedAt: time.Now()},
-    {Name: "Alice", Email: "alice@email.com", CreatedAt: time.Now()},
-    {Name: "Eve  ", Email: "eve@email.com",   CreatedAt: time.Now()},
+    {Name: "Bob",   Email: "bob@email.com"},
+    {Name: "Alice", Email: "alice@email.com"},
+    {Name: "Eve  ", Email: "eve@email.com"},
 }
 rowsAffected, err := sq.InsertInto(u).
     Valuesx(func(col *sq.Column) {
@@ -117,7 +117,7 @@ if err != nil {
 ```sql
 -- SQL
 UPDATE public.users
-SET name = 'bob', password = '1234'
+SET name = 'Bob', password = 'qwertyuiop'
 WHERE email = 'bob@email.com';
 ```
 ```go
