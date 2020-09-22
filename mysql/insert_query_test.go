@@ -38,28 +38,6 @@ func TestInsertQuery_ToSQL(t *testing.T) {
 			[]interface{}{"aaa", "aaa@email.com", "bbb", "bbb@email.com"},
 		},
 		{
-			"Insert InsertRow",
-			WithDefaultLog(Linterpolate).
-				InsertInto(u).
-				InsertRow(
-					u.DISPLAYNAME.SetString("aaa"),
-					u.EMAIL.SetString("aaa@email.com"),
-				).
-				InsertRow(
-					u.EMAIL.SetString("bbb"),
-					u.EMAIL.SetString("bbb@email.com"),
-				).
-				OnDuplicateKeyUpdate(
-					u.DISPLAYNAME.Set(Values(u.DISPLAYNAME)),
-					u.EMAIL.Set(Values(u.EMAIL)),
-				),
-			"INSERT INTO devlab.users (displayname, email)" +
-				" VALUES (?, ?), (?, ?)" +
-				" ON DUPLICATE KEY UPDATE" +
-				" displayname = VALUES(displayname), email = VALUES(email)",
-			[]interface{}{"aaa", "aaa@email.com", "bbb", "bbb@email.com"},
-		},
-		{
 			"Insert Select",
 			WithDefaultLog(0).
 				InsertInto(u).

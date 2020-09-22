@@ -36,26 +36,6 @@ func TestInsertQuery_ToSQL(t *testing.T) {
 				" RETURNING 1",
 			[]interface{}{"aaa", "aaa@email.com", "bbb", "bbb@email.com"},
 		},
-		{
-			"Insert InsertRow",
-			WithDefaultLog(Linterpolate).
-				InsertInto(u).
-				InsertRow(
-					u.DISPLAYNAME.SetString("aaa"),
-					u.EMAIL.SetString("aaa@email.com"),
-				).
-				InsertRow(
-					u.EMAIL.SetString("bbb"),
-					u.EMAIL.SetString("bbb@email.com"),
-				).
-				OnConflictOnConstraint("pkey_blabla").DoNothing().
-				ReturningOne(),
-			"INSERT INTO public.users AS u (displayname, email)" +
-				" VALUES ($1, $2), ($3, $4)" +
-				" ON CONFLICT ON CONSTRAINT pkey_blabla DO NOTHING" +
-				" RETURNING 1",
-			[]interface{}{"aaa", "aaa@email.com", "bbb", "bbb@email.com"},
-		},
 		func() TT {
 			var tt TT
 			tt.description = "Insert Select"

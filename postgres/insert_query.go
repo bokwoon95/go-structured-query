@@ -200,21 +200,6 @@ func (q InsertQuery) Valuesx(mapper func(*Column)) InsertQuery {
 	return q
 }
 
-// InsertRow appends a new RowValue to the InsertQuery. It also sets the insert
-// columns if not already set.
-func (q InsertQuery) InsertRow(assignments ...FieldAssignment) InsertQuery {
-	fields, values := make([]Field, len(assignments)), make([]interface{}, len(assignments))
-	for i, assignment := range assignments {
-		fields[i] = assignment.Field
-		values[i] = assignment.Value
-	}
-	if len(q.InsertColumns) == 0 {
-		q.InsertColumns = fields
-	}
-	q.RowValues = append(q.RowValues, values)
-	return q
-}
-
 // Select adds a SelectQuery to the InsertQuery.
 func (q InsertQuery) Select(selectQuery SelectQuery) InsertQuery {
 	q.SelectQuery = &selectQuery
