@@ -1,5 +1,5 @@
-[![GoDoc-postgres](https://img.shields.io/badge/godoc-postgres-blue)](https://godoc.org/github.com/bokwoon95/go-structured-query/postgres)
-[![GoDoc-mysql](https://img.shields.io/badge/godoc-mysql-blue)](https://godoc.org/github.com/bokwoon95/go-structured-query/mysql)
+[![GoDoc-postgres](https://img.shields.io/badge/pkg.go.dev-postgres-blue)](https://pkg.go.dev/github.com/bokwoon95/go-structured-query/postgres)
+[![GoDoc-mysql](https://img.shields.io/badge/pkg.go.dev-mysql-blue)](https://pkg.go.dev/github.com/bokwoon95/go-structured-query/mysql)
 ![CI](https://github.com/bokwoon95/go-structured-query/workflows/CI/badge.svg?branch=master)
 [![Go Report Card](https://goreportcard.com/badge/github.com/bokwoon95/go-structured-query)](https://goreportcard.com/report/github.com/bokwoon95/go-structured-query)
 [![Coverage Status](https://coveralls.io/repos/github/bokwoon95/go-structured-query/badge.svg?branch=master)](https://coveralls.io/github/bokwoon95/go-structured-query?branch=master)
