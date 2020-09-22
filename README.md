@@ -20,14 +20,14 @@
 
 This package provides type safe querying on top of Go's database/sql. It is essentially a glorified string builder, but automates things in all the right places to make working with SQL queries pleasant and boilerplate-free.
 
-- <b>Avoid magic strings.</b> SQL queries written in Go are full of [magic strings](https://deviq.com/magic-strings/): strings specified directly within application code that have an impact on the application's behavior. Specifically, you have to hardcode table or column names over and over into your queries (even ORMs are guilty of this!). Such magic strings are prone to typos and hard to refactor correctly. sq generates table structs from your database and ensures that whatever query you write is always reflective of what's actually in your database.
+- <b>Avoid magic strings.</b> SQL queries written in Go are full of [magic strings](https://deviq.com/magic-strings/): strings specified directly within application code that have an impact on the application's behavior. Specifically, you have to hardcode table or column names over and over into your queries (even ORMs are guilty of this!). Such magic strings are prone to typos and hard to change as your database schema changes. sq generates table structs from your database and ensures that whatever query you write is always reflective of what's actually in your database.
 
 - <b>Better null handling</b>. Handling NULLs is a bit of a pain in the ass in Go. You have to either use pointers (cannot be used in HTML templates) or sql.NullXXX structs (extra layer of indirection). sq scans NULLs as zero values, while still offering you the ability to check if the column was NULL. [more info](https://bokwoon95.github.io/sq/basics/struct-mapping.html#nulls)
 
-- <b>The mapper doubles as the SELECT clause</b>.
-    - database/sql requires you to specify the list of columns twice in the exact same order, once for SELECT-ing and once for scanning. If you mess the order up, that's an error.
+- <b>The mapper function *is* the SELECT clause</b>.
+    - database/sql requires you to repeat the list of columns twice in the exact same order, once for SELECT-ing and once for scanning. If you mess the order up, that's an error.
     - Reflection-based mapping (struct tags) has you defining a set of possible column names to map, and then requires you to adhere to those column names. If you mistype a column name in the struct tag, that's an error. If you SELECT a column that's not present in the struct, that's an error.
-    - In sq it's the other way around. You are free to choose any column to map, not just the ones defined in the struct. Columns are guaranteed to exist because they were generated from the database schema. Any columns that you do map are automatically added to the SELECT clause, so you don't have to specify the columns twice. And you can map columns to any Go variable, you aren't constrained to struct fields.
+    - In sq whatever you SELECT is automatically mapped. **This means you just have to write your query, execute it, and if there were no errors the data is already in your Go variables.** No iterating rows, specifying column scan order, no error checking three times. *Write your query, run it, you're done*.
     - [more info](https://bokwoon95.github.io/sq/basics/struct-mapping.html)
 
 ## Getting started
@@ -70,7 +70,8 @@ WHERE u.name = 'Bob';
 u := tables.USERS().As("u") // table is code generated
 var user User
 var users []User
-err := sq.From(u).
+err := sq.
+    From(u).
     Where(u.NAME.EqString("Bob")).
     Selectx(func(row *sq.Row) {
         user.UserID = row.Int(u.USER_ID)
@@ -100,7 +101,8 @@ users := []User{
     {Name: "Alice", Email: "alice@email.com"},
     {Name: "Eve  ", Email: "eve@email.com"},
 }
-rowsAffected, err := sq.InsertInto(u).
+rowsAffected, err := sq.
+    InsertInto(u).
     Valuesx(func(col *sq.Column) {
         for _, user := range users {
             col.SetString(u.NAME, user.Name)
@@ -123,8 +125,13 @@ WHERE email = 'bob@email.com';
 ```go
 // Go
 u := tables.USERS().As("u") // table is code generated
-user := User{Name: "Bob", Email: "bob@email.com", Password: "qwertyuiop"}
-rowsAffected, err := sq.Update(u).
+user := User{
+    Name:     "Bob",
+    Email:    "bob@email.com",
+    Password: "qwertyuiop",
+}
+rowsAffected, err := sq.
+    Update(u).
     Setx(func(col *sq.Column) {
         col.SetString(u.NAME, user.Name)
         col.SetString(u.PASSWORD, user.Password)
@@ -149,7 +156,8 @@ WHERE u.user_id = ur.user_id AND urs.team_id = 15;
 u   := tables.USERS().As("u")                 // tables are code generated
 ur  := tables.USER_ROLES().As("ur")           // tables are code generated
 urs := tables.USER_ROLES_STUDENTS().As("urs") // tables are code generated
-rowsAffected, err := sq.DeleteFrom(u).
+rowsAffected, err := sq.
+    DeleteFrom(u).
     Using(ur).
     Join(urs, urs.USER_ROLE_ID.Eq(ur.USER_ROLE_ID)).
     Where(
