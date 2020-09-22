@@ -76,7 +76,14 @@ type FieldAssignment struct {
 func (set FieldAssignment) AppendSQLExclude(buf *strings.Builder, args *[]interface{}, excludedTableQualifiers []string) {
 	appendSQLValue(buf, args, excludedTableQualifiers, set.Field)
 	buf.WriteString(" = ")
-	appendSQLValue(buf, args, excludedTableQualifiers, set.Value)
+	switch v := set.Value.(type) {
+	case Query:
+		buf.WriteString("(")
+		appendSQLValue(buf, args, excludedTableQualifiers, v.NestThis())
+		buf.WriteString(")")
+	default:
+		appendSQLValue(buf, args, excludedTableQualifiers, set.Value)
+	}
 }
 
 func (set FieldAssignment) AssertAssignment() {}

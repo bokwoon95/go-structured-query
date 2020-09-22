@@ -1,25 +1,9 @@
-v1.0 blockers
--------------
-- Fleshed out JSON support
-- Automatically adding named windows to the WINDOW clause
-    - If it works, can remove Window method from Queries
-
 Additional Features that don't break API
 ----------------------------------------
-- WithLogFunc
 - Query compiling + argument rebinding
+- Custom loggers with structured logging support
+- Fleshed out JSON support
 
-WithLogFunc
-type LogInfo struct {
-    Query        string
-    Args         []interface{}
-    RowsFetched  int64
-    TimeTaken    time.Duration
-    RowsAffected int64
-    LastInsertID int64 // mysql only
-}
-WithLogFunc(fn).Select(x, y, z)
-where fn is of type func(loginfo LogInfo)
 
 Queries can be precompiled to avoid the paying the price of string serialization over and over
     - Clauses can be added
@@ -34,3 +18,23 @@ Queries can be precompiled to avoid the paying the price of string serialization
 q := Select(tbl.col1, tbl.col2).From(tbl).Where(tbl.col1.Eq(sq.Placeholder("to_be_added_later"))).Compile()
 q.Bind("to_be_added_later", someVar)
 q.SelectRowx(user.RowMapper()).Fetch(db)
+
+When I added WithLogFunc I saw the time taken for a query (TestSelect_Fetch/Accumulator) increase by 500% (tested multiple times, result was always in that ballpark). That scared me off and I promptly reverted all LogFunc changes.
+    In the meantime I've removed custom logging altogether so that I can add it back in a more performant and structured logging way in the future.
+type LogInfo struct {
+    LogFlag      LogFlag
+    LogSkip      int // in case someone needs to hook up to logger.Output
+    Query        string
+    Args         []interface{}
+    Action       LogAction // One of: ToSQL, Fetch or Exec
+    TimeTaken    time.Duration
+    // Fetch
+    RowsFetched  int64
+    result       string // string containing the results
+    // Exec
+    ExecFlag     ExecFlag
+    RowsAffected int64
+    LastInsertID int64 // mysql only
+}
+type LogFunc(LogInfo)
+WithLogFunc(fn).Select(x, y, z)

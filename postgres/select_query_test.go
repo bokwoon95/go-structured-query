@@ -315,9 +315,9 @@ func TestSelectQuery_Basic(t *testing.T) {
 
 	var q SelectQuery
 	q = Selectx(nil, nil)
-	is.Equal(nil, q.Mapper)
+	is.Equal(nil, q.RowMapper)
 	is.Equal(nil, q.Accumulator)
 
 	q = SelectRowx(nil)
-	is.Equal(nil, q.Mapper)
+	is.Equal(nil, q.RowMapper)
 }

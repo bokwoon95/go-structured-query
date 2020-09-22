@@ -49,7 +49,7 @@ type SelectQuery struct {
 	OffsetValue *int64
 	// DB
 	DB          DB
-	Mapper      func(*Row)
+	RowMapper   func(*Row)
 	Accumulator func()
 	// Logging
 	Log     Logger
@@ -205,7 +205,7 @@ func SelectDistinct(fields ...Field) SelectQuery {
 // Selectx creates a new SelectQuery.
 func Selectx(mapper func(*Row), accumulator func()) SelectQuery {
 	return SelectQuery{
-		Mapper:      mapper,
+		RowMapper:   mapper,
 		Accumulator: accumulator,
 		Alias:       randomString(8),
 	}
@@ -214,8 +214,8 @@ func Selectx(mapper func(*Row), accumulator func()) SelectQuery {
 // SelectRowx creates a new SelectQuery.
 func SelectRowx(mapper func(*Row)) SelectQuery {
 	return SelectQuery{
-		Mapper: mapper,
-		Alias:  randomString(8),
+		RowMapper: mapper,
+		Alias:     randomString(8),
 	}
 }
 
@@ -373,14 +373,14 @@ func (q SelectQuery) Offset(offset int) SelectQuery {
 
 // Selectx sets the mapper function and accumulator function in the SelectQuery.
 func (q SelectQuery) Selectx(mapper func(*Row), accumulator func()) SelectQuery {
-	q.Mapper = mapper
+	q.RowMapper = mapper
 	q.Accumulator = accumulator
 	return q
 }
 
 // SelectRowx sets the mapper function in the SelectQuery.
 func (q SelectQuery) SelectRowx(mapper func(*Row)) SelectQuery {
-	q.Mapper = mapper
+	q.RowMapper = mapper
 	return q
 }
 
@@ -401,7 +401,7 @@ func (q SelectQuery) FetchContext(ctx context.Context, db DB) (err error) {
 		}
 		db = q.DB
 	}
-	if q.Mapper == nil {
+	if q.RowMapper == nil {
 		return fmt.Errorf("cannot call Fetch/FetchContext without a mapper")
 	}
 	logBuf := &strings.Builder{}
@@ -445,7 +445,7 @@ func (q SelectQuery) FetchContext(ctx context.Context, db DB) (err error) {
 		}
 	}()
 	r := &Row{}
-	q.Mapper(r)
+	q.RowMapper(r)
 	q.SelectFields = r.fields
 	if len(q.SelectFields) == 0 {
 		q.SelectFields = Fields{FieldLiteral("1")}
@@ -497,7 +497,7 @@ func (q SelectQuery) FetchContext(ctx context.Context, db DB) (err error) {
 			}
 		}
 		r.index = 0
-		q.Mapper(r)
+		q.RowMapper(r)
 		if q.Accumulator == nil {
 			break
 		}

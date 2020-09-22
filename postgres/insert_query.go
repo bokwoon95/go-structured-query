@@ -33,9 +33,10 @@ type InsertQuery struct {
 	// RETURNING
 	ReturningFields Fields
 	// DB
-	DB          DB
-	Mapper      func(*Row)
-	Accumulator func()
+	DB           DB
+	ColumnMapper func(*Column)
+	RowMapper    func(*Row)
+	Accumulator  func()
 	// Logging
 	Log     Logger
 	LogFlag LogFlag
@@ -52,6 +53,12 @@ func (q InsertQuery) ToSQL() (string, []interface{}) {
 
 func (q InsertQuery) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 	var excludedTableQualifiers []string
+	if q.ColumnMapper != nil {
+		col := &Column{mode: colmodeInsert}
+		q.ColumnMapper(col)
+		q.InsertColumns = col.insertColumns
+		q.RowValues = col.rowValues
+	}
 	// WITH
 	if !q.nested && q.SelectQuery != nil {
 		appendCTEs(buf, args, q.CTEs, q.SelectQuery.FromTable, q.SelectQuery.JoinTables)
@@ -179,6 +186,11 @@ func (q InsertQuery) Values(values ...interface{}) InsertQuery {
 	return q
 }
 
+func (q InsertQuery) Valuesx(mapper func(*Column)) InsertQuery {
+	q.ColumnMapper = mapper
+	return q
+}
+
 func (q InsertQuery) InsertRow(assignments ...FieldAssignment) InsertQuery {
 	fields, values := make([]Field, len(assignments)), make([]interface{}, len(assignments))
 	for i, assignment := range assignments {
@@ -253,13 +265,13 @@ func (q InsertQuery) ReturningOne() InsertQuery {
 }
 
 func (q InsertQuery) Returningx(mapper func(*Row), accumulator func()) InsertQuery {
-	q.Mapper = mapper
+	q.RowMapper = mapper
 	q.Accumulator = accumulator
 	return q
 }
 
 func (q InsertQuery) ReturningRowx(mapper func(*Row)) InsertQuery {
-	q.Mapper = mapper
+	q.RowMapper = mapper
 	return q
 }
 
@@ -275,7 +287,7 @@ func (q InsertQuery) FetchContext(ctx context.Context, db DB) (err error) {
 		}
 		db = q.DB
 	}
-	if q.Mapper == nil {
+	if q.RowMapper == nil {
 		return fmt.Errorf("cannot call Fetch/FetchContext without a mapper")
 	}
 	logBuf := &strings.Builder{}
@@ -319,7 +331,7 @@ func (q InsertQuery) FetchContext(ctx context.Context, db DB) (err error) {
 		}
 	}()
 	r := &Row{}
-	q.Mapper(r)
+	q.RowMapper(r)
 	q.ReturningFields = r.fields
 	tmpbuf := &strings.Builder{}
 	var tmpargs []interface{}
@@ -368,7 +380,7 @@ func (q InsertQuery) FetchContext(ctx context.Context, db DB) (err error) {
 			}
 		}
 		r.index = 0
-		q.Mapper(r)
+		q.RowMapper(r)
 		if q.Accumulator == nil {
 			break
 		}

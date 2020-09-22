@@ -27,7 +27,7 @@ type DeleteQuery struct {
 	ReturningFields Fields
 	// DB
 	DB          DB
-	Mapper      func(*Row)
+	RowMapper   func(*Row)
 	Accumulator func()
 	// Logging
 	Log     Logger
@@ -230,13 +230,13 @@ func (q DeleteQuery) ReturningOne() DeleteQuery {
 }
 
 func (q DeleteQuery) Returningx(mapper func(*Row), accumulator func()) DeleteQuery {
-	q.Mapper = mapper
+	q.RowMapper = mapper
 	q.Accumulator = accumulator
 	return q
 }
 
 func (q DeleteQuery) ReturningRowx(mapper func(*Row)) DeleteQuery {
-	q.Mapper = mapper
+	q.RowMapper = mapper
 	return q
 }
 
@@ -252,7 +252,7 @@ func (q DeleteQuery) FetchContext(ctx context.Context, db DB) (err error) {
 		}
 		db = q.DB
 	}
-	if q.Mapper == nil {
+	if q.RowMapper == nil {
 		return fmt.Errorf("cannot call Fetch/FetchContext without a mapper")
 	}
 	logBuf := &strings.Builder{}
@@ -296,7 +296,7 @@ func (q DeleteQuery) FetchContext(ctx context.Context, db DB) (err error) {
 		}
 	}()
 	r := &Row{}
-	q.Mapper(r)
+	q.RowMapper(r)
 	q.ReturningFields = r.fields
 	tmpbuf := &strings.Builder{}
 	var tmpargs []interface{}
@@ -345,7 +345,7 @@ func (q DeleteQuery) FetchContext(ctx context.Context, db DB) (err error) {
 			}
 		}
 		r.index = 0
-		q.Mapper(r)
+		q.RowMapper(r)
 		if q.Accumulator == nil {
 			break
 		}

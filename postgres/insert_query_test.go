@@ -102,6 +102,76 @@ func TestInsertQuery_ToSQL(t *testing.T) {
 			wantQuery := "INSERT INTO public.users (displayname, email)"
 			return TT{desc, q, wantQuery, nil}
 		}(),
+		func() TT {
+			var tt TT
+			tt.description = "Valuesx One Entry"
+			user := User{
+				Displayname: "Bob",
+				Email:       "bob@email.com",
+				Password:    "cant_hack_me",
+			}
+			u := USERS().As("u")
+			tt.q = WithDefaultLog(Lverbose).
+				InsertInto(u).
+				Valuesx(func(col *Column) {
+					col.SetString(u.DISPLAYNAME, user.Displayname)
+					col.SetString(u.EMAIL, user.Email)
+					col.SetString(u.PASSWORD, user.Password)
+				}).
+				Returning(u.USER_ID)
+			tt.wantQuery = "INSERT INTO public.users AS u (displayname, email, password)" +
+				" VALUES ($1, $2, $3)" +
+				" RETURNING u.user_id"
+			tt.wantArgs = []interface{}{user.Displayname, user.Email, user.Password}
+			return tt
+		}(),
+		func() TT {
+			var tt TT
+			tt.description = "Valuesx Multiple Entries"
+			users := []User{
+				{
+					Displayname: "Bob",
+					Email:       "bob@email.com",
+					Password:    "cant_hack_me",
+				},
+				{
+					Displayname: "Alice",
+					Email:       "alice@email.com",
+					Password:    "alice alice",
+				},
+				{
+					Displayname: "Tom",
+					Email:       "tom@email.com",
+					Password:    "catt",
+				},
+				{
+					Displayname: "Jerry",
+					Email:       "jerry@email.com",
+					Password:    "maus",
+				},
+			}
+			u := USERS().As("u")
+			tt.q = WithDefaultLog(Lverbose).
+				InsertInto(u).
+				Valuesx(func(col *Column) {
+					for _, user := range users {
+						col.SetString(u.DISPLAYNAME, user.Displayname)
+						col.SetString(u.EMAIL, user.Email)
+						col.SetString(u.PASSWORD, user.Password)
+					}
+				}).
+				Returning(u.USER_ID)
+			tt.wantQuery = "INSERT INTO public.users AS u (displayname, email, password)" +
+				" VALUES ($1, $2, $3), ($4, $5, $6), ($7, $8, $9), ($10, $11, $12)" +
+				" RETURNING u.user_id"
+			tt.wantArgs = []interface{}{
+				users[0].Displayname, users[0].Email, users[0].Password,
+				users[1].Displayname, users[1].Email, users[1].Password,
+				users[2].Displayname, users[2].Email, users[2].Password,
+				users[3].Displayname, users[3].Email, users[3].Password,
+			}
+			return tt
+		}(),
 	}
 	for _, tt := range tests {
 		tt := tt
@@ -208,7 +278,7 @@ func TestInsertQuery_Fetch(t *testing.T) {
 		FetchContext(ctx, nil)
 	is.True(errors.Is(err, context.DeadlineExceeded))
 
-	// Mapper
+	// RowMapper
 	tempDB, err = sql.Open("txdb", randomString(8))
 	is.NoErr(err)
 	var email string
@@ -251,6 +321,52 @@ func TestInsertQuery_Fetch(t *testing.T) {
 		Fetch(nil)
 	is.NoErr(err)
 	is.Equal(10, len(emails))
+	tempDB.Close()
+
+	// Valuesx + Returningx
+	tempDB, err = sql.Open("txdb", randomString(8))
+	is.NoErr(err)
+	var userIDs []int
+	users := []User{
+		{
+			Displayname: "Bob",
+			Email:       "bob@email.com",
+			Password:    "cant_hack_me",
+		},
+		{
+			Displayname: "Alice",
+			Email:       "alice@email.com",
+			Password:    "alice alice",
+		},
+		{
+			Displayname: "Tom",
+			Email:       "tom@email.com",
+			Password:    "catt",
+		},
+		{
+			Displayname: "Jerry",
+			Email:       "jerry@email.com",
+			Password:    "maus",
+		},
+	}
+	err = WithDefaultLog(Lverbose).
+		WithDB(tempDB).
+		InsertInto(u).
+		Valuesx(func(col *Column) {
+			for _, user := range users {
+				col.SetString(u.DISPLAYNAME, user.Displayname)
+				col.SetString(u.EMAIL, user.Email)
+				col.SetString(u.PASSWORD, user.Password)
+			}
+		}).
+		Returningx(func(row *Row) {
+			userID = row.Int(u.USER_ID)
+		}, func() {
+			userIDs = append(userIDs, userID)
+		}).
+		Fetch(nil)
+	is.NoErr(err)
+	is.Equal(4, len(userIDs))
 	tempDB.Close()
 
 	// Panic with ExitPeacefully

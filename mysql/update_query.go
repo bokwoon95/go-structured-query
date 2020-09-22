@@ -30,7 +30,8 @@ type UpdateQuery struct {
 	// LIMIT
 	LimitValue *int64
 	// DB
-	DB DB
+	DB           DB
+	ColumnMapper func(*Column)
 	// Logging
 	Log     Logger
 	LogFlag LogFlag
@@ -48,6 +49,11 @@ func (q UpdateQuery) ToSQL() (string, []interface{}) {
 
 // AppendSQL marshals the UpdateQuery into a buffer and args slice.
 func (q UpdateQuery) AppendSQL(buf *strings.Builder, args *[]interface{}) {
+	if q.ColumnMapper != nil {
+		col := &Column{mode: colmodeUpdate}
+		q.ColumnMapper(col)
+		q.Assignments = col.assignments
+	}
 	// WITH
 	if !q.nested {
 		appendCTEs(buf, args, q.CTEs, nil, q.JoinTables)
@@ -151,6 +157,11 @@ func (q UpdateQuery) Update(table BaseTable) UpdateQuery {
 // Set appends the assignments to SET clause of the UpdateQuery.
 func (q UpdateQuery) Set(assignments ...Assignment) UpdateQuery {
 	q.Assignments = append(q.Assignments, assignments...)
+	return q
+}
+
+func (q UpdateQuery) Setx(mapper func(*Column)) UpdateQuery {
+	q.ColumnMapper = mapper
 	return q
 }
 

@@ -190,7 +190,7 @@ func TestDeleteQuery_Fetch(t *testing.T) {
 		FetchContext(ctx, nil)
 	is.True(errors.Is(err, context.DeadlineExceeded))
 
-	// Mapper
+	// RowMapper
 	tempDB, err = sql.Open("txdb", randomString(8))
 	is.NoErr(err)
 	err = WithDefaultLog(Lverbose).

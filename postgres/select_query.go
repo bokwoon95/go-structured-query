@@ -50,17 +50,17 @@ type SelectQuery struct {
 	OffsetValue *int64
 	// DB
 	DB          DB
-	Mapper      func(*Row)
+	RowMapper   func(*Row)
 	Accumulator func()
 	// Logging
 	Log     Logger
 	LogFlag LogFlag
-	LogSkip int
+	logSkip int
 }
 
 // ToSQL marshals the SelectQuery into a query string and args slice.
 func (q SelectQuery) ToSQL() (string, []interface{}) {
-	q.LogSkip += 1
+	q.logSkip += 1
 	buf := &strings.Builder{}
 	var args []interface{}
 	q.AppendSQL(buf, &args)
@@ -169,9 +169,9 @@ func (q SelectQuery) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 			}
 			switch q.Log.(type) {
 			case *log.Logger:
-				_ = q.Log.Output(q.LogSkip+2, logOutput)
+				_ = q.Log.Output(q.logSkip+2, logOutput)
 			default:
-				_ = q.Log.Output(q.LogSkip+1, logOutput)
+				_ = q.Log.Output(q.logSkip+1, logOutput)
 			}
 		}
 	}
@@ -220,7 +220,7 @@ func SelectDistinctOn(distinctFields ...Field) func(...Field) SelectQuery {
 // Selectx creates a new SelectQuery.
 func Selectx(mapper func(*Row), accumulator func()) SelectQuery {
 	return SelectQuery{
-		Mapper:      mapper,
+		RowMapper:   mapper,
 		Accumulator: accumulator,
 	}
 }
@@ -228,7 +228,7 @@ func Selectx(mapper func(*Row), accumulator func()) SelectQuery {
 // SelectRowx creates a new SelectQuery.
 func SelectRowx(mapper func(*Row)) SelectQuery {
 	return SelectQuery{
-		Mapper: mapper,
+		RowMapper: mapper,
 	}
 }
 
@@ -397,21 +397,21 @@ func (q SelectQuery) Offset(offset int) SelectQuery {
 
 // Selectx sets the mapper function and accumulator function in the SelectQuery.
 func (q SelectQuery) Selectx(mapper func(*Row), accumulator func()) SelectQuery {
-	q.Mapper = mapper
+	q.RowMapper = mapper
 	q.Accumulator = accumulator
 	return q
 }
 
 // SelectRowx sets the mapper function in the SelectQuery.
 func (q SelectQuery) SelectRowx(mapper func(*Row)) SelectQuery {
-	q.Mapper = mapper
+	q.RowMapper = mapper
 	return q
 }
 
 // Fetch will run SelectQuery with the given DB. It then maps the results based
 // on the mapper function (and optionally runs the accumulator function).
 func (q SelectQuery) Fetch(db DB) (err error) {
-	q.LogSkip += 1
+	q.logSkip += 1
 	return q.FetchContext(nil, db)
 }
 
@@ -425,7 +425,7 @@ func (q SelectQuery) FetchContext(ctx context.Context, db DB) (err error) {
 		}
 		db = q.DB
 	}
-	if q.Mapper == nil {
+	if q.RowMapper == nil {
 		return fmt.Errorf("cannot call Fetch/FetchContext without a mapper")
 	}
 	logBuf := &strings.Builder{}
@@ -462,18 +462,18 @@ func (q SelectQuery) FetchContext(ctx context.Context, db DB) (err error) {
 		if logBuf.Len() > 0 {
 			switch q.Log.(type) {
 			case *log.Logger:
-				_ = q.Log.Output(q.LogSkip+2, logBuf.String())
+				_ = q.Log.Output(q.logSkip+2, logBuf.String())
 			default:
-				_ = q.Log.Output(q.LogSkip+1, logBuf.String())
+				_ = q.Log.Output(q.logSkip+1, logBuf.String())
 			}
 		}
 	}()
 	r := &Row{}
-	q.Mapper(r)
+	q.RowMapper(r)
 	q.SelectFields = r.fields
 	tmpbuf := &strings.Builder{}
 	var tmpargs []interface{}
-	q.LogSkip += 1
+	q.logSkip += 1
 	q.AppendSQL(tmpbuf, &tmpargs)
 	if ctx == nil {
 		r.rows, err = db.Query(tmpbuf.String(), tmpargs...)
@@ -518,7 +518,7 @@ func (q SelectQuery) FetchContext(ctx context.Context, db DB) (err error) {
 			}
 		}
 		r.index = 0
-		q.Mapper(r)
+		q.RowMapper(r)
 		if q.Accumulator == nil {
 			break
 		}
@@ -536,7 +536,7 @@ func (q SelectQuery) FetchContext(ctx context.Context, db DB) (err error) {
 // Exec will execute the SelectQuery with the given DB. It will only compute
 // the rowsAffected if the ErowsAffected Execflag is passed to it.
 func (q SelectQuery) Exec(db DB, flag ExecFlag) (rowsAffected int64, err error) {
-	q.LogSkip += 1
+	q.logSkip += 1
 	return q.ExecContext(nil, db, flag)
 }
 
@@ -566,16 +566,16 @@ func (q SelectQuery) ExecContext(ctx context.Context, db DB, flag ExecFlag) (row
 		if logBuf.Len() > 0 {
 			switch q.Log.(type) {
 			case *log.Logger:
-				_ = q.Log.Output(q.LogSkip+2, logBuf.String())
+				_ = q.Log.Output(q.logSkip+2, logBuf.String())
 			default:
-				_ = q.Log.Output(q.LogSkip+1, logBuf.String())
+				_ = q.Log.Output(q.logSkip+1, logBuf.String())
 			}
 		}
 	}()
 	var res sql.Result
 	tmpbuf := &strings.Builder{}
 	var tmpargs []interface{}
-	q.LogSkip += 1
+	q.logSkip += 1
 	q.AppendSQL(tmpbuf, &tmpargs)
 	if ctx == nil {
 		res, err = db.Exec(tmpbuf.String(), tmpargs...)

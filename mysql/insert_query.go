@@ -26,7 +26,8 @@ type InsertQuery struct {
 	// ON DUPLICATE KEY
 	Resolution Assignments
 	// DB
-	DB DB
+	DB           DB
+	ColumnMapper func(*Column)
 	// Logging
 	Log     Logger
 	LogFlag LogFlag
@@ -45,6 +46,12 @@ func (q InsertQuery) ToSQL() (string, []interface{}) {
 // AppendSQL marshals the InsertQuery into a buffer and args slice.
 func (q InsertQuery) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 	var excludedTableQualifiers []string
+	if q.ColumnMapper != nil {
+		col := &Column{mode: colmodeInsert}
+		q.ColumnMapper(col)
+		q.InsertColumns = col.insertColumns
+		q.RowValues = col.rowValues
+	}
 	// INSERT INTO
 	if q.Ignore {
 		buf.WriteString("INSERT IGNORE INTO ")
@@ -145,6 +152,11 @@ func (q InsertQuery) Columns(fields ...Field) InsertQuery {
 // Values appends a new RowValue to the InsertQuery.
 func (q InsertQuery) Values(values ...interface{}) InsertQuery {
 	q.RowValues = append(q.RowValues, values)
+	return q
+}
+
+func (q InsertQuery) Valuesx(mapper func(*Column)) InsertQuery {
+	q.ColumnMapper = mapper
 	return q
 }
 

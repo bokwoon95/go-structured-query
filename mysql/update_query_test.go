@@ -71,6 +71,30 @@ func TestUpdateQuery_ToSQL(t *testing.T) {
 			wantQuery := "UPDATE devlab.users"
 			return TT{desc, q, wantQuery, nil}
 		}(),
+		func() TT {
+			var tt TT
+			tt.description = "Setx Basic"
+			user := User{
+				UserID:      1,
+				Displayname: "Bob",
+				Email:       "bob@email.com",
+				Password:    "cant_hack_me",
+			}
+			u := USERS().As("u")
+			tt.q = WithDefaultLog(Lverbose).
+				Update(u).
+				Setx(func(col *Column) {
+					col.SetString(u.DISPLAYNAME, user.Displayname)
+					col.SetString(u.EMAIL, user.Email)
+					col.SetString(u.PASSWORD, user.Password)
+				}).
+				Where(u.USER_ID.EqInt(user.UserID))
+			tt.wantQuery = "UPDATE devlab.users AS u" +
+				" SET u.displayname = ?, u.email = ?, u.password = ?" +
+				" WHERE u.user_id = ?"
+			tt.wantArgs = []interface{}{user.Displayname, user.Email, user.Password, user.UserID}
+			return tt
+		}(),
 	}
 	for _, tt := range tests {
 		tt := tt

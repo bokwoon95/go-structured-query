@@ -55,6 +55,14 @@ func (r RowValue) In(v interface{}) CustomPredicate {
 	}
 }
 
+func (r RowValue) GetName() string {
+	return ""
+}
+
+func (r RowValue) GetAlias() string {
+	return ""
+}
+
 type CustomAssignment struct {
 	Format string
 	Values []interface{}

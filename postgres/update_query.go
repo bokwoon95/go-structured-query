@@ -28,9 +28,10 @@ type UpdateQuery struct {
 	// RETURNING
 	ReturningFields Fields
 	// DB
-	DB          DB
-	Mapper      func(*Row)
-	Accumulator func()
+	DB           DB
+	ColumnMapper func(*Column)
+	RowMapper    func(*Row)
+	Accumulator  func()
 	// Logging
 	Log     Logger
 	LogFlag LogFlag
@@ -47,6 +48,11 @@ func (q UpdateQuery) ToSQL() (string, []interface{}) {
 
 func (q UpdateQuery) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 	var excludedTableQualifiers []string
+	if q.ColumnMapper != nil {
+		col := &Column{mode: colmodeUpdate}
+		q.ColumnMapper(col)
+		q.Assignments = col.assignments
+	}
 	// WITH
 	if !q.nested {
 		appendCTEs(buf, args, q.CTEs, q.FromTable, q.JoinTables)
@@ -151,6 +157,11 @@ func (q UpdateQuery) Set(assignments ...Assignment) UpdateQuery {
 	return q
 }
 
+func (q UpdateQuery) Setx(mapper func(*Column)) UpdateQuery {
+	q.ColumnMapper = mapper
+	return q
+}
+
 func (q UpdateQuery) From(table Table) UpdateQuery {
 	q.FromTable = table
 	return q
@@ -231,13 +242,13 @@ func (q UpdateQuery) ReturningOne() UpdateQuery {
 }
 
 func (q UpdateQuery) Returningx(mapper func(*Row), accumulator func()) UpdateQuery {
-	q.Mapper = mapper
+	q.RowMapper = mapper
 	q.Accumulator = accumulator
 	return q
 }
 
 func (q UpdateQuery) ReturningRowx(mapper func(*Row)) UpdateQuery {
-	q.Mapper = mapper
+	q.RowMapper = mapper
 	return q
 }
 
@@ -253,7 +264,7 @@ func (q UpdateQuery) FetchContext(ctx context.Context, db DB) (err error) {
 		}
 		db = q.DB
 	}
-	if q.Mapper == nil {
+	if q.RowMapper == nil {
 		return fmt.Errorf("cannot call Fetch/FetchContext without a mapper")
 	}
 	logBuf := &strings.Builder{}
@@ -297,7 +308,7 @@ func (q UpdateQuery) FetchContext(ctx context.Context, db DB) (err error) {
 		}
 	}()
 	r := &Row{}
-	q.Mapper(r)
+	q.RowMapper(r)
 	q.ReturningFields = r.fields
 	tmpbuf := &strings.Builder{}
 	var tmpargs []interface{}
@@ -346,7 +357,7 @@ func (q UpdateQuery) FetchContext(ctx context.Context, db DB) (err error) {
 			}
 		}
 		r.index = 0
-		q.Mapper(r)
+		q.RowMapper(r)
 		if q.Accumulator == nil {
 			break
 		}

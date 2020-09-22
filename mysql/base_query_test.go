@@ -61,14 +61,14 @@ func TestBaseQuery(t *testing.T) {
 	sel = BaseQuery{}.Selectx(mapper, accumulator)
 	buf.Reset()
 	sel.AppendSQL(buf, &args)
-	is.Equal(mapper, sel.Mapper)
+	is.Equal(mapper, sel.RowMapper)
 	is.Equal(accumulator, sel.Accumulator)
 
 	// SelectRowx
 	sel = BaseQuery{}.SelectRowx(mapper)
 	buf.Reset()
 	sel.AppendSQL(buf, &args)
-	is.Equal(mapper, sel.Mapper)
+	is.Equal(mapper, sel.RowMapper)
 	is.Equal(nil, sel.Accumulator)
 
 	// InsertInto

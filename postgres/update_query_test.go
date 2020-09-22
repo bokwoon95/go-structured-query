@@ -62,6 +62,89 @@ func TestUpdateQuery_ToSQL(t *testing.T) {
 			tt.wantArgs = []interface{}{true, true, false}
 			return tt
 		}(),
+		func() TT {
+			var tt TT
+			tt.description = "Setx Basic"
+			user := User{
+				UserID:      1,
+				Displayname: "Bob",
+				Email:       "bob@email.com",
+				Password:    "cant_hack_me",
+			}
+			u := USERS().As("u")
+			tt.q = WithDefaultLog(Lverbose).
+				Update(u).
+				Setx(func(col *Column) {
+					col.SetString(u.DISPLAYNAME, user.Displayname)
+					col.SetString(u.EMAIL, user.Email)
+					col.SetString(u.PASSWORD, user.Password)
+				}).
+				Where(u.USER_ID.EqInt(user.UserID)).
+				Returning(u.USER_ID, u.DISPLAYNAME, u.EMAIL, u.PASSWORD)
+			tt.wantQuery = "UPDATE public.users AS u" +
+				" SET displayname = $1, email = $2, password = $3" +
+				" WHERE u.user_id = $4" +
+				" RETURNING u.user_id, u.displayname, u.email, u.password"
+			tt.wantArgs = []interface{}{user.Displayname, user.Email, user.Password, user.UserID}
+			return tt
+		}(),
+		func() TT {
+			var tt TT
+			tt.description = "Setx RowValue Basic"
+			user := User{
+				UserID:      1,
+				Displayname: "Bob",
+				Email:       "bob@email.com",
+				Password:    "cant_hack_me",
+			}
+			u := USERS().As("u")
+			tt.q = WithDefaultLog(Lverbose).
+				Update(u).
+				Setx(func(col *Column) {
+					col.Set(
+						RowValue{u.DISPLAYNAME, u.EMAIL, u.PASSWORD},
+						RowValue{user.Displayname, user.Email, user.Password},
+					)
+				}).
+				Where(u.USER_ID.EqInt(user.UserID)).
+				Returning(u.USER_ID, u.DISPLAYNAME, u.EMAIL, u.PASSWORD)
+			tt.wantQuery = "UPDATE public.users AS u" +
+				" SET (displayname, email, password) = ($1, $2, $3)" +
+				" WHERE u.user_id = $4" +
+				" RETURNING u.user_id, u.displayname, u.email, u.password"
+			tt.wantArgs = []interface{}{user.Displayname, user.Email, user.Password, user.UserID}
+			return tt
+		}(),
+		func() TT {
+			var tt TT
+			tt.description = "Setx RowValue Select"
+			user := User{
+				UserID:      1,
+				Displayname: "Bob",
+				Email:       "bob@email.com",
+				Password:    "cant_hack_me",
+			}
+			u1, u2 := USERS().As("u1"), USERS().As("u2")
+			tt.q = WithDefaultLog(Lverbose).
+				Update(u1).
+				Setx(func(col *Column) {
+					col.Set(
+						RowValue{u1.DISPLAYNAME, u1.EMAIL, u1.PASSWORD},
+						Select(u2.DISPLAYNAME, u2.EMAIL, u2.PASSWORD).
+							From(u2).
+							Where(u2.USER_ID.EqInt(99)),
+					)
+				}).
+				Where(u1.USER_ID.EqInt(user.UserID)).
+				Returning(u1.USER_ID, u1.DISPLAYNAME, u1.EMAIL, u1.PASSWORD)
+			tt.wantQuery = "UPDATE public.users AS u1" +
+				" SET (displayname, email, password) =" +
+				" (SELECT u2.displayname, u2.email, u2.password FROM public.users AS u2 WHERE u2.user_id = $1)" +
+				" WHERE u1.user_id = $2" +
+				" RETURNING u1.user_id, u1.displayname, u1.email, u1.password"
+			tt.wantArgs = []interface{}{99, user.UserID}
+			return tt
+		}(),
 	}
 	for _, tt := range tests {
 		tt := tt
@@ -170,7 +253,7 @@ func TestUpdateQuery_Fetch(t *testing.T) {
 		FetchContext(ctx, nil)
 	is.True(errors.Is(err, context.DeadlineExceeded))
 
-	// Mapper
+	// RowMapper
 	tempDB, err = sql.Open("txdb", randomString(8))
 	is.NoErr(err)
 	var email string

@@ -55,87 +55,119 @@ sqgen-postgres tables --database 'name:pass@tcp(127.0.0.1:3306)/dbname' --schema
 
 For an example of what the generated file looks like, check out [postgres/devlab\_tables\_test.go](postgres/devlab_tables_test.go).
 
-## Basics
-In sq, there are three entities that you will be interacting with the most: a table, a field and a predicate.
+## Examples
+You just want to see code, right? Here's some.
 
-- <b>A Table is:</b> anything you can SELECT FROM or JOIN.
-    ```go
-    users := tables.USERS()
-    // FROM public.users
-    From(users)
-    //   └───┘
-    //   Table
+#### SELECT
+```sql
+-- SQL
+SELECT u.user_id, u.name, u.email
+FROM public.users AS u
+WHERE u.name = 'bob';
+```
+```go
+// Go
+u := tables.USERS().As("u") // table is code generated
+var user User
+var users []User
+err := sq.From(u).
+    Where(u.NAME.EqString("bob")).
+    Selectx(func(row *sq.Row) {
+        user.UserID = row.Int(u.USER_ID)
+        user.Name = row.String(u.NAME)
+        user.Email = row.String(u.EMAIL)
+        user.CreatedAt = row.Time(u.CREATED_AT)
+    }, func() {
+        users = append(users, user)
+    }).
+    Fetch(db)
+if err != nil {
+    // handle error
+}
+```
 
-    // JOIN (SELECT users.name FROM users) AS subquery ON 1 = 1
-    selectQuery := Select(users.NAME).From(users).As("subquery")
-    Join(selectQuery, Int(1).EqInt(1))
-    //   └─────────┘
-    //      Table
-    ```
-    - Tables can be aliased.
-        ```go
-        u := tables.USERS().As("u")
-        // FROM public.users AS u
-        From(u)
-        ```
-    - There are two specialisations of Table: BaseTable and Query.
-        - A <b>BaseTable</b> is a table that actually exists in the database, and not some subquery or common table expression. These are code generated, so you don't have to worry about creating them.
-        - A <b>Query</b> is an instance of the SELECT, INSERT, UPDATE or DELETE query builder.
-- <b>A Field is:</b> any SQL expression that can be present in the SELECT clause. This is often a table column, but it can also be a literal value or an expression made up of other expressions.
-    ```go
-    users := tables.USERS()
-    // SELECT users.user_id, users.name
-    Select(users.USER_ID, users.NAME)
-    //     └───────────┘  └────────┘
-    //         Field         Field
+#### INSERT
+```sql
+-- SQL
+INSERT INTO public.users (name, email)
+VALUES ('Bob', 'bob@email.com'), ('Alice', 'alice@email.com'), ('Eve', 'eve@email.com');
+```
+```go
+// Go
+u := tables.USERS().As("u") // table is code generated
+users := []User{
+    {Name: "Bob",   Email: "bob@email.com",   CreatedAt: time.Now()},
+    {Name: "Alice", Email: "alice@email.com", CreatedAt: time.Now()},
+    {Name: "Eve  ", Email: "eve@email.com",   CreatedAt: time.Now()},
+}
+rowsAffected, err := sq.InsertInto(u).
+    Valuesx(func(col *sq.Column) {
+        for _, user := range users {
+            col.SetString(u.NAME, user.Name)
+            col.SetString(u.EMAIL, user.Email)
+        }
+    }).
+    Exec(db, sq.ErowsAffected)
+if err != nil {
+    // handle error
+}
+```
 
-    // SELECT 'lorem ipsum', COUNT(*)
-    Select(String("lorem ipsum"), Count())
-    //     └───────────────────┘  └─────┘
-    //             Field           Field
+#### UPDATE
+```sql
+-- SQL
+UPDATE public.users
+SET name = 'bob', password = '1234'
+WHERE email = 'bob@email.com';
+```
+```go
+// Go
+u := tables.USERS().As("u") // table is code generated
+user := User{Name: "Bob", Email: "bob@email.com", Password: "qwertyuiop"}
+rowsAffected, err := sq.Update(u).
+    Setx(func(col *sq.Column) {
+        col.SetString(u.NAME, user.Name)
+        col.SetString(u.PASSWORD, user.Password)
+    }).
+    Where(u.EMAIL.EqString(user.Email)).
+    Exec(db, sq.ErowsAffected)
+if err != nil {
+    // handle error
+}
+```
 
-    // SELECT COALESCE(users.score, users.previous_score))
-    Select(Coalesce(users.SCORE, users.PREVIOUS_SCORE))
-    //     │        └─────────┘  └──────────────────┘│
-    //     │           Field             Field       │
-    //     └─────────────────────────────────────────┘
-    //                        Field
-    ```
-    - Like Tables, Fields can also be aliased
-        ```go
-        u := tables.USERS().As("u")
-        // SELECT u.user_id AS uid FROM public.users AS u
-        Select(u.USER_ID.As("uid")).From(u)
-        ```
-- <b>A Predicate is:</b> something that evaluates to true or false (or NULL) in SQL. A Predicate is often made up of Fields, but a Predicate is also a Field itself.
-    ```go
-    u, s := tables.USERS(), tables.STUDENTS()
-    // WHERE users.user_id = students.user_id
-    Where( u.USER_ID.Eq(s.USER_ID) )
-    //     └─────────────────────┘
-    //            Predicate
-
-    // WHERE users.user_id = students.user_id AND users.user_id <> 33
-    Where( u.USER_ID.Eq(s.USER_ID), u.USER_ID.NeInt(33) )
-    //     └─────────────────────┘  └─────────────────┘
-    //            Predicate              Predicate
-
-    // WHERE (users.user_id = 1 OR users.user_id > students.user_id) AND 1 = 1
-    Where( Or( u.USER_ID.EqInt(1), u.USER_ID.Gt(s.USER_ID) ), Int(1).EqInt(1) )
-    //     │   └────────────────┘  └─────────────────────┘ │  └─────────────┘
-    //     │        Predicate             Predicate        │     Predicate
-    //     └───────────────────────────────────────────────┘
-    //                       Predicate
-    ```
-    Predicates passed to the WHERE clause are implictly AND-ed together. If you want to OR them together, wrap the predicates in `sq.Or()`.
-    To invert a Predicate, use `sq.Not` e.g. `A.Eq(B) => sq.Not(A.Eq(B))`.
+#### DELETE
+```sql
+-- SQL
+DELETE FROM public.users AS u
+USING public.user_roles AS ur
+JOIN public.user_roles_students AS urs ON urs.user_role_id = ur.user_role_id
+WHERE u.user_id = ur.user_id AND urs.team_id = 15;
+```
+```go
+// Go
+u   := tables.USERS().As("u")                 // tables are code generated
+ur  := tables.USER_ROLES().As("ur")           // tables are code generated
+urs := tables.USER_ROLES_STUDENTS().As("urs") // tables are code generated
+rowsAffected, err := sq.DeleteFrom(u).
+    Using(ur).
+    Join(urs, urs.USER_ROLE_ID.Eq(ur.USER_ROLE_ID)).
+    Where(
+        u.USER_ID.Eq(ur.USER_ID),
+        urs.TEAM_ID.EqInt(15),
+    ).
+    Exec(db, sq.ErowsAffected)
+if err != nil {
+    // handle error
+}
+```
 
 For more information, check out the [Basics](http://bokwoon95.github.io/sq/#basics).
 
 For a list of example queries, check out [Query Building](http://bokwoon95.github.io/sq/#query-building).
 
 ## Project Status
-This project is not v1 yet, I would like more people to try it out first and give me feedback.
+The external API is considered stable. Any changes will only be add to the API (like support for custom loggers and structured logging). If you have any feature requests or if you find bugs do open a [new issue](https://github.com/bokwoon95/go-structured-query/issues).
 
 ## Contributing
 See [CONTRIBUTING.md](CONTRIBUTING.md)
@@ -148,7 +180,7 @@ I wrote this because I needed a more convenient way to scan database rows into n
 That made sqlx's StructScan unsuitable ([e.g. cannot handle `type Child struct { Father Person; Mother Person; }`](https://jmoiron.github.io/sqlx/#advancedScanning)).
 database/sql's way of scanning is really verbose especially since I had about ~25 fields to scan into, some of which could be null. That's a lot of sql Null structs needed! Because I had opted to -not- pollute my domain structs with `sql.NullInt64`/ `sql.NullString` etc, I had to create a ton of intermediate Null structs just to contain the possible null fields, then transfer their zero value back into the domain struct. There had to be a better way. I just wanted their zero values, since everything in Go accomodates the zero value.
 
-As a result I view sq as a data mapper first, and query builder second. I try my best to make the query builder as faithful to SQL as possible, but the main reason for its existence was always the [struct mapping](http://bokwoon95.github.io/sq/basics/struct-mapping.html).
+sq is therefore a data mapper first, and query builder second. I try my best to make the query builder as faithful to SQL as possible, but the main reason for its existence was always the [struct mapping](http://bokwoon95.github.io/sq/basics/struct-mapping.html).
 
 ### The case for ALL\_CAPS
 Here are the reasons why ALL\_CAPS is used for table and column names over the idiomatic MixedCaps:

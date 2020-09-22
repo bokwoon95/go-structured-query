@@ -92,6 +92,72 @@ func TestInsertQuery_ToSQL(t *testing.T) {
 			wantArgs := []interface{}{"aaa", "aaa@email.com", "bbb", "bbb@email.com"}
 			return TT{desc, q, wantQuery, wantArgs}
 		}(),
+		func() TT {
+			var tt TT
+			tt.description = "Valuesx One Entry"
+			user := User{
+				Displayname: "Bob",
+				Email:       "bob@email.com",
+				Password:    "cant_hack_me",
+			}
+			u := USERS().As("u")
+			tt.q = WithDefaultLog(Lverbose).
+				InsertInto(u).
+				Valuesx(func(col *Column) {
+					col.SetString(u.DISPLAYNAME, user.Displayname)
+					col.SetString(u.EMAIL, user.Email)
+					col.SetString(u.PASSWORD, user.Password)
+				})
+			tt.wantQuery = "INSERT INTO devlab.users (displayname, email, password)" +
+				" VALUES (?, ?, ?)"
+			tt.wantArgs = []interface{}{user.Displayname, user.Email, user.Password}
+			return tt
+		}(),
+		func() TT {
+			var tt TT
+			tt.description = "Valuesx Multiple Entries"
+			users := []User{
+				{
+					Displayname: "Bob",
+					Email:       "bob@email.com",
+					Password:    "cant_hack_me",
+				},
+				{
+					Displayname: "Alice",
+					Email:       "alice@email.com",
+					Password:    "alice alice",
+				},
+				{
+					Displayname: "Tom",
+					Email:       "tom@email.com",
+					Password:    "catt",
+				},
+				{
+					Displayname: "Jerry",
+					Email:       "jerry@email.com",
+					Password:    "maus",
+				},
+			}
+			u := USERS().As("u")
+			tt.q = WithDefaultLog(Lverbose).
+				InsertInto(u).
+				Valuesx(func(col *Column) {
+					for _, user := range users {
+						col.SetString(u.DISPLAYNAME, user.Displayname)
+						col.SetString(u.EMAIL, user.Email)
+						col.SetString(u.PASSWORD, user.Password)
+					}
+				})
+			tt.wantQuery = "INSERT INTO devlab.users (displayname, email, password)" +
+				" VALUES (?, ?, ?), (?, ?, ?), (?, ?, ?), (?, ?, ?)"
+			tt.wantArgs = []interface{}{
+				users[0].Displayname, users[0].Email, users[0].Password,
+				users[1].Displayname, users[1].Email, users[1].Password,
+				users[2].Displayname, users[2].Email, users[2].Password,
+				users[3].Displayname, users[3].Email, users[3].Password,
+			}
+			return tt
+		}(),
 	}
 	for _, tt := range tests {
 		tt := tt

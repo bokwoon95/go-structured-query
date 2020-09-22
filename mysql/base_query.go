@@ -149,7 +149,7 @@ func (q BaseQuery) SelectDistinct(fields ...Field) SelectQuery {
 // Selectx transforms the BaseQuery into a SelectQuery.
 func (q BaseQuery) Selectx(mapper func(*Row), accumulator func()) SelectQuery {
 	return SelectQuery{
-		Mapper:      mapper,
+		RowMapper:   mapper,
 		Accumulator: accumulator,
 		CTEs:        q.CTEs,
 		DB:          q.DB,
@@ -161,11 +161,11 @@ func (q BaseQuery) Selectx(mapper func(*Row), accumulator func()) SelectQuery {
 // SelectRowx transforms the BaseQuery into a SelectQuery.
 func (q BaseQuery) SelectRowx(mapper func(*Row)) SelectQuery {
 	return SelectQuery{
-		Mapper:  mapper,
-		CTEs:    q.CTEs,
-		DB:      q.DB,
-		Log:     q.Log,
-		LogFlag: q.LogFlag,
+		RowMapper: mapper,
+		CTEs:      q.CTEs,
+		DB:        q.DB,
+		Log:       q.Log,
+		LogFlag:   q.LogFlag,
 	}
 }
 
