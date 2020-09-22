@@ -26,8 +26,8 @@ This package provides type safe querying on top of Go's database/sql. It is esse
 
 - <b>The mapper function *is* the SELECT clause</b>.
     - database/sql requires you to repeat the list of columns twice in the exact same order, once for SELECT-ing and once for scanning. If you mess the order up, that's an error.
-    - Reflection-based mapping (struct tags) has you defining a set of possible column names to map, and then requires you to adhere to those column names. If you mistype a column name in the struct tag, that's an error. If you SELECT a column that's not present in the struct, that's an error.
-    - In sq whatever you SELECT is automatically mapped. **This means you just have to write your query, execute it, and if there were no errors the data is already in your Go variables.** No iterating rows, specifying column scan order, no error checking three times. *Write your query, run it, you're done*.
+    - Reflection-based mapping (struct tags) has you defining a set of possible column names to map, and then requires you repeat those columns names again in your query. If you mistype a column name in the struct tag, that's an error. If you SELECT a column that's not present in the struct, that's an error.
+    - In sq whatever you SELECT is automatically mapped. **This means you just have to write your query, execute it and if there were no errors, the data is already in your Go variables.** No iterating rows, no specifying column scan order, no error checking three times. *Write your query, run it, you're done*.
     - [more info](https://bokwoon95.github.io/sq/basics/struct-mapping.html)
 
 ## Getting started
@@ -214,7 +214,7 @@ SELECT u.user_id, u.username ASC NULLS LAST FROM users AS u
 ```
 The above example passes the Go type checker, so sq will happily build the query string -- even if that SQL query is sematically wrong. In practice, as long as you aren't trying to actively do the wrong thing (like in the above example), the limited type safety will prevent you from making the most common types of errors.
 
-It also means the query builder will never fail: you don't have to check for any errors from it.
+It also means the query builder will never fail: there's no boilerplate error checking required. Any semantic errors will be deferred to the database to point it out to you.
 
 ### Dialect agnostic query builder?
-sq is not dialect agnostic. This means I can add your favorite dialect specific features without the headache of cross-dialect compatibility. It also makes contributions easier, as you just have to focus on your own SQL dialect and not care about the others.
+sq is not dialect agnostic. This means I can add your favorite dialect specific SQL features without the headache of cross-dialect compatibility. It also makes contributions easier, as you just have to focus on your own SQL dialect and not care about the others.
