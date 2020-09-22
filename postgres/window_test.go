@@ -65,3 +65,106 @@ func TestWindow_AppendSQL(t *testing.T) {
 		})
 	}
 }
+
+func TestWindowFunctions(t *testing.T) {
+	type TT struct {
+		description string
+		f           Field
+		exclude     []string
+		wantQuery   string
+		wantArgs    []interface{}
+	}
+	ur := USER_ROLES().As("ur")
+	w := PartitionBy(ur.USER_ID)
+	tests := []TT{
+		{
+			"RowNumberOver",
+			RowNumberOver(w),
+			nil,
+			"ROW_NUMBER() OVER (PARTITION BY ur.user_id)",
+			nil,
+		},
+		{
+			"RankOver",
+			RankOver(w),
+			nil,
+			"RANK() OVER (PARTITION BY ur.user_id)",
+			nil,
+		},
+		{
+			"DenseRankOver",
+			DenseRankOver(w),
+			nil,
+			"DENSE_RANK() OVER (PARTITION BY ur.user_id)",
+			nil,
+		},
+		{
+			"PercentRankOver",
+			PercentRankOver(w),
+			nil,
+			"PERCENT_RANK() OVER (PARTITION BY ur.user_id)",
+			nil,
+		},
+		{
+			"CumeDistOver",
+			CumeDistOver(w),
+			nil,
+			"CUME_DIST() OVER (PARTITION BY ur.user_id)",
+			nil,
+		},
+		{
+			"LeadOver",
+			LeadOver(ur.COHORT, nil, nil, w),
+			nil,
+			"LEAD(ur.cohort, ?, NULL) OVER (PARTITION BY ur.user_id)",
+			[]interface{}{1},
+		},
+		{
+			"LagOver",
+			LagOver(ur.COHORT, nil, nil, w),
+			nil,
+			"LAG(ur.cohort, ?, NULL) OVER (PARTITION BY ur.user_id)",
+			[]interface{}{1},
+		},
+		{
+			"NtileOver",
+			NtileOver(3, w),
+			nil,
+			"NTILE(?) OVER (PARTITION BY ur.user_id)",
+			[]interface{}{3},
+		},
+		{
+			"FirstValueOver",
+			FirstValueOver(ur.COHORT, w),
+			nil,
+			"FIRST_VALUE(ur.cohort) OVER (PARTITION BY ur.user_id)",
+			nil,
+		},
+		{
+			"LastValueOver",
+			LastValueOver(ur.COHORT, w),
+			nil,
+			"LAST_VALUE(ur.cohort) OVER (PARTITION BY ur.user_id)",
+			nil,
+		},
+		{
+			"NthValueOver",
+			NthValueOver(ur.COHORT, 3, w),
+			nil,
+			"NTH_VALUE(ur.cohort, ?) OVER (PARTITION BY ur.user_id)",
+			[]interface{}{3},
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.description, func(t *testing.T) {
+			t.Parallel()
+			is := is.New(t)
+			buf := &strings.Builder{}
+			var args []interface{}
+			tt.f.AppendSQLExclude(buf, &args, tt.exclude)
+			is.Equal(tt.wantQuery, buf.String())
+			is.Equal(tt.wantArgs, args)
+		})
+	}
+}

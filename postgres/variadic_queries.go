@@ -37,6 +37,7 @@ type VariadicQuery struct {
 	logSkip int
 }
 
+// ToSQL marshals the VariadicQuery into a query string and args slice.
 func (vq VariadicQuery) ToSQL() (string, []interface{}) {
 	vq.logSkip += 1
 	buf := &strings.Builder{}
@@ -45,6 +46,7 @@ func (vq VariadicQuery) ToSQL() (string, []interface{}) {
 	return buf.String(), args
 }
 
+// AppendSQL marshals the VariadicQuery into a buffer and args slice.
 func (vq VariadicQuery) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 	if vq.Operator == "" {
 		vq.Operator = QueryUnion
@@ -111,11 +113,13 @@ func (vq VariadicQuery) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 	}
 }
 
+// NestThis indicates to the VariadicQuery that it is nested.
 func (vq VariadicQuery) NestThis() Query {
 	vq.nested = true
 	return vq
 }
 
+// Union joins the list of queries together with the UNION operator.
 func Union(queries ...Query) VariadicQuery {
 	return VariadicQuery{
 		topLevel: true,
@@ -124,6 +128,7 @@ func Union(queries ...Query) VariadicQuery {
 	}
 }
 
+// UnionAll joins the list of queries together with the UNION ALL operator.
 func UnionAll(queries ...Query) VariadicQuery {
 	return VariadicQuery{
 		topLevel: true,
@@ -132,6 +137,7 @@ func UnionAll(queries ...Query) VariadicQuery {
 	}
 }
 
+// Intersect joins the list of queries together with the INTERSECT operator.
 func Intersect(queries ...Query) VariadicQuery {
 	return VariadicQuery{
 		topLevel: true,
@@ -140,6 +146,7 @@ func Intersect(queries ...Query) VariadicQuery {
 	}
 }
 
+// IntersectAll joins the list of queries together with the INTERSECT ALL operator.
 func IntersectAll(queries ...Query) VariadicQuery {
 	return VariadicQuery{
 		topLevel: true,
@@ -148,6 +155,7 @@ func IntersectAll(queries ...Query) VariadicQuery {
 	}
 }
 
+// Except joins the list of queries together with the EXCEPT operator.
 func Except(queries ...Query) VariadicQuery {
 	return VariadicQuery{
 		topLevel: true,
@@ -156,6 +164,7 @@ func Except(queries ...Query) VariadicQuery {
 	}
 }
 
+// ExceptAll joins the list of queries together with the EXCEPT ALL operator.
 func ExceptAll(queries ...Query) VariadicQuery {
 	return VariadicQuery{
 		topLevel: true,

@@ -12,6 +12,7 @@ import (
 	"time"
 )
 
+// InsertQuery represents an INSERT query.
 type InsertQuery struct {
 	nested bool
 	// WITH
@@ -43,6 +44,7 @@ type InsertQuery struct {
 	logSkip int
 }
 
+// ToSQL marshals the InsertQuery into a query string and args slice.
 func (q InsertQuery) ToSQL() (string, []interface{}) {
 	q.logSkip += 1
 	buf := &strings.Builder{}
@@ -51,6 +53,7 @@ func (q InsertQuery) ToSQL() (string, []interface{}) {
 	return buf.String(), args
 }
 
+// AppendSQL marshals the InsertQuery into a buffer and args slice.
 func (q InsertQuery) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 	var excludedTableQualifiers []string
 	if q.ColumnMapper != nil {
@@ -160,37 +163,45 @@ func (q InsertQuery) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 	}
 }
 
+// InsertInto creates a new InsertQuery.
 func InsertInto(table BaseTable) InsertQuery {
 	return InsertQuery{
 		IntoTable: table,
 	}
 }
 
+// With appends a list of CTEs into the InsertQuery.
 func (q InsertQuery) With(ctes ...CTE) InsertQuery {
 	q.CTEs = append(q.CTEs, ctes...)
 	return q
 }
 
+// InsertInto sets the insert table for the InsertQuery.
 func (q InsertQuery) InsertInto(table BaseTable) InsertQuery {
 	q.IntoTable = table
 	return q
 }
 
+// Columns sets the insert columns for the InsertQuery.
 func (q InsertQuery) Columns(fields ...Field) InsertQuery {
 	q.InsertColumns = fields
 	return q
 }
 
+// Values appends a new RowValue to the InsertQuery.
 func (q InsertQuery) Values(values ...interface{}) InsertQuery {
 	q.RowValues = append(q.RowValues, values)
 	return q
 }
 
+// Valuesx sets the column mapper for the InsertQuery.
 func (q InsertQuery) Valuesx(mapper func(*Column)) InsertQuery {
 	q.ColumnMapper = mapper
 	return q
 }
 
+// InsertRow appends a new RowValue to the InsertQuery. It also sets the insert
+// columns if not already set.
 func (q InsertQuery) InsertRow(assignments ...FieldAssignment) InsertQuery {
 	fields, values := make([]Field, len(assignments)), make([]interface{}, len(assignments))
 	for i, assignment := range assignments {
@@ -204,30 +215,37 @@ func (q InsertQuery) InsertRow(assignments ...FieldAssignment) InsertQuery {
 	return q
 }
 
+// Select adds a SelectQuery to the InsertQuery.
 func (q InsertQuery) Select(selectQuery SelectQuery) InsertQuery {
 	q.SelectQuery = &selectQuery
 	return q
 }
 
+// OnConflict specifies which Fields may potentially experience a conflict.
 func (q InsertQuery) OnConflict(fields ...Field) InsertConflict {
 	q.HandleConflict = true
 	q.ConflictFields = fields
 	return InsertConflict{insertQuery: &q}
 }
 
+// OnConflict specifies which constraint may potentially experience a conflict.
 func (q InsertQuery) OnConflictOnConstraint(name string) InsertConflict {
 	q.HandleConflict = true
 	q.ConflictConstraint = name
 	return InsertConflict{insertQuery: &q}
 }
 
+// InsertConflict holds the intermediate state of an InsertQuery that may
+// experience a conflict.
 type InsertConflict struct{ insertQuery *InsertQuery }
 
+// Where appends the predicates to the WHERE clause of the InsertQuery conflict.
 func (c InsertConflict) Where(predicates ...Predicate) InsertConflict {
 	c.insertQuery.ConflictPredicate.Predicates = append(c.insertQuery.ConflictPredicate.Predicates, predicates...)
 	return c
 }
 
+// DoNothing indicates that nothing should be done in case of any conflicts.
 func (c InsertConflict) DoNothing() InsertQuery {
 	if c.insertQuery == nil {
 		return InsertQuery{}
@@ -235,6 +253,7 @@ func (c InsertConflict) DoNothing() InsertQuery {
 	return *c.insertQuery
 }
 
+// DoUpdateSet specifies the assignments to be done in case of a conflict.
 func (c InsertConflict) DoUpdateSet(assignments ...Assignment) InsertQuery {
 	if c.insertQuery == nil {
 		return InsertQuery{}
@@ -243,27 +262,33 @@ func (c InsertConflict) DoUpdateSet(assignments ...Assignment) InsertQuery {
 	return *c.insertQuery
 }
 
+// Excluded wraps a field to simulate the EXCLUDED.field Postgres construct for the
+// ON CONFLICT DO UPDATE SET clause.
 func Excluded(field Field) CustomField {
 	return CustomField{
 		Format: "EXCLUDED." + field.GetName(),
 	}
 }
 
+// Where appends the predicates to the WHERE clause of InsertQuery conflict resolution.
 func (q InsertQuery) Where(predicates ...Predicate) InsertQuery {
 	q.ResolutionPredicate.Predicates = append(q.ResolutionPredicate.Predicates, predicates...)
 	return q
 }
 
+// Returning appends the fields to the RETURNING clause of the InsertQuery.
 func (q InsertQuery) Returning(fields ...Field) InsertQuery {
 	q.ReturningFields = append(q.ReturningFields, fields...)
 	return q
 }
 
+// ReturningOne sets the RETURNING clause to RETURNING 1 in the InsertQuery.
 func (q InsertQuery) ReturningOne() InsertQuery {
 	q.ReturningFields = Fields{FieldLiteral("1")}
 	return q
 }
 
+// Returningx sets the rowmapper and accumulator function of the InsertQuery.
 func (q InsertQuery) Returningx(mapper func(*Row), accumulator func()) InsertQuery {
 	q.RowMapper = mapper
 	q.Accumulator = accumulator
@@ -452,6 +477,7 @@ func (q InsertQuery) ExecContext(ctx context.Context, db DB, flag ExecFlag) (row
 	return rowsAffected, nil
 }
 
+// NestThis indicates to the InsertQuery that it is nested.
 func (q InsertQuery) NestThis() Query {
 	q.nested = true
 	return q

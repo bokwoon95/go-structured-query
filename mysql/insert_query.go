@@ -155,6 +155,7 @@ func (q InsertQuery) Values(values ...interface{}) InsertQuery {
 	return q
 }
 
+// Valuesx sets the column mapper for the InsertQuery.
 func (q InsertQuery) Valuesx(mapper func(*Column)) InsertQuery {
 	q.ColumnMapper = mapper
 	return q
