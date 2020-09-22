@@ -1,8 +1,6 @@
 package sq
 
 import (
-	"log"
-	"os"
 	"strings"
 	"testing"
 
@@ -32,12 +30,6 @@ func TestBaseQuery(t *testing.T) {
 	base = WithDefaultLog(Lstats).WithDefaultLog(Lstats)
 	is.Equal(defaultLogger, base.Log)
 	is.Equal(Lstats, base.LogFlag)
-
-	// WithLog
-	l := log.New(os.Stdout, "", 0)
-	base = WithLog(l, Lverbose).WithLog(l, Lverbose)
-	is.Equal(l, base.Log)
-	is.Equal(Lverbose, base.LogFlag)
 
 	// SelectOne
 	sel = BaseQuery{}.SelectOne()

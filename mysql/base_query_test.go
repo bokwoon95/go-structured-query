@@ -1,8 +1,6 @@
 package sq
 
 import (
-	"log"
-	"os"
 	"strings"
 	"testing"
 
@@ -32,12 +30,6 @@ func TestBaseQuery(t *testing.T) {
 	// With
 	base = With(CTE{}, CTE{}, CTE{})
 	is.Equal(3, len(base.CTEs))
-
-	// WithLog
-	l := log.New(os.Stdout, "", 0)
-	base = WithLog(l, Lverbose).WithLog(l, Lverbose)
-	is.Equal(l, base.Log)
-	is.Equal(Lverbose, base.LogFlag)
 
 	// SelectOne
 	sel = BaseQuery{}.SelectOne()

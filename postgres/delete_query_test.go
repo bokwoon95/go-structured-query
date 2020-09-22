@@ -47,7 +47,7 @@ func TestDeleteQuery_ToSQL(t *testing.T) {
 			tt.description = "assorted"
 			cte1 := DeleteFrom(u).Where(Bool(true)).Returning(u.USER_ID).CTE("cte1")
 			cte2 := DeleteFrom(u).Where(Bool(false)).ReturningOne().CTE("cte2")
-			tt.q = WithLog(customLogger, Lverbose).
+			tt.q = WithDefaultLog(Lverbose).
 				DeleteFrom(u).
 				Using(u).
 				CustomJoin("NATURAL JOIN", cte1).
@@ -130,7 +130,7 @@ func TestDeleteQuery_Fetch(t *testing.T) {
 	tempDB, err := sql.Open("txdb", randomString(8))
 	is.NoErr(err)
 	var submissionID int
-	err = WithLog(customLogger, Linterpolate).
+	err = WithDefaultLog(Linterpolate).
 		WithDB(tempDB).
 		DeleteFrom(s).
 		ReturningRowx(func(row *Row) {
@@ -157,7 +157,7 @@ func TestDeleteQuery_Fetch(t *testing.T) {
 	// Wrong Scan type
 	tempDB, err = sql.Open("txdb", randomString(8))
 	is.NoErr(err)
-	err = WithLog(customLogger, Lverbose).
+	err = WithDefaultLog(Lverbose).
 		WithDB(tempDB).
 		DeleteFrom(s).
 		Where(s.SUBMISSION_ID.EqInt(1)).
@@ -193,7 +193,7 @@ func TestDeleteQuery_Fetch(t *testing.T) {
 	// Mapper
 	tempDB, err = sql.Open("txdb", randomString(8))
 	is.NoErr(err)
-	err = WithLog(customLogger, Lverbose).
+	err = WithDefaultLog(Lverbose).
 		WithDB(tempDB).
 		DeleteFrom(s).
 		Where(s.SUBMISSION_ID.EqInt(1)).
@@ -209,7 +209,7 @@ func TestDeleteQuery_Fetch(t *testing.T) {
 	tempDB, err = sql.Open("txdb", randomString(8))
 	is.NoErr(err)
 	var submissionIDs []int
-	err = WithLog(customLogger, Lverbose).
+	err = WithDefaultLog(Lverbose).
 		WithDB(tempDB).
 		DeleteFrom(s).
 		Where(s.SUBMISSION_ID.In([]int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10})).
@@ -302,7 +302,7 @@ func TestDeleteQuery_Exec(t *testing.T) {
 	// use a tempDB so we don't foul up the current db transaction with the error
 	tempDB, err := sql.Open("txdb", randomString(8))
 	is.NoErr(err)
-	_, err = WithLog(customLogger, Linterpolate).
+	_, err = WithDefaultLog(Linterpolate).
 		WithDB(tempDB).
 		DeleteFrom(s).
 		Returning(Fieldf("ERROR")).
@@ -328,7 +328,7 @@ func TestDeleteQuery_Exec(t *testing.T) {
 	is.NoErr(err)
 	is.Equal(int64(1), rowsAffected)
 
-	rowsAffected, err = WithLog(customLogger, Lverbose).
+	rowsAffected, err = WithDefaultLog(Lverbose).
 		WithDB(db).
 		DeleteFrom(s).
 		Where(s.SUBMISSION_ID.EqInt(2)).

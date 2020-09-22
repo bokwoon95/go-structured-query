@@ -44,7 +44,7 @@ func TestUpdateQuery_ToSQL(t *testing.T) {
 			tt.description = "assorted"
 			cte1 := SelectOne().From(u).CTE("cte1")
 			cte2 := SelectDistinct(u.EMAIL).From(u).CTE("cte2")
-			tt.q = WithLog(customLogger, Lverbose).
+			tt.q = WithDefaultLog(Lverbose).
 				Update(u).
 				Join(u, Bool(true)).
 				CustomJoin("NATURAL JOIN", cte1).
@@ -106,7 +106,7 @@ func TestUpdateQuery_Exec(t *testing.T) {
 	// use a tempDB so we don't foul up the current db transaction with the error
 	tempDB, err := sql.Open("txdb", randomString(8))
 	is.NoErr(err)
-	_, err = WithLog(customLogger, Linterpolate).
+	_, err = WithDefaultLog(Linterpolate).
 		WithDB(tempDB).
 		Update(u).
 		Set(u.USER_ID.Set(Fieldf("ERROR"))).
@@ -146,7 +146,7 @@ func TestUpdateQuery_Exec(t *testing.T) {
 	is.Equal(3, lastInsertID)
 	tempDB.Close()
 
-	rowsAffected, err = WithLog(customLogger, Lverbose).
+	rowsAffected, err = WithDefaultLog(Lverbose).
 		WithDB(db).
 		Update(u).
 		Set(u.DISPLAYNAME.SetString("bbb")).

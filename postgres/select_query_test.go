@@ -51,7 +51,7 @@ func TestSelectQuery_ToSQL(t *testing.T) {
 			w2 := OrderBy(u.PASSWORD).As("w2")
 			cte1 := SelectOne().From(u).Where(Bool(true)).CTE("cte1")
 			cte2 := SelectDistinct(u.EMAIL).From(u).CTE("cte2")
-			q := WithLog(customLogger, Lverbose).
+			q := WithDefaultLog(Lverbose).
 				Select(
 					SumOver(u.USER_ID, PartitionBy(u.DISPLAYNAME).OrderBy(u.EMAIL)),
 					SumOver(u.USER_ID, w1),
@@ -149,7 +149,7 @@ func TestSelectQuery_Fetch(t *testing.T) {
 	tempDB, err := sql.Open("txdb", randomString(8))
 	is.NoErr(err)
 	var uid int
-	err = WithLog(customLogger, Linterpolate).
+	err = WithDefaultLog(Linterpolate).
 		WithDB(tempDB).
 		From(u).
 		Where(u.USER_ID.EqInt(1)).
@@ -175,7 +175,7 @@ func TestSelectQuery_Fetch(t *testing.T) {
 	is.NoErr(err)
 
 	// sql.ErrNoRows
-	err = WithLog(customLogger, Lverbose).
+	err = WithDefaultLog(Lverbose).
 		WithDB(db).
 		From(u).
 		Where(u.USER_ID.EqInt(-999999)).
@@ -276,7 +276,7 @@ func TestSelectQuery_Exec(t *testing.T) {
 	// use a tempDB so we don't foul up the current db transaction with the error
 	tempDB, err := sql.Open("txdb", randomString(8))
 	is.NoErr(err)
-	_, err = WithLog(customLogger, Linterpolate).
+	_, err = WithDefaultLog(Linterpolate).
 		WithDB(tempDB).
 		Select(Fieldf("ERROR")).
 		From(u).
@@ -301,7 +301,7 @@ func TestSelectQuery_Exec(t *testing.T) {
 		Exec(nil, ErowsAffected)
 	is.NoErr(err)
 	is.Equal(int64(1), rowsAffected)
-	rowsAffected, err = WithLog(customLogger, Lverbose).
+	rowsAffected, err = WithDefaultLog(Lverbose).
 		WithDB(db).
 		From(u).
 		Where(u.USER_ID.EqInt(1)).

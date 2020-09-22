@@ -44,7 +44,7 @@ func TestUpdateQuery_ToSQL(t *testing.T) {
 			tt.description = "assorted"
 			cte1 := Update(u).Where(Bool(true)).ReturningOne().CTE("cte1")
 			cte2 := Update(u).Where(Bool(true)).ReturningOne().CTE("cte2")
-			tt.q = WithLog(customLogger, Lverbose).
+			tt.q = WithDefaultLog(Lverbose).
 				Update(u).
 				From(Update(u).Where(Bool(false)).ReturningOne().Subquery("subquery")).
 				CustomJoin("NATURAL JOIN", cte1).
@@ -99,7 +99,7 @@ func TestUpdateQuery_Fetch(t *testing.T) {
 	tempDB, err := sql.Open("txdb", randomString(8))
 	is.NoErr(err)
 	var userID int
-	err = WithLog(customLogger, Linterpolate).
+	err = WithDefaultLog(Linterpolate).
 		WithDB(tempDB).
 		Update(u).
 		Set(u.USER_ID.SetInt(1)).
@@ -134,7 +134,7 @@ func TestUpdateQuery_Fetch(t *testing.T) {
 	// Wrong Scan type
 	tempDB, err = sql.Open("txdb", randomString(8))
 	is.NoErr(err)
-	err = WithLog(customLogger, Lverbose).
+	err = WithDefaultLog(Lverbose).
 		WithDB(tempDB).
 		Update(u).
 		Set(u.USER_ID.SetInt(1)).
@@ -174,7 +174,7 @@ func TestUpdateQuery_Fetch(t *testing.T) {
 	tempDB, err = sql.Open("txdb", randomString(8))
 	is.NoErr(err)
 	var email string
-	err = WithLog(customLogger, Lverbose).
+	err = WithDefaultLog(Lverbose).
 		WithDB(tempDB).
 		Update(u).
 		Set(u.USER_ID.SetInt(1)).
@@ -191,7 +191,7 @@ func TestUpdateQuery_Fetch(t *testing.T) {
 	tempDB, err = sql.Open("txdb", randomString(8))
 	is.NoErr(err)
 	var emails []string
-	err = WithLog(customLogger, Lverbose).
+	err = WithDefaultLog(Lverbose).
 		WithDB(tempDB).
 		Update(u).
 		Set(u.EMAIL.Set(Fieldf("?::TEXT", u.USER_ID))).
@@ -304,7 +304,7 @@ func TestUpdateQuery_Exec(t *testing.T) {
 	// use a tempDB so we don't foul up the current db transaction with the error
 	tempDB, err := sql.Open("txdb", randomString(8))
 	is.NoErr(err)
-	_, err = WithLog(customLogger, Linterpolate).
+	_, err = WithDefaultLog(Linterpolate).
 		WithDB(tempDB).
 		Update(u).
 		Set(u.USER_ID.Set(Fieldf("ERROR"))).
@@ -335,7 +335,7 @@ func TestUpdateQuery_Exec(t *testing.T) {
 	is.Equal(int64(1), rowsAffected)
 
 	// again
-	rowsAffected, err = WithLog(customLogger, Lverbose).
+	rowsAffected, err = WithDefaultLog(Lverbose).
 		WithDB(db).
 		Update(u).
 		Set(u.USER_ID.SetInt(1)).

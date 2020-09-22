@@ -37,14 +37,6 @@ type BaseQuery struct {
 	CTEs    []CTE
 }
 
-// WithLog creates a new BaseQuery with a custom logger and the LogFlag.
-func WithLog(logger Logger, flag LogFlag) BaseQuery {
-	return BaseQuery{
-		Log:     logger,
-		LogFlag: flag,
-	}
-}
-
 // WithDefaultLog creates a new BaseQuery with the default logger and the LogFlag
 func WithDefaultLog(flag LogFlag) BaseQuery {
 	return BaseQuery{
@@ -70,13 +62,6 @@ func With(CTEs ...CTE) BaseQuery {
 // WithDefaultLog adds the default logger and the LogFlag to the BaseQuery.
 func (q BaseQuery) WithDefaultLog(flag LogFlag) BaseQuery {
 	q.Log = defaultLogger
-	q.LogFlag = flag
-	return q
-}
-
-// WithLog adds a custom logger and the LogFlag to the BaseQuery.
-func (q BaseQuery) WithLog(logger Logger, flag LogFlag) BaseQuery {
-	q.Log = logger
 	q.LogFlag = flag
 	return q
 }

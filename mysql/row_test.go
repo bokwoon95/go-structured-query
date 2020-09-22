@@ -16,18 +16,6 @@ import (
 	"github.com/matryer/is"
 )
 
-type logger struct {
-	*log.Logger
-}
-
-var customLogger = logger{
-	Logger: log.New(os.Stdout, "[customLogger] ", log.Lshortfile),
-}
-
-func (l logger) Output(calldepth int, s string) error {
-	return l.Logger.Output(calldepth+2, s)
-}
-
 func init() {
 	err := godotenv.Load("../.env")
 	if err != nil {

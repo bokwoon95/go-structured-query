@@ -34,7 +34,7 @@ func TestVariadicQueries_AppendSQL(t *testing.T) {
 		},
 		{
 			"one query",
-			WithLog(customLogger, 0).Union(q1),
+			WithDefaultLog(0).Union(q1),
 			"SELECT $1",
 			[]interface{}{1},
 		},

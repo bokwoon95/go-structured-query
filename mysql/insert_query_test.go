@@ -61,7 +61,7 @@ func TestInsertQuery_ToSQL(t *testing.T) {
 		},
 		{
 			"Insert Select",
-			WithLog(customLogger, 0).
+			WithDefaultLog(0).
 				InsertInto(u).
 				Columns(u.DISPLAYNAME, u.EMAIL).
 				Select(
@@ -127,7 +127,7 @@ func TestInsertQuery_Exec(t *testing.T) {
 	// use a tempDB so we don't foul up the current db transaction with the error
 	tempDB, err := sql.Open("txdb", randomString(8))
 	is.NoErr(err)
-	_, _, err = WithLog(customLogger, Linterpolate).
+	_, _, err = WithDefaultLog(Linterpolate).
 		WithDB(tempDB).
 		InsertInto(u).
 		Columns(u.DISPLAYNAME, u.EMAIL).
@@ -164,7 +164,7 @@ func TestInsertQuery_Exec(t *testing.T) {
 	is.Equal(id, lastInsertID)
 
 	// again
-	_, rowsAffected, err = WithLog(customLogger, Lverbose).
+	_, rowsAffected, err = WithDefaultLog(Lverbose).
 		WithDB(db).
 		InsertInto(u).
 		Columns(u.DISPLAYNAME, u.EMAIL).

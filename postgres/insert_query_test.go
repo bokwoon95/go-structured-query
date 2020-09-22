@@ -61,7 +61,7 @@ func TestInsertQuery_ToSQL(t *testing.T) {
 			tt.description = "Insert Select"
 			cte1 := SelectOne().From(u).CTE("cte1")
 			cte2 := SelectDistinct(u.EMAIL).From(u).CTE("cte2")
-			tt.q = WithLog(customLogger, 0).
+			tt.q = WithDefaultLog(0).
 				InsertInto(u).
 				Columns(u.DISPLAYNAME, u.EMAIL).
 				Select(
@@ -137,7 +137,7 @@ func TestInsertQuery_Fetch(t *testing.T) {
 	tempDB, err := sql.Open("txdb", randomString(8))
 	is.NoErr(err)
 	var userID int
-	err = WithLog(customLogger, Linterpolate).
+	err = WithDefaultLog(Linterpolate).
 		WithDB(tempDB).
 		InsertInto(u).
 		Columns(u.DISPLAYNAME, u.EMAIL).
@@ -170,7 +170,7 @@ func TestInsertQuery_Fetch(t *testing.T) {
 	// Wrong Scan type
 	tempDB, err = sql.Open("txdb", randomString(8))
 	is.NoErr(err)
-	err = WithLog(customLogger, Lverbose).
+	err = WithDefaultLog(Lverbose).
 		WithDB(tempDB).
 		InsertInto(u).
 		Columns(u.DISPLAYNAME, u.EMAIL).
@@ -212,7 +212,7 @@ func TestInsertQuery_Fetch(t *testing.T) {
 	tempDB, err = sql.Open("txdb", randomString(8))
 	is.NoErr(err)
 	var email string
-	err = WithLog(customLogger, Lverbose).
+	err = WithDefaultLog(Lverbose).
 		WithDB(tempDB).
 		InsertInto(u).
 		Columns(u.DISPLAYNAME, u.EMAIL).
@@ -229,7 +229,7 @@ func TestInsertQuery_Fetch(t *testing.T) {
 	tempDB, err = sql.Open("txdb", randomString(8))
 	is.NoErr(err)
 	var emails []string
-	err = WithLog(customLogger, Lverbose).
+	err = WithDefaultLog(Lverbose).
 		WithDB(tempDB).
 		InsertInto(u).
 		Columns(u.DISPLAYNAME, u.EMAIL).
@@ -348,7 +348,7 @@ func TestInsertQuery_Exec(t *testing.T) {
 	// use a tempDB so we don't foul up the current db transaction with the error
 	tempDB, err := sql.Open("txdb", randomString(8))
 	is.NoErr(err)
-	_, err = WithLog(customLogger, Linterpolate).
+	_, err = WithDefaultLog(Linterpolate).
 		WithDB(tempDB).
 		InsertInto(u).
 		Columns(u.DISPLAYNAME, u.EMAIL).
@@ -379,7 +379,7 @@ func TestInsertQuery_Exec(t *testing.T) {
 	is.Equal(int64(1), rowsAffected)
 
 	// again
-	rowsAffected, err = WithLog(customLogger, Lverbose).
+	rowsAffected, err = WithDefaultLog(Lverbose).
 		WithDB(db).
 		InsertInto(u).
 		Columns(u.DISPLAYNAME, u.EMAIL).

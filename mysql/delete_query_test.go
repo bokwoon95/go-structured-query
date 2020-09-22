@@ -52,7 +52,7 @@ func TestDeleteQuery_ToSQL(t *testing.T) {
 			tt.description = "assorted"
 			cte1 := SelectOne().From(u).CTE("cte1")
 			cte2 := SelectDistinct(u.EMAIL).From(u).CTE("cte2")
-			tt.q = WithLog(customLogger, Lverbose).
+			tt.q = WithDefaultLog(Lverbose).
 				DeleteFrom(u).
 				Using(u).
 				CustomJoin("NATURAL JOIN", cte1).
@@ -107,7 +107,7 @@ func TestDeleteQuery_Exec(t *testing.T) {
 	// use a tempDB so we don't foul up the current db transaction with the error
 	tempDB, err := sql.Open("txdb", randomString(8))
 	is.NoErr(err)
-	_, err = WithLog(customLogger, Linterpolate).
+	_, err = WithDefaultLog(Linterpolate).
 		WithDB(tempDB).
 		DeleteFrom(s).
 		Where(Predicatef("ERROR")).
@@ -133,7 +133,7 @@ func TestDeleteQuery_Exec(t *testing.T) {
 	is.NoErr(err)
 	is.Equal(int64(1), rowsAffected)
 
-	rowsAffected, err = WithLog(customLogger, Lverbose).
+	rowsAffected, err = WithDefaultLog(Lverbose).
 		WithDB(db).
 		DeleteFrom(s).
 		Where(s.SUBMISSION_ID.EqInt(2)).

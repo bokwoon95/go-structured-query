@@ -84,7 +84,7 @@ func (q InsertQuery) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 		q.RowValues.AppendSQL(buf, args)
 	case q.SelectQuery != nil:
 		buf.WriteString(" ")
-		q.SelectQuery.Nested = true
+		q.SelectQuery.nested = true
 		q.SelectQuery.AppendSQL(buf, args)
 	}
 	// ON CONFLICT

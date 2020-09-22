@@ -24,7 +24,7 @@ const (
 
 // SelectQuery represents a SELECT query.
 type SelectQuery struct {
-	Nested bool
+	nested bool
 	// WITH
 	CTEs []CTE
 	// SELECT
@@ -70,7 +70,7 @@ func (q SelectQuery) ToSQL() (string, []interface{}) {
 // AppendSQL marshals the SelectQuery into a buffer and args slice.
 func (q SelectQuery) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 	// WITH
-	if !q.Nested {
+	if !q.nested {
 		appendCTEs(buf, args, q.CTEs, q.FromTable, q.JoinTables)
 	}
 	// SELECT
@@ -152,7 +152,7 @@ func (q SelectQuery) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 		}
 		*args = append(*args, *q.OffsetValue)
 	}
-	if !q.Nested {
+	if !q.nested {
 		query := buf.String()
 		buf.Reset()
 		questionToDollarPlaceholders(buf, query)
@@ -596,6 +596,6 @@ func (q SelectQuery) ExecContext(ctx context.Context, db DB, flag ExecFlag) (row
 
 // NestThis indicates to the SelectQuery that it is nested.
 func (q SelectQuery) NestThis() Query {
-	q.Nested = true
+	q.nested = true
 	return q
 }
