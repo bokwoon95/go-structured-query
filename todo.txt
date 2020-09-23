@@ -38,3 +38,31 @@ type LogInfo struct {
 }
 type LogFunc(LogInfo)
 WithLogFunc(fn).Select(x, y, z)
+
+Prejoined tables
+- Extract table joining into its own function so that you can reuse the same JOINs everywhere
+- A PrejoinedTable takes the place of From (Fromx) in a SelectQuery, and Using (Usingx) in an INSERT/DELETE query
+    - You can add join new tables onto PrejoinedTables and it will figure out the correct set of JOINs accordingly
+type JOIN_USERS_ALL struct {
+    sq.JoinedTables
+    U   tables.TABLE_USERS
+    UR  tables.TABLE_USER_ROLES
+    URS tables.TABLE_USER_ROLES_STUDENTS
+}
+func USERS_ALL() JOIN_USERS_ALL {
+    join := JOIN_USERS_ALL{}
+    join.U := tables.USERS().As("u")
+    join.UR := tables.USERS_ROLES().As("ur")
+    join.URS := tables.USERS_ROLES_STUDENTS().As("urs")
+    join.JoinTables = sq.
+        From(join.U).
+        Join(join.UR, join.U.USER_ID.Eq(join.UR.USER_ID)).
+        Join(join.URS, join.URS.USER_ROLE_ID.Eq(join.UR.USER_ROLE_ID))
+    return join
+}
+
+ua := USERS_ALL()
+err := sq.Fromx(ua).Where(ua.URS.TEAM_ID.EqInt(15)).SelectRowx(func(row *sq.Row) {
+    user.UserID = row.Int(ua.U.USER_ID)
+    user.TeamID = row.Int(ua.URS.TEAM_ID)
+}).Fetch(db)

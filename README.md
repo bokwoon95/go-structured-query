@@ -20,7 +20,7 @@
 
 This package provides type safe querying on top of Go's database/sql. It is essentially a glorified string builder, but automates things in all the right places to make working with SQL queries pleasant and boilerplate-free.
 
-- <b>Avoid magic strings.</b> SQL queries written in Go are full of [magic strings](https://deviq.com/magic-strings/): strings specified directly within application code that have an impact on the application's behavior. Specifically, you have to hardcode table or column names over and over into your queries (even ORMs are guilty of this!). Such magic strings are prone to typos and hard to change as your database schema changes. sq generates table structs from your database and ensures that whatever query you write is always reflective of what's actually in your database.
+- <b>Avoid magic strings.</b> SQL queries written in Go are full of [magic strings](https://deviq.com/magic-strings/): strings specified directly within application code that have an impact on the application's behavior. Specifically, you have to hardcode table or column names over and over into your queries (even ORMs are guilty of this!). Such magic strings are prone to typos and hard to change as your database schema changes. sq generates table structs from your database and ensures that whatever query you write is always reflective of what's actually in your database. [more info](https://bokwoon95.github.io/sq/basics/generating-table-types.html)
 
 - <b>Better null handling</b>. Handling NULLs is a bit of a pain in the ass in Go. You have to either use pointers (cannot be used in HTML templates) or sql.NullXXX structs (extra layer of indirection). sq scans NULLs as zero values, while still offering you the ability to check if the column was NULL. [more info](https://bokwoon95.github.io/sq/basics/struct-mapping.html#nulls)
 
@@ -54,6 +54,21 @@ sqgen-postgres tables --database 'name:pass@tcp(127.0.0.1:3306)/dbname' --schema
 ```
 
 For an example of what the generated file looks like, check out [postgres/devlab\_tables\_test.go](postgres/devlab_tables_test.go).
+
+### Importing sq
+
+Each SQL dialect has its own sq package. Import the sq package for the dialect you are using accordingly:
+```go
+// Postgres
+import (
+    sq "github.com/bokwoon95/go-structured-query/postgres"
+)
+
+// MySQL
+import (
+    sq "github.com/bokwoon95/go-structured-query/mysql"
+)
+```
 
 ## Examples
 You just want to see code, right? Here's some.
