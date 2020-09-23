@@ -18,7 +18,7 @@ type PredicateCases struct {
 
 // AppendSQLExclude marshals the PredicateCases into a buffer and an args
 // slice. It propagates the excludedTableQualifiers down to its child elements.
-func (f PredicateCases) AppendSQLExclude(buf *strings.Builder, args *[]interface{}, excludedTableQualifiers []string) {
+func (f PredicateCases) AppendSQLExclude(buf *strings.Builder, args *[]interface{}, params map[string]int, excludedTableQualifiers []string) {
 	buf.WriteString("CASE")
 	for _, Case := range f.Cases {
 		buf.WriteString(" WHEN ")
@@ -92,7 +92,7 @@ type SimpleCases struct {
 
 // AppendSQLExclude marshals the SimpleCases into a buffer and an args slice.
 // It propagates the excludedTableQualifiers down to its child elements.
-func (f SimpleCases) AppendSQLExclude(buf *strings.Builder, args *[]interface{}, excludedTableQualifiers []string) {
+func (f SimpleCases) AppendSQLExclude(buf *strings.Builder, args *[]interface{}, params map[string]int, excludedTableQualifiers []string) {
 	buf.WriteString("CASE ")
 	appendSQLValue(buf, args, excludedTableQualifiers, f.Expression)
 	for _, Case := range f.Cases {

@@ -95,7 +95,7 @@ func TestAggregateFunctions(t *testing.T) {
 			is := is.New(t)
 			buf := &strings.Builder{}
 			var args []interface{}
-			tt.f.AppendSQLExclude(buf, &args, tt.exclude)
+			tt.f.AppendSQLExclude(buf, &args, nil, tt.exclude)
 			is.Equal(tt.wantQuery, buf.String())
 			is.Equal(tt.wantArgs, args)
 		})

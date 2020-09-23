@@ -40,14 +40,14 @@ func appendSQLValue(buf *strings.Builder, args *[]interface{}, excludedTableQual
 		buf.WriteString("NULL")
 		return
 	case interface {
-		AppendSQLExclude(*strings.Builder, *[]interface{}, []string)
+		AppendSQLExclude(*strings.Builder, *[]interface{}, map[string]int, []string)
 	}:
-		v.AppendSQLExclude(buf, args, excludedTableQualifiers)
+		v.AppendSQLExclude(buf, args, nil, excludedTableQualifiers)
 		return
 	case interface {
-		AppendSQL(*strings.Builder, *[]interface{})
+		AppendSQL(*strings.Builder, *[]interface{}, map[string]int)
 	}:
-		v.AppendSQL(buf, args)
+		v.AppendSQL(buf, args, nil)
 		return
 	}
 	switch reflect.TypeOf(value).Kind() {
@@ -68,7 +68,7 @@ func appendSQLValue(buf *strings.Builder, args *[]interface{}, excludedTableQual
 	*args = append(*args, value)
 }
 
-// randomString is the RandStringBytesMaskImprSrcSB function taken from
+// randomString is the RandStringBytesMaskImplSrcSB function taken from
 // https://stackoverflow.com/a/31832326. It generates a random alphabetical
 // string of length n.
 func randomString(n int) string {

@@ -9,7 +9,7 @@ import (
 // Table is an interface representing anything that you can SELECT FROM or
 // JOIN.
 type Table interface {
-	AppendSQL(buf *strings.Builder, args *[]interface{})
+	AppendSQL(buf *strings.Builder, args *[]interface{}, params map[string]int)
 	GetAlias() string
 	GetName() string // Table name must exclude the schema (if any)
 }
@@ -28,7 +28,7 @@ func getAliasOrName(val interface {
 // Query is an interface that specialises the Table interface. It covers only
 // queries like SELECT/INSERT/UPDATE/DELETE.
 type Query interface {
-	AppendSQL(buf *strings.Builder, args *[]interface{})
+	AppendSQL(buf *strings.Builder, args *[]interface{}, params map[string]int)
 	// When NestThis is called on a query, it signals to the query that it is
 	// being nested as part of a larger query. The nested query should:
 	// - hold off rebinding question mark ?, ? to dollar $1, $2 placeholders because the parent query will do it
@@ -54,7 +54,7 @@ type Field interface {
 	//
 	// This is to play nice with certain clauses in the INSERT and UPDATE
 	// queries that expressly forbid table qualified columns.
-	AppendSQLExclude(buf *strings.Builder, args *[]interface{}, excludedTableQualifiers []string)
+	AppendSQLExclude(buf *strings.Builder, args *[]interface{}, params map[string]int, excludedTableQualifiers []string)
 	GetAlias() string
 	GetName() string
 }
@@ -67,7 +67,7 @@ type Predicate interface {
 
 // Assignment is an interface representing an SQL Assignment 'Field = Value'.
 type Assignment interface {
-	AppendSQLExclude(buf *strings.Builder, args *[]interface{}, excludedTableQualifiers []string)
+	AppendSQLExclude(buf *strings.Builder, args *[]interface{}, params map[string]int, excludedTableQualifiers []string)
 	AssertAssignment()
 }
 

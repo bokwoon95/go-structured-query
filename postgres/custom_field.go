@@ -14,7 +14,7 @@ type CustomField struct {
 
 // AppendSQL marshals the CustomField into an SQL query and args as described in
 // the CustomField struct description.
-func (f CustomField) AppendSQLExclude(buf *strings.Builder, args *[]interface{}, excludedTableQualifiers []string) {
+func (f CustomField) AppendSQLExclude(buf *strings.Builder, args *[]interface{}, params map[string]int, excludedTableQualifiers []string) {
 	if f.Format == "" && len(f.Values) == 0 {
 		buf.WriteString(":blank:")
 		return
@@ -172,7 +172,7 @@ func (f CustomField) In(v interface{}) Predicate {
 func (f CustomField) String() string {
 	buf := &strings.Builder{}
 	var args []interface{}
-	f.AppendSQLExclude(buf, &args, nil)
+	f.AppendSQLExclude(buf, &args, nil, nil)
 	return questionInterpolate(buf.String(), args...)
 }
 
@@ -187,6 +187,6 @@ func (f CustomField) GetAlias() string {
 func (f CustomField) GetName() string {
 	buf := &strings.Builder{}
 	var args []interface{}
-	f.AppendSQLExclude(buf, &args, nil)
+	f.AppendSQLExclude(buf, &args, nil, nil)
 	return buf.String()
 }

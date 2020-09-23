@@ -34,7 +34,7 @@ func TestTableInfo_AppendSQL(t *testing.T) {
 			is := is.New(t)
 			buf := &strings.Builder{}
 			var args []interface{}
-			tt.t.AppendSQL(buf, &args)
+			tt.t.AppendSQL(buf, &args, nil)
 			is.Equal(tt.wantQuery, buf.String())
 			is.Equal(tt.wantArgs, args)
 		})

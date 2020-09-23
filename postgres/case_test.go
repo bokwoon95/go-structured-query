@@ -55,7 +55,7 @@ func TestPredicateCases_AppendSQLExclude(t *testing.T) {
 			buf := &strings.Builder{}
 			var args []interface{}
 			var _ Field = tt.f
-			tt.f.AppendSQLExclude(buf, &args, tt.exclude)
+			tt.f.AppendSQLExclude(buf, &args, nil, tt.exclude)
 			is.Equal(tt.wantQuery, buf.String())
 			is.Equal(tt.wantArgs, args)
 		})
@@ -118,7 +118,7 @@ func TestSimpleCases_AppendSQLExclude(t *testing.T) {
 			buf := &strings.Builder{}
 			var args []interface{}
 			var _ Field = tt.f
-			tt.f.AppendSQLExclude(buf, &args, tt.exclude)
+			tt.f.AppendSQLExclude(buf, &args, nil, tt.exclude)
 			is.Equal(tt.wantQuery, buf.String())
 			is.Equal(tt.wantArgs, args)
 		})

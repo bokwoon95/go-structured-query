@@ -7,7 +7,7 @@ import "strings"
 type FieldLiteral string
 
 // AppendSQLExclude marshals the FieldLiteral into a buffer and an args slice.
-func (f FieldLiteral) AppendSQLExclude(buf *strings.Builder, _ *[]interface{}, _ []string) {
+func (f FieldLiteral) AppendSQLExclude(buf *strings.Builder, args *[]interface{}, params map[string]int, excludedTableQualifiers []string) {
 	buf.WriteString(string(f))
 }
 
@@ -27,7 +27,7 @@ type Fields []Field
 
 // AppendSQLExclude marshals PredicateCases into a buffer and an args slice. It
 // propagates the excludedTableQualifiers down to its Fields.
-func (fs Fields) AppendSQLExclude(buf *strings.Builder, args *[]interface{}, excludedTableQualifiers []string) {
+func (fs Fields) AppendSQLExclude(buf *strings.Builder, args *[]interface{}, params map[string]int, excludedTableQualifiers []string) {
 	for i, field := range fs {
 		if i > 0 {
 			buf.WriteString(", ")
@@ -35,7 +35,7 @@ func (fs Fields) AppendSQLExclude(buf *strings.Builder, args *[]interface{}, exc
 		if field == nil {
 			buf.WriteString("NULL")
 		} else {
-			field.AppendSQLExclude(buf, args, excludedTableQualifiers)
+			field.AppendSQLExclude(buf, args, nil, excludedTableQualifiers)
 		}
 	}
 }
@@ -43,7 +43,7 @@ func (fs Fields) AppendSQLExclude(buf *strings.Builder, args *[]interface{}, exc
 // AppendSQLExcludeWithAlias is exactly like AppendSQLExclude, but appends each
 // field (i.e. field1 AS alias1, field2 AS alias2, ...) with its alias if it
 // has one.
-func (fs Fields) AppendSQLExcludeWithAlias(buf *strings.Builder, args *[]interface{}, excludedTableQualifiers []string) {
+func (fs Fields) AppendSQLExcludeWithAlias(buf *strings.Builder, args *[]interface{}, params map[string]int, excludedTableQualifiers []string) {
 	var alias string
 	for i, field := range fs {
 		if i > 0 {
@@ -52,7 +52,7 @@ func (fs Fields) AppendSQLExcludeWithAlias(buf *strings.Builder, args *[]interfa
 		if field == nil {
 			buf.WriteString("NULL")
 		} else {
-			field.AppendSQLExclude(buf, args, excludedTableQualifiers)
+			field.AppendSQLExclude(buf, args, nil, excludedTableQualifiers)
 			if alias = field.GetAlias(); alias != "" {
 				buf.WriteString(" AS ")
 				buf.WriteString(alias)
@@ -71,7 +71,7 @@ type FieldAssignment struct {
 
 // AppendSQLExclude marshals the FieldAssignment into a buffer and an args
 // slice. It propagates the excludedTableQualifiers down to its child elements.
-func (set FieldAssignment) AppendSQLExclude(buf *strings.Builder, args *[]interface{}, excludedTableQualifiers []string) {
+func (set FieldAssignment) AppendSQLExclude(buf *strings.Builder, args *[]interface{}, params map[string]int, excludedTableQualifiers []string) {
 	appendSQLValue(buf, args, excludedTableQualifiers, set.Field)
 	buf.WriteString(" = ")
 	appendSQLValue(buf, args, excludedTableQualifiers, set.Value)
@@ -85,11 +85,11 @@ type Assignments []Assignment
 
 // AppendSQLExclude marshals the Assignments into a buffer and an args
 // slice. It propagates the excludedTableQualifiers down to its child elements.
-func (assignments Assignments) AppendSQLExclude(buf *strings.Builder, args *[]interface{}, excludedTableQualifiers []string) {
+func (assignments Assignments) AppendSQLExclude(buf *strings.Builder, args *[]interface{}, params map[string]int, excludedTableQualifiers []string) {
 	for i, assignment := range assignments {
 		if i > 0 {
 			buf.WriteString(", ")
 		}
-		assignment.AppendSQLExclude(buf, args, excludedTableQualifiers)
+		assignment.AppendSQLExclude(buf, args, nil, excludedTableQualifiers)
 	}
 }

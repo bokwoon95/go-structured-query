@@ -42,12 +42,12 @@ func (vq VariadicQuery) ToSQL() (string, []interface{}) {
 	vq.logSkip += 1
 	buf := &strings.Builder{}
 	var args []interface{}
-	vq.AppendSQL(buf, &args)
+	vq.AppendSQL(buf, &args, nil)
 	return buf.String(), args
 }
 
 // AppendSQL marshals the VariadicQuery into a buffer and args slice.
-func (vq VariadicQuery) AppendSQL(buf *strings.Builder, args *[]interface{}) {
+func (vq VariadicQuery) AppendSQL(buf *strings.Builder, args *[]interface{}, params map[string]int) {
 	if vq.Operator == "" {
 		vq.Operator = QueryUnion
 	}
@@ -60,9 +60,9 @@ func (vq VariadicQuery) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 			buf.WriteString("NULL")
 		case VariadicQuery:
 			q.topLevel = true
-			q.NestThis().AppendSQL(buf, args)
+			q.NestThis().AppendSQL(buf, args, nil)
 		default:
-			q.NestThis().AppendSQL(buf, args)
+			q.NestThis().AppendSQL(buf, args, nil)
 		}
 	default:
 		if !vq.topLevel {
@@ -79,9 +79,9 @@ func (vq VariadicQuery) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 				buf.WriteString("NULL")
 			case VariadicQuery:
 				q.topLevel = false
-				q.NestThis().AppendSQL(buf, args)
+				q.NestThis().AppendSQL(buf, args, nil)
 			default:
-				q.NestThis().AppendSQL(buf, args)
+				q.NestThis().AppendSQL(buf, args, nil)
 			}
 		}
 		if !vq.topLevel {

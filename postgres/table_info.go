@@ -12,7 +12,7 @@ type TableInfo struct {
 }
 
 // AppendSQL adds the fully qualified table name into the buffer.
-func (tbl *TableInfo) AppendSQL(buf *strings.Builder, args *[]interface{}) {
+func (tbl *TableInfo) AppendSQL(buf *strings.Builder, args *[]interface{}, params map[string]int) {
 	if tbl == nil {
 		return
 	}

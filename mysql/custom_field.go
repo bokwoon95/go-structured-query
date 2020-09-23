@@ -13,7 +13,7 @@ type CustomField struct {
 
 // AppendSQLExclude marshals the CustomField into a buffer and an args slice.
 // It propagates the excludedTableQualifiers down to its child elements.
-func (f CustomField) AppendSQLExclude(buf *strings.Builder, args *[]interface{}, excludedTableQualifiers []string) {
+func (f CustomField) AppendSQLExclude(buf *strings.Builder, args *[]interface{}, params map[string]int, excludedTableQualifiers []string) {
 	expandValues(buf, args, excludedTableQualifiers, f.Format, f.Values)
 	if f.IsDesc != nil {
 		if *f.IsDesc {
@@ -138,7 +138,7 @@ func (f CustomField) In(v interface{}) Predicate {
 func (f CustomField) String() string {
 	buf := &strings.Builder{}
 	var args []interface{}
-	f.AppendSQLExclude(buf, &args, nil)
+	f.AppendSQLExclude(buf, &args, nil, nil)
 	return questionInterpolate(buf.String(), args...)
 }
 
@@ -151,6 +151,6 @@ func (f CustomField) GetAlias() string {
 func (f CustomField) GetName() string {
 	buf := &strings.Builder{}
 	var args []interface{}
-	f.AppendSQLExclude(buf, &args, nil)
+	f.AppendSQLExclude(buf, &args, nil, nil)
 	return buf.String()
 }

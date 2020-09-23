@@ -41,7 +41,7 @@ type NumberField struct {
 // AppendSQLExclude marshals the NumberField into a buffer and an args slice.
 // It will not table qualify itself if its table qualifer appears in the
 // excludedTableQualifiers list.
-func (f NumberField) AppendSQLExclude(buf *strings.Builder, args *[]interface{}, excludedTableQualifiers []string) {
+func (f NumberField) AppendSQLExclude(buf *strings.Builder, args *[]interface{}, params map[string]int, excludedTableQualifiers []string) {
 	switch {
 	case f.format != nil:
 		// 1) Number expression
@@ -355,7 +355,7 @@ func (f NumberField) In(v interface{}) Predicate {
 func (f NumberField) String() string {
 	buf := &strings.Builder{}
 	var args []interface{}
-	f.AppendSQLExclude(buf, &args, nil)
+	f.AppendSQLExclude(buf, &args, nil, nil)
 	return questionInterpolate(buf.String(), args...)
 }
 

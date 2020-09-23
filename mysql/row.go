@@ -133,7 +133,7 @@ func (r *Row) NullBool(predicate Predicate) sql.NullBool {
 	if r.rows == nil {
 		buf := &strings.Builder{}
 		var args []interface{}
-		predicate.AppendSQLExclude(buf, &args, nil)
+		predicate.AppendSQLExclude(buf, &args, nil, nil)
 		r.fields = append(r.fields, CustomPredicate{
 			Format: buf.String(),
 			Values: args,

@@ -5,7 +5,7 @@ import "strings"
 // Subquery represents an SQL subquery.
 type Subquery map[string]CustomField
 
-// Subquery converys a SelectQuery into a Subquery.
+// Subquery converts a SelectQuery into a Subquery.
 func (q SelectQuery) Subquery(alias string) Subquery {
 	subquery := Subquery{
 		metadataQuery: {Values: []interface{}{q}},
@@ -21,7 +21,7 @@ func (q SelectQuery) Subquery(alias string) Subquery {
 	return subquery
 }
 
-// Subquery converys a VariadicQuery into a Subquery.
+// Subquery converts a VariadicQuery into a Subquery.
 func (vq VariadicQuery) Subquery(name string) Subquery {
 	subquery := map[string]CustomField{
 		metadataQuery: {Values: []interface{}{vq}},
@@ -43,17 +43,17 @@ func (vq VariadicQuery) Subquery(name string) Subquery {
 func (subq Subquery) ToSQL() (string, []interface{}) {
 	buf := &strings.Builder{}
 	var args []interface{}
-	subq.AppendSQL(buf, &args)
+	subq.AppendSQL(buf, &args, nil)
 	return buf.String(), args
 }
 
 // AppendSQL marshals the Subquery into a buffer and args slice.
-func (subq Subquery) AppendSQL(buf *strings.Builder, args *[]interface{}) {
+func (subq Subquery) AppendSQL(buf *strings.Builder, args *[]interface{}, params map[string]int) {
 	q := subq.GetQuery()
 	if q == nil {
 		return
 	}
-	q.NestThis().AppendSQL(buf, args)
+	q.NestThis().AppendSQL(buf, args, nil)
 }
 
 // GetQuery returns the Subquery's underlying Query.

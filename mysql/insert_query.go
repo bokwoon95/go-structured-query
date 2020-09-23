@@ -39,12 +39,12 @@ func (q InsertQuery) ToSQL() (string, []interface{}) {
 	q.logSkip += 1
 	buf := &strings.Builder{}
 	var args []interface{}
-	q.AppendSQL(buf, &args)
+	q.AppendSQL(buf, &args, nil)
 	return buf.String(), args
 }
 
 // AppendSQL marshals the InsertQuery into a buffer and args slice.
-func (q InsertQuery) AppendSQL(buf *strings.Builder, args *[]interface{}) {
+func (q InsertQuery) AppendSQL(buf *strings.Builder, args *[]interface{}, params map[string]int) {
 	var excludedTableQualifiers []string
 	if q.ColumnMapper != nil {
 		col := &Column{mode: colmodeInsert}
@@ -61,7 +61,7 @@ func (q InsertQuery) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 	if q.IntoTable == nil {
 		buf.WriteString("NULL")
 	} else {
-		q.IntoTable.AppendSQL(buf, args)
+		q.IntoTable.AppendSQL(buf, args, nil)
 		name := q.IntoTable.GetName()
 		alias := q.IntoTable.GetAlias()
 		if alias != "" {
@@ -72,23 +72,23 @@ func (q InsertQuery) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 	}
 	if len(q.InsertColumns) > 0 {
 		buf.WriteString(" (")
-		q.InsertColumns.AppendSQLExclude(buf, args, excludedTableQualifiers)
+		q.InsertColumns.AppendSQLExclude(buf, args, nil, excludedTableQualifiers)
 		buf.WriteString(")")
 	}
 	// VALUES/SELECT
 	switch {
 	case len(q.RowValues) > 0:
 		buf.WriteString(" VALUES ")
-		q.RowValues.AppendSQL(buf, args)
+		q.RowValues.AppendSQL(buf, args, nil)
 	case q.SelectQuery != nil:
 		buf.WriteString(" ")
 		q.SelectQuery.nested = true
-		q.SelectQuery.AppendSQL(buf, args)
+		q.SelectQuery.AppendSQL(buf, args, nil)
 	}
 	// ON DUPLICATE KEY UPDATE
 	if len(q.Resolution) > 0 {
 		buf.WriteString(" ON DUPLICATE KEY UPDATE ")
-		q.Resolution.AppendSQLExclude(buf, args, excludedTableQualifiers)
+		q.Resolution.AppendSQLExclude(buf, args, nil, excludedTableQualifiers)
 	}
 	if !q.nested {
 		if q.Log != nil {
@@ -231,7 +231,7 @@ func (q InsertQuery) ExecContext(ctx context.Context, db DB, flag ExecFlag) (las
 	tmpbuf := &strings.Builder{}
 	var tmpargs []interface{}
 	q.logSkip += 1
-	q.AppendSQL(tmpbuf, &tmpargs)
+	q.AppendSQL(tmpbuf, &tmpargs, nil)
 	if ctx == nil {
 		res, err = db.Exec(tmpbuf.String(), tmpargs...)
 	} else {

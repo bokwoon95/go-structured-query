@@ -43,12 +43,12 @@ func (q UpdateQuery) ToSQL() (string, []interface{}) {
 	q.logSkip += 1
 	buf := &strings.Builder{}
 	var args []interface{}
-	q.AppendSQL(buf, &args)
+	q.AppendSQL(buf, &args, nil)
 	return buf.String(), args
 }
 
 // AppendSQL marshals the UpdateQuery into a buffer and args slice.
-func (q UpdateQuery) AppendSQL(buf *strings.Builder, args *[]interface{}) {
+func (q UpdateQuery) AppendSQL(buf *strings.Builder, args *[]interface{}, params map[string]int) {
 	if q.ColumnMapper != nil {
 		col := &Column{mode: colmodeUpdate}
 		q.ColumnMapper(col)
@@ -66,10 +66,10 @@ func (q UpdateQuery) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 		switch v := q.UpdateTable.(type) {
 		case Query:
 			buf.WriteString("(")
-			v.NestThis().AppendSQL(buf, args)
+			v.NestThis().AppendSQL(buf, args, nil)
 			buf.WriteString(")")
 		default:
-			q.UpdateTable.AppendSQL(buf, args)
+			q.UpdateTable.AppendSQL(buf, args, nil)
 		}
 		alias := q.UpdateTable.GetAlias()
 		if alias != "" {
@@ -80,23 +80,23 @@ func (q UpdateQuery) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 	// SET
 	if len(q.Assignments) > 0 {
 		buf.WriteString(" SET ")
-		q.Assignments.AppendSQLExclude(buf, args, nil)
+		q.Assignments.AppendSQLExclude(buf, args, nil, nil)
 	}
 	// JOIN
 	if len(q.JoinTables) > 0 {
 		buf.WriteString(" ")
-		q.JoinTables.AppendSQL(buf, args)
+		q.JoinTables.AppendSQL(buf, args, nil)
 	}
 	// WHERE
 	if len(q.WherePredicate.Predicates) > 0 {
 		buf.WriteString(" WHERE ")
 		q.WherePredicate.toplevel = true
-		q.WherePredicate.AppendSQLExclude(buf, args, nil)
+		q.WherePredicate.AppendSQLExclude(buf, args, nil, nil)
 	}
 	// ORDER BY
 	if len(q.OrderByFields) > 0 {
 		buf.WriteString(" ORDER BY ")
-		q.OrderByFields.AppendSQLExclude(buf, args, nil)
+		q.OrderByFields.AppendSQLExclude(buf, args, nil, nil)
 	}
 	// LIMIT
 	if q.LimitValue != nil {
@@ -292,7 +292,7 @@ func (q UpdateQuery) ExecContext(ctx context.Context, db DB, flag ExecFlag) (row
 	tmpbuf := &strings.Builder{}
 	var tmpargs []interface{}
 	q.logSkip += 1
-	q.AppendSQL(tmpbuf, &tmpargs)
+	q.AppendSQL(tmpbuf, &tmpargs, nil)
 	if ctx == nil {
 		res, err = db.Exec(tmpbuf.String(), tmpargs...)
 	} else {

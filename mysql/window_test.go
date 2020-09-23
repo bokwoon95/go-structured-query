@@ -59,7 +59,7 @@ func TestWindow_AppendSQL(t *testing.T) {
 			is := is.New(t)
 			buf := &strings.Builder{}
 			var args []interface{}
-			tt.w.AppendSQL(buf, &args)
+			tt.w.AppendSQL(buf, &args, nil)
 			is.Equal(tt.wantQuery, buf.String())
 			is.Equal(tt.wantArgs, args)
 		})
@@ -162,7 +162,7 @@ func TestWindowFunctions(t *testing.T) {
 			is := is.New(t)
 			buf := &strings.Builder{}
 			var args []interface{}
-			tt.f.AppendSQLExclude(buf, &args, tt.exclude)
+			tt.f.AppendSQLExclude(buf, &args, nil, tt.exclude)
 			is.Equal(tt.wantQuery, buf.String())
 			is.Equal(tt.wantArgs, args)
 		})

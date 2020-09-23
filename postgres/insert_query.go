@@ -49,12 +49,12 @@ func (q InsertQuery) ToSQL() (string, []interface{}) {
 	q.logSkip += 1
 	buf := &strings.Builder{}
 	var args []interface{}
-	q.AppendSQL(buf, &args)
+	q.AppendSQL(buf, &args, nil)
 	return buf.String(), args
 }
 
 // AppendSQL marshals the InsertQuery into a buffer and args slice.
-func (q InsertQuery) AppendSQL(buf *strings.Builder, args *[]interface{}) {
+func (q InsertQuery) AppendSQL(buf *strings.Builder, args *[]interface{}, params map[string]int) {
 	var excludedTableQualifiers []string
 	if q.ColumnMapper != nil {
 		col := &Column{mode: colmodeInsert}
@@ -71,7 +71,7 @@ func (q InsertQuery) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 	if q.IntoTable == nil {
 		buf.WriteString("NULL")
 	} else {
-		q.IntoTable.AppendSQL(buf, args)
+		q.IntoTable.AppendSQL(buf, args, nil)
 		name := q.IntoTable.GetName()
 		alias := q.IntoTable.GetAlias()
 		if alias != "" {
@@ -84,18 +84,18 @@ func (q InsertQuery) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 	}
 	if len(q.InsertColumns) > 0 {
 		buf.WriteString(" (")
-		q.InsertColumns.AppendSQLExclude(buf, args, excludedTableQualifiers)
+		q.InsertColumns.AppendSQLExclude(buf, args, nil, excludedTableQualifiers)
 		buf.WriteString(")")
 	}
 	// VALUES/SELECT
 	switch {
 	case len(q.RowValues) > 0:
 		buf.WriteString(" VALUES ")
-		q.RowValues.AppendSQL(buf, args)
+		q.RowValues.AppendSQL(buf, args, nil)
 	case q.SelectQuery != nil:
 		buf.WriteString(" ")
 		q.SelectQuery.nested = true
-		q.SelectQuery.AppendSQL(buf, args)
+		q.SelectQuery.AppendSQL(buf, args, nil)
 	}
 	// ON CONFLICT
 	var noConflict bool
@@ -108,12 +108,12 @@ func (q InsertQuery) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 			buf.WriteString(q.ConflictConstraint)
 		case len(q.ConflictFields) > 0:
 			buf.WriteString(" (")
-			q.ConflictFields.AppendSQLExclude(buf, args, excludedTableQualifiers)
+			q.ConflictFields.AppendSQLExclude(buf, args, nil, excludedTableQualifiers)
 			buf.WriteString(")")
 			if len(q.ConflictPredicate.Predicates) > 0 {
 				buf.WriteString(" WHERE ")
 				q.ConflictPredicate.toplevel = true
-				q.ConflictPredicate.AppendSQLExclude(buf, args, excludedTableQualifiers)
+				q.ConflictPredicate.AppendSQLExclude(buf, args, nil, excludedTableQualifiers)
 			}
 		}
 	default:
@@ -124,11 +124,11 @@ func (q InsertQuery) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 		break
 	case len(q.Resolution) > 0:
 		buf.WriteString(" DO UPDATE SET ")
-		q.Resolution.AppendSQLExclude(buf, args, excludedTableQualifiers)
+		q.Resolution.AppendSQLExclude(buf, args, nil, excludedTableQualifiers)
 		if len(q.ResolutionPredicate.Predicates) > 0 {
 			buf.WriteString(" WHERE ")
 			q.ResolutionPredicate.toplevel = true
-			q.ResolutionPredicate.AppendSQLExclude(buf, args, nil)
+			q.ResolutionPredicate.AppendSQLExclude(buf, args, nil, nil)
 		}
 	default:
 		buf.WriteString(" DO NOTHING")
@@ -136,7 +136,7 @@ func (q InsertQuery) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 	// RETURNING
 	if len(q.ReturningFields) > 0 {
 		buf.WriteString(" RETURNING ")
-		q.ReturningFields.AppendSQLExcludeWithAlias(buf, args, nil)
+		q.ReturningFields.AppendSQLExcludeWithAlias(buf, args, nil, nil)
 	}
 	if !q.nested {
 		query := buf.String()
@@ -346,7 +346,7 @@ func (q InsertQuery) FetchContext(ctx context.Context, db DB) (err error) {
 	tmpbuf := &strings.Builder{}
 	var tmpargs []interface{}
 	q.logSkip += 1
-	q.AppendSQL(tmpbuf, &tmpargs)
+	q.AppendSQL(tmpbuf, &tmpargs, nil)
 	if ctx == nil {
 		r.rows, err = db.Query(tmpbuf.String(), tmpargs...)
 	} else {
@@ -367,7 +367,7 @@ func (q InsertQuery) FetchContext(ctx context.Context, db DB) (err error) {
 			for i := range r.dest {
 				tmpbuf.Reset()
 				tmpargs = tmpargs[:0]
-				r.fields[i].AppendSQLExclude(tmpbuf, &tmpargs, nil)
+				r.fields[i].AppendSQLExclude(tmpbuf, &tmpargs, nil, nil)
 				errbuf.WriteString("\n" +
 					strconv.Itoa(i) + ") " +
 					dollarInterpolate(tmpbuf.String(), tmpargs...) + " => " +
@@ -382,7 +382,7 @@ func (q InsertQuery) FetchContext(ctx context.Context, db DB) (err error) {
 			for i := range r.dest {
 				tmpbuf.Reset()
 				tmpargs = tmpargs[:0]
-				r.fields[i].AppendSQLExclude(tmpbuf, &tmpargs, nil)
+				r.fields[i].AppendSQLExclude(tmpbuf, &tmpargs, nil, nil)
 				logBuf.WriteString("\n")
 				logBuf.WriteString(dollarInterpolate(tmpbuf.String(), tmpargs...))
 				logBuf.WriteString(": ")
@@ -444,7 +444,7 @@ func (q InsertQuery) ExecContext(ctx context.Context, db DB, flag ExecFlag) (row
 	tmpbuf := &strings.Builder{}
 	var tmpargs []interface{}
 	q.logSkip += 1
-	q.AppendSQL(tmpbuf, &tmpargs)
+	q.AppendSQL(tmpbuf, &tmpargs, nil)
 	if ctx == nil {
 		res, err = db.Exec(tmpbuf.String(), tmpargs...)
 	} else {

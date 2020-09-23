@@ -40,14 +40,14 @@ func appendSQLValue(buf *strings.Builder, args *[]interface{}, excludedTableQual
 		buf.WriteString("NULL")
 		return
 	case interface {
-		AppendSQLExclude(*strings.Builder, *[]interface{}, []string)
+		AppendSQLExclude(*strings.Builder, *[]interface{}, map[string]int, []string)
 	}:
-		v.AppendSQLExclude(buf, args, excludedTableQualifiers)
+		v.AppendSQLExclude(buf, args, nil, excludedTableQualifiers)
 		return
 	case interface {
-		AppendSQL(*strings.Builder, *[]interface{})
+		AppendSQL(*strings.Builder, *[]interface{}, map[string]int)
 	}:
-		v.AppendSQL(buf, args)
+		v.AppendSQL(buf, args, nil)
 		return
 	}
 	switch reflect.TypeOf(value).Kind() {

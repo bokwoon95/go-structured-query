@@ -9,12 +9,12 @@ type RowValues []RowValue
 // in the RowValues description. If there are no values it will not write
 // anything into the buffer. It returns a flag indicating whether anything was
 // written into the buffer.
-func (rs RowValues) AppendSQL(buf *strings.Builder, args *[]interface{}) {
+func (rs RowValues) AppendSQL(buf *strings.Builder, args *[]interface{}, params map[string]int) {
 	for i, rowvalue := range rs {
 		if i > 0 {
 			buf.WriteString(", ")
 		}
-		rowvalue.AppendSQL(buf, args)
+		rowvalue.AppendSQL(buf, args, nil)
 	}
 }
 
@@ -22,13 +22,13 @@ func (rs RowValues) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 type RowValue []interface{}
 
 // AppendSQL marshals the RowValue into a buffer and an args slice.
-func (r RowValue) AppendSQL(buf *strings.Builder, args *[]interface{}) {
-	r.AppendSQLExclude(buf, args, nil)
+func (r RowValue) AppendSQL(buf *strings.Builder, args *[]interface{}, params map[string]int) {
+	r.AppendSQLExclude(buf, args, nil, nil)
 }
 
 // AppendSQLExclude marshals the RowValue into a buffer and an args slice. It
 // propagates the excludedTableQualifiers down to its child elements.
-func (r RowValue) AppendSQLExclude(buf *strings.Builder, args *[]interface{}, excludedTableQualifiers []string) {
+func (r RowValue) AppendSQLExclude(buf *strings.Builder, args *[]interface{}, params map[string]int, excludedTableQualifiers []string) {
 	buf.WriteString("(")
 	for i, value := range r {
 		if i > 0 {
@@ -79,7 +79,7 @@ type CustomAssignment struct {
 
 // AppendSQLExclude marshals the CustomAssignment into a buffer and an args
 // slice. It propagates the excludedTableQualifiers down to its child elements.
-func (set CustomAssignment) AppendSQLExclude(buf *strings.Builder, args *[]interface{}, excludedTableQualifiers []string) {
+func (set CustomAssignment) AppendSQLExclude(buf *strings.Builder, args *[]interface{}, params map[string]int, excludedTableQualifiers []string) {
 	expandValues(buf, args, excludedTableQualifiers, set.Format, set.Values)
 }
 

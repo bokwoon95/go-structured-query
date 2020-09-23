@@ -47,7 +47,7 @@ func TestCustomField_AppendSQLExclude(t *testing.T) {
 			buf := &strings.Builder{}
 			var args []interface{}
 			var _ Field = tt.f
-			tt.f.AppendSQLExclude(buf, &args, tt.exclude)
+			tt.f.AppendSQLExclude(buf, &args, nil, tt.exclude)
 			is.Equal(tt.wantQuery, buf.String())
 			is.Equal(tt.wantArgs, args)
 		})
@@ -140,7 +140,7 @@ func TestCustomField_Predicates(t *testing.T) {
 			is := is.New(t)
 			buf := &strings.Builder{}
 			var args []interface{}
-			tt.p.AppendSQLExclude(buf, &args, tt.exclude)
+			tt.p.AppendSQLExclude(buf, &args, nil, tt.exclude)
 			is.Equal(tt.wantQuery, buf.String())
 			is.Equal(tt.wantArgs, args)
 		})
@@ -193,7 +193,7 @@ func TestCustomField_In(t *testing.T) {
 			is := is.New(t)
 			buf := &strings.Builder{}
 			var args []interface{}
-			tt.p.AppendSQLExclude(buf, &args, tt.exclude)
+			tt.p.AppendSQLExclude(buf, &args, nil, tt.exclude)
 			is.Equal(tt.wantQuery, buf.String())
 			is.Equal(tt.wantArgs, args)
 		})

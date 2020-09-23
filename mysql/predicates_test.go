@@ -88,7 +88,7 @@ func TestCustomPredicate_AppendSQLExclude(t *testing.T) {
 			is := is.New(t)
 			buf := &strings.Builder{}
 			var args []interface{}
-			tt.p.AppendSQLExclude(buf, &args, tt.exclude)
+			tt.p.AppendSQLExclude(buf, &args, nil, tt.exclude)
 			is.Equal(tt.wantQuery, buf.String())
 			is.Equal(tt.wantArgs, args)
 		})
@@ -120,7 +120,7 @@ func TestExists(t *testing.T) {
 			is := is.New(t)
 			buf := &strings.Builder{}
 			var args []interface{}
-			tt.p.AppendSQLExclude(buf, &args, tt.exclude)
+			tt.p.AppendSQLExclude(buf, &args, nil, tt.exclude)
 			is.Equal(tt.wantQuery, buf.String())
 			is.Equal(tt.wantArgs, args)
 		})
@@ -307,7 +307,7 @@ func TestVariadicPredicate_AppendSQLExclude(t *testing.T) {
 			is := is.New(t)
 			buf := &strings.Builder{}
 			var args []interface{}
-			tt.p.AppendSQLExclude(buf, &args, tt.exclude)
+			tt.p.AppendSQLExclude(buf, &args, nil, tt.exclude)
 			is.Equal(tt.wantQuery, buf.String())
 			is.Equal(tt.wantArgs, args)
 		})

@@ -12,7 +12,7 @@ type Window struct {
 }
 
 // AppendSQL marshals the Window into a buffer and args slice.
-func (w Window) AppendSQL(buf *strings.Builder, args *[]interface{}) {
+func (w Window) AppendSQL(buf *strings.Builder, args *[]interface{}, params map[string]int) {
 	if w.renderName {
 		buf.WriteString(w.WindowName)
 		return
@@ -21,7 +21,7 @@ func (w Window) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 	var written bool
 	if len(w.PartitionByFields) > 0 {
 		buf.WriteString("PARTITION BY ")
-		w.PartitionByFields.AppendSQLExclude(buf, args, nil)
+		w.PartitionByFields.AppendSQLExclude(buf, args, nil, nil)
 		written = true
 	}
 	if len(w.OrderByFields) > 0 {
@@ -29,7 +29,7 @@ func (w Window) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 			buf.WriteString(" ")
 		}
 		buf.WriteString("ORDER BY ")
-		w.OrderByFields.AppendSQLExclude(buf, args, nil)
+		w.OrderByFields.AppendSQLExclude(buf, args, nil, nil)
 		written = true
 	}
 	if w.FrameDefinition != "" {
@@ -93,7 +93,7 @@ func (w Window) Frame(frameDefinition string) Window {
 type Windows []Window
 
 // AppendSQL marshals the Windows into a buffer and args slice.
-func (ws Windows) AppendSQL(buf *strings.Builder, args *[]interface{}) {
+func (ws Windows) AppendSQL(buf *strings.Builder, args *[]interface{}, params map[string]int) {
 	for i, window := range ws {
 		if i > 0 {
 			buf.WriteString(", ")
@@ -104,7 +104,7 @@ func (ws Windows) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 			buf.WriteString(randomString(8))
 		}
 		buf.WriteString(" AS ")
-		window.AppendSQL(buf, args)
+		window.AppendSQL(buf, args, nil)
 	}
 }
 

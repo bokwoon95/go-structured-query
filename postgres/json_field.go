@@ -24,7 +24,7 @@ type JSONField struct {
 
 // AppendSQL marshals the JSONField into an SQL query and args as described in the
 // JSONField internal struct comments.
-func (f JSONField) AppendSQLExclude(buf *strings.Builder, args *[]interface{}, excludedTableQualifiers []string) {
+func (f JSONField) AppendSQLExclude(buf *strings.Builder, args *[]interface{}, params map[string]int, excludedTableQualifiers []string) {
 	switch {
 	case f.value != nil:
 		// 1) Literal JSONable value
@@ -200,7 +200,7 @@ func (f JSONField) IsNotNull() Predicate {
 func (f JSONField) String() string {
 	buf := &strings.Builder{}
 	var args []interface{}
-	f.AppendSQLExclude(buf, &args, nil)
+	f.AppendSQLExclude(buf, &args, nil, nil)
 	return questionInterpolate(buf.String(), args...)
 }
 

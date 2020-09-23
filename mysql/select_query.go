@@ -62,12 +62,12 @@ func (q SelectQuery) ToSQL() (string, []interface{}) {
 	q.logSkip += 1
 	buf := &strings.Builder{}
 	var args []interface{}
-	q.AppendSQL(buf, &args)
+	q.AppendSQL(buf, &args, nil)
 	return buf.String(), args
 }
 
 // AppendSQL marshals the SelectQuery into a buffer and args slice.
-func (q SelectQuery) AppendSQL(buf *strings.Builder, args *[]interface{}) {
+func (q SelectQuery) AppendSQL(buf *strings.Builder, args *[]interface{}, params map[string]int) {
 	// WITH
 	if !q.nested {
 		appendCTEs(buf, args, q.CTEs, q.FromTable, q.JoinTables)
@@ -79,7 +79,7 @@ func (q SelectQuery) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 	buf.WriteString(string(q.SelectType))
 	if len(q.SelectFields) > 0 {
 		buf.WriteString(" ")
-		q.SelectFields.AppendSQLExcludeWithAlias(buf, args, nil)
+		q.SelectFields.AppendSQLExcludeWithAlias(buf, args, nil, nil)
 	}
 	// FROM
 	if q.FromTable != nil {
@@ -87,10 +87,10 @@ func (q SelectQuery) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 		switch v := q.FromTable.(type) {
 		case Query:
 			buf.WriteString("(")
-			v.NestThis().AppendSQL(buf, args)
+			v.NestThis().AppendSQL(buf, args, nil)
 			buf.WriteString(")")
 		default:
-			q.FromTable.AppendSQL(buf, args)
+			q.FromTable.AppendSQL(buf, args, nil)
 		}
 		alias := q.FromTable.GetAlias()
 		if alias != "" {
@@ -101,34 +101,34 @@ func (q SelectQuery) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 	// JOIN
 	if len(q.JoinTables) > 0 {
 		buf.WriteString(" ")
-		q.JoinTables.AppendSQL(buf, args)
+		q.JoinTables.AppendSQL(buf, args, nil)
 	}
 	// WHERE
 	if len(q.WherePredicate.Predicates) > 0 {
 		buf.WriteString(" WHERE ")
 		q.WherePredicate.toplevel = true
-		q.WherePredicate.AppendSQLExclude(buf, args, nil)
+		q.WherePredicate.AppendSQLExclude(buf, args, nil, nil)
 	}
 	// GROUP BY
 	if len(q.GroupByFields) > 0 {
 		buf.WriteString(" GROUP BY ")
-		q.GroupByFields.AppendSQLExclude(buf, args, nil)
+		q.GroupByFields.AppendSQLExclude(buf, args, nil, nil)
 	}
 	// HAVING
 	if len(q.HavingPredicate.Predicates) > 0 {
 		buf.WriteString(" HAVING ")
 		q.HavingPredicate.toplevel = true
-		q.HavingPredicate.AppendSQLExclude(buf, args, nil)
+		q.HavingPredicate.AppendSQLExclude(buf, args, nil, nil)
 	}
 	// WINDOW
 	if len(q.Windows) > 0 {
 		buf.WriteString(" WINDOW ")
-		q.Windows.AppendSQL(buf, args)
+		q.Windows.AppendSQL(buf, args, nil)
 	}
 	// ORDER BY
 	if len(q.OrderByFields) > 0 {
 		buf.WriteString(" ORDER BY ")
-		q.OrderByFields.AppendSQLExclude(buf, args, nil)
+		q.OrderByFields.AppendSQLExclude(buf, args, nil, nil)
 	}
 	// LIMIT
 	if q.LimitValue != nil {
@@ -453,7 +453,7 @@ func (q SelectQuery) FetchContext(ctx context.Context, db DB) (err error) {
 	tmpbuf := &strings.Builder{}
 	var tmpargs []interface{}
 	q.logSkip += 1
-	q.AppendSQL(tmpbuf, &tmpargs)
+	q.AppendSQL(tmpbuf, &tmpargs, nil)
 	if ctx == nil {
 		r.rows, err = db.Query(tmpbuf.String(), tmpargs...)
 	} else {
@@ -474,7 +474,7 @@ func (q SelectQuery) FetchContext(ctx context.Context, db DB) (err error) {
 			for i := range r.dest {
 				tmpbuf.Reset()
 				tmpargs = tmpargs[:0]
-				r.fields[i].AppendSQLExclude(tmpbuf, &tmpargs, nil)
+				r.fields[i].AppendSQLExclude(tmpbuf, &tmpargs, nil, nil)
 				errbuf.WriteString("\n" +
 					strconv.Itoa(i) + ") " +
 					questionInterpolate(tmpbuf.String(), tmpargs...) + " => " +
@@ -489,7 +489,7 @@ func (q SelectQuery) FetchContext(ctx context.Context, db DB) (err error) {
 			for i := range r.dest {
 				tmpbuf.Reset()
 				tmpargs = tmpargs[:0]
-				r.fields[i].AppendSQLExclude(tmpbuf, &tmpargs, nil)
+				r.fields[i].AppendSQLExclude(tmpbuf, &tmpargs, nil, nil)
 				logBuf.WriteString("\n")
 				logBuf.WriteString(questionInterpolate(tmpbuf.String(), tmpargs...))
 				logBuf.WriteString(": ")

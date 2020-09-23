@@ -37,7 +37,7 @@ type StringField struct {
 // AppendSQLExclude marshals the StringField into a buffer and an args slice. It
 // will not table qualify itself if its table qualifer appears in the
 // excludedTableQualifiers list.
-func (f StringField) AppendSQLExclude(buf *strings.Builder, args *[]interface{}, excludedTableQualifiers []string) {
+func (f StringField) AppendSQLExclude(buf *strings.Builder, args *[]interface{}, params map[string]int, excludedTableQualifiers []string) {
 	switch {
 	case f.value != nil:
 		// 1) Literal string value
@@ -284,7 +284,7 @@ func (f StringField) In(v interface{}) Predicate {
 func (f StringField) String() string {
 	buf := &strings.Builder{}
 	var args []interface{}
-	f.AppendSQLExclude(buf, &args, nil)
+	f.AppendSQLExclude(buf, &args, nil, nil)
 	return questionInterpolate(buf.String(), args...)
 }
 

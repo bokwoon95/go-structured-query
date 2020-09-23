@@ -42,11 +42,11 @@ func (q UpdateQuery) ToSQL() (string, []interface{}) {
 	q.logSkip += 1
 	buf := &strings.Builder{}
 	var args []interface{}
-	q.AppendSQL(buf, &args)
+	q.AppendSQL(buf, &args, nil)
 	return buf.String(), args
 }
 
-func (q UpdateQuery) AppendSQL(buf *strings.Builder, args *[]interface{}) {
+func (q UpdateQuery) AppendSQL(buf *strings.Builder, args *[]interface{}, params map[string]int) {
 	var excludedTableQualifiers []string
 	if q.ColumnMapper != nil {
 		col := &Column{mode: colmodeUpdate}
@@ -62,7 +62,7 @@ func (q UpdateQuery) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 	if q.UpdateTable == nil {
 		buf.WriteString("NULL")
 	} else {
-		q.UpdateTable.AppendSQL(buf, args)
+		q.UpdateTable.AppendSQL(buf, args, nil)
 		name := q.UpdateTable.GetName()
 		alias := q.UpdateTable.GetAlias()
 		if alias != "" {
@@ -76,7 +76,7 @@ func (q UpdateQuery) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 	// SET
 	if len(q.Assignments) > 0 {
 		buf.WriteString(" SET ")
-		q.Assignments.AppendSQLExclude(buf, args, excludedTableQualifiers)
+		q.Assignments.AppendSQLExclude(buf, args, nil, excludedTableQualifiers)
 	}
 	// FROM
 	if q.FromTable != nil {
@@ -84,10 +84,10 @@ func (q UpdateQuery) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 		switch v := q.FromTable.(type) {
 		case Query:
 			buf.WriteString("(")
-			v.NestThis().AppendSQL(buf, args)
+			v.NestThis().AppendSQL(buf, args, nil)
 			buf.WriteString(")")
 		default:
-			q.FromTable.AppendSQL(buf, args)
+			q.FromTable.AppendSQL(buf, args, nil)
 		}
 		alias := q.FromTable.GetAlias()
 		if alias != "" {
@@ -98,18 +98,18 @@ func (q UpdateQuery) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 	// JOIN
 	if len(q.JoinTables) > 0 {
 		buf.WriteString(" ")
-		q.JoinTables.AppendSQL(buf, args)
+		q.JoinTables.AppendSQL(buf, args, nil)
 	}
 	// WHERE
 	if len(q.WherePredicate.Predicates) > 0 {
 		buf.WriteString(" WHERE ")
 		q.WherePredicate.toplevel = true
-		q.WherePredicate.AppendSQLExclude(buf, args, nil)
+		q.WherePredicate.AppendSQLExclude(buf, args, nil, nil)
 	}
 	// RETURNING
 	if len(q.ReturningFields) > 0 {
 		buf.WriteString(" RETURNING ")
-		q.ReturningFields.AppendSQLExcludeWithAlias(buf, args, nil)
+		q.ReturningFields.AppendSQLExcludeWithAlias(buf, args, nil, nil)
 	}
 	if !q.nested {
 		query := buf.String()
@@ -313,7 +313,7 @@ func (q UpdateQuery) FetchContext(ctx context.Context, db DB) (err error) {
 	tmpbuf := &strings.Builder{}
 	var tmpargs []interface{}
 	q.logSkip += 1
-	q.AppendSQL(tmpbuf, &tmpargs)
+	q.AppendSQL(tmpbuf, &tmpargs, nil)
 	if ctx == nil {
 		r.rows, err = db.Query(tmpbuf.String(), tmpargs...)
 	} else {
@@ -334,7 +334,7 @@ func (q UpdateQuery) FetchContext(ctx context.Context, db DB) (err error) {
 			for i := range r.dest {
 				tmpbuf.Reset()
 				tmpargs = tmpargs[:0]
-				r.fields[i].AppendSQLExclude(tmpbuf, &tmpargs, nil)
+				r.fields[i].AppendSQLExclude(tmpbuf, &tmpargs, nil, nil)
 				errbuf.WriteString("\n" +
 					strconv.Itoa(i) + ") " +
 					dollarInterpolate(tmpbuf.String(), tmpargs...) + " => " +
@@ -349,7 +349,7 @@ func (q UpdateQuery) FetchContext(ctx context.Context, db DB) (err error) {
 			for i := range r.dest {
 				tmpbuf.Reset()
 				tmpargs = tmpargs[:0]
-				r.fields[i].AppendSQLExclude(tmpbuf, &tmpargs, nil)
+				r.fields[i].AppendSQLExclude(tmpbuf, &tmpargs, nil, nil)
 				logBuf.WriteString("\n")
 				logBuf.WriteString(dollarInterpolate(tmpbuf.String(), tmpargs...))
 				logBuf.WriteString(": ")
@@ -411,7 +411,7 @@ func (q UpdateQuery) ExecContext(ctx context.Context, db DB, flag ExecFlag) (row
 	tmpbuf := &strings.Builder{}
 	var tmpargs []interface{}
 	q.logSkip += 1
-	q.AppendSQL(tmpbuf, &tmpargs)
+	q.AppendSQL(tmpbuf, &tmpargs, nil)
 	if ctx == nil {
 		res, err = db.Exec(tmpbuf.String(), tmpargs...)
 	} else {

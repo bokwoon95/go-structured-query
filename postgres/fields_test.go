@@ -26,7 +26,7 @@ func TestFieldLiteral_AppendSQLExclude(t *testing.T) {
 			is := is.New(t)
 			buf := &strings.Builder{}
 			var args []interface{}
-			tt.f.AppendSQLExclude(buf, &args, tt.exclude)
+			tt.f.AppendSQLExclude(buf, &args, nil, tt.exclude)
 			is.Equal(tt.wantQuery, buf.String())
 			is.Equal(tt.wantArgs, args)
 		})
@@ -79,7 +79,7 @@ func TestFields_AppendSQLExclude(t *testing.T) {
 			is := is.New(t)
 			buf := &strings.Builder{}
 			var args []interface{}
-			tt.f.AppendSQLExclude(buf, &args, tt.exclude)
+			tt.f.AppendSQLExclude(buf, &args, nil, tt.exclude)
 			is.Equal(tt.wantQuery, buf.String())
 			is.Equal(tt.wantArgs, args)
 		})
@@ -125,7 +125,7 @@ func TestFields_AppendSQLExcludeWithAlias(t *testing.T) {
 			is := is.New(t)
 			buf := &strings.Builder{}
 			var args []interface{}
-			tt.f.AppendSQLExcludeWithAlias(buf, &args, tt.exclude)
+			tt.f.AppendSQLExcludeWithAlias(buf, &args, nil, tt.exclude)
 			is.Equal(tt.wantQuery, buf.String())
 			is.Equal(tt.wantArgs, args)
 		})
@@ -185,7 +185,7 @@ func TestFieldsAssignment_AppendSQLExclude(t *testing.T) {
 			is := is.New(t)
 			buf := &strings.Builder{}
 			var args []interface{}
-			tt.set.AppendSQLExclude(buf, &args, tt.exclude)
+			tt.set.AppendSQLExclude(buf, &args, nil, tt.exclude)
 			is.Equal(tt.wantQuery, buf.String())
 			is.Equal(tt.wantArgs, args)
 		})
@@ -239,7 +239,7 @@ func TestFieldsAssignments_AppendSQLExclude(t *testing.T) {
 			is := is.New(t)
 			buf := &strings.Builder{}
 			var args []interface{}
-			tt.assignments.AppendSQLExclude(buf, &args, tt.exclude)
+			tt.assignments.AppendSQLExclude(buf, &args, nil, tt.exclude)
 			is.Equal(tt.wantQuery, buf.String())
 			is.Equal(tt.wantArgs, args)
 		})

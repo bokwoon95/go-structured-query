@@ -41,12 +41,12 @@ func (q DeleteQuery) ToSQL() (string, []interface{}) {
 	q.logSkip += 1
 	buf := &strings.Builder{}
 	var args []interface{}
-	q.AppendSQL(buf, &args)
+	q.AppendSQL(buf, &args, nil)
 	return buf.String(), args
 }
 
 // AppendSQL marshals the DeleteQuery into a buffer and args slice.
-func (q DeleteQuery) AppendSQL(buf *strings.Builder, args *[]interface{}) {
+func (q DeleteQuery) AppendSQL(buf *strings.Builder, args *[]interface{}, params map[string]int) {
 	// WITH
 	if !q.nested {
 		appendCTEs(buf, args, q.CTEs, nil, q.JoinTables)
@@ -68,7 +68,7 @@ func (q DeleteQuery) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 			if alias != "" {
 				buf.WriteString(alias)
 			} else {
-				table.AppendSQL(buf, args)
+				table.AppendSQL(buf, args, nil)
 			}
 		}
 	}
@@ -78,10 +78,10 @@ func (q DeleteQuery) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 		switch v := q.UsingTable.(type) {
 		case Query:
 			buf.WriteString("(")
-			v.NestThis().AppendSQL(buf, args)
+			v.NestThis().AppendSQL(buf, args, nil)
 			buf.WriteString(")")
 		default:
-			q.UsingTable.AppendSQL(buf, args)
+			q.UsingTable.AppendSQL(buf, args, nil)
 		}
 		alias := q.UsingTable.GetAlias()
 		if alias != "" {
@@ -92,18 +92,18 @@ func (q DeleteQuery) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 	// JOIN
 	if len(q.JoinTables) > 0 {
 		buf.WriteString(" ")
-		q.JoinTables.AppendSQL(buf, args)
+		q.JoinTables.AppendSQL(buf, args, nil)
 	}
 	// WHERE
 	if len(q.WherePredicate.Predicates) > 0 {
 		buf.WriteString(" WHERE ")
 		q.WherePredicate.toplevel = true
-		q.WherePredicate.AppendSQLExclude(buf, args, nil)
+		q.WherePredicate.AppendSQLExclude(buf, args, nil, nil)
 	}
 	// ORDER BY
 	if len(q.OrderByFields) > 0 {
 		buf.WriteString(" ORDER BY ")
-		q.OrderByFields.AppendSQLExclude(buf, args, nil)
+		q.OrderByFields.AppendSQLExclude(buf, args, nil, nil)
 	}
 	// LIMIT
 	if q.LimitValue != nil {
@@ -295,7 +295,7 @@ func (q DeleteQuery) ExecContext(ctx context.Context, db DB, flag ExecFlag) (row
 	tmpbuf := &strings.Builder{}
 	var tmpargs []interface{}
 	q.logSkip += 1
-	q.AppendSQL(tmpbuf, &tmpargs)
+	q.AppendSQL(tmpbuf, &tmpargs, nil)
 	if ctx == nil {
 		res, err = db.Exec(tmpbuf.String(), tmpargs...)
 	} else {

@@ -56,7 +56,7 @@ func TestJoinTable_AppendSQL(t *testing.T) {
 			is := is.New(t)
 			buf := &strings.Builder{}
 			var args []interface{}
-			tt.j.AppendSQL(buf, &args)
+			tt.j.AppendSQL(buf, &args, nil)
 			is.Equal(tt.wantQuery, buf.String())
 			is.Equal(tt.wantArgs, args)
 		})
@@ -115,7 +115,7 @@ func TestJoinTables_AppendSQL(t *testing.T) {
 			is := is.New(t)
 			buf := &strings.Builder{}
 			var args []interface{}
-			tt.j.AppendSQL(buf, &args)
+			tt.j.AppendSQL(buf, &args, nil)
 			is.Equal(tt.wantQuery, buf.String())
 			is.Equal(tt.wantArgs, args)
 		})

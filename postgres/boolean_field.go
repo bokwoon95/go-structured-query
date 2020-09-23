@@ -30,7 +30,7 @@ type BooleanField struct {
 // AppendSQLExclude marshals the BooleanField into a buffer and an args slice. It
 // will not table qualify itself if its table qualifer appears in the
 // excludedTableQualifiers list.
-func (f BooleanField) AppendSQLExclude(buf *strings.Builder, args *[]interface{}, excludedTableQualifiers []string) {
+func (f BooleanField) AppendSQLExclude(buf *strings.Builder, args *[]interface{}, params map[string]int, excludedTableQualifiers []string) {
 	if f.negative {
 		buf.WriteString("NOT ")
 	}
@@ -194,7 +194,7 @@ func (f BooleanField) Ne(field BooleanField) Predicate {
 func (f BooleanField) String() string {
 	buf := &strings.Builder{}
 	var args []interface{}
-	f.AppendSQLExclude(buf, &args, nil)
+	f.AppendSQLExclude(buf, &args, nil, nil)
 	return questionInterpolate(buf.String(), args...)
 }
 

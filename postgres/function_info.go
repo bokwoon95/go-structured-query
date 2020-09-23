@@ -14,12 +14,12 @@ type FunctionInfo struct {
 }
 
 // AppendSQL adds the fully qualified function call into the buffer.
-func (f *FunctionInfo) AppendSQL(buf *strings.Builder, args *[]interface{}) {
-	f.AppendSQLExclude(buf, args, nil)
+func (f *FunctionInfo) AppendSQL(buf *strings.Builder, args *[]interface{}, params map[string]int) {
+	f.AppendSQLExclude(buf, args, nil, nil)
 }
 
 // AppendSQLExclude adds the fully qualified function call into the buffer.
-func (f *FunctionInfo) AppendSQLExclude(buf *strings.Builder, args *[]interface{}, excludedTableQualifiers []string) {
+func (f *FunctionInfo) AppendSQLExclude(buf *strings.Builder, args *[]interface{}, params map[string]int, excludedTableQualifiers []string) {
 	if f == nil {
 		return
 	}

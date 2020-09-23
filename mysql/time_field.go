@@ -31,7 +31,7 @@ type TimeField struct {
 
 // AppendSQLExclude marshals the TimeField into an SQL query and args as described
 // in the TimeField internal struct comments.
-func (f TimeField) AppendSQLExclude(buf *strings.Builder, args *[]interface{}, excludedTableQualifiers []string) {
+func (f TimeField) AppendSQLExclude(buf *strings.Builder, args *[]interface{}, params map[string]int, excludedTableQualifiers []string) {
 	switch {
 	case f.value != nil:
 		// 1) Literal time.Time value
@@ -282,7 +282,7 @@ func (f TimeField) NotBetweenTime(start, end time.Time) Predicate {
 func (f TimeField) String() string {
 	buf := &strings.Builder{}
 	var args []interface{}
-	f.AppendSQLExclude(buf, &args, nil)
+	f.AppendSQLExclude(buf, &args, nil, nil)
 	return questionInterpolate(buf.String(), args...)
 }
 

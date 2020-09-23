@@ -18,7 +18,7 @@ type CustomPredicate struct {
 
 // AppendSQLExclude marshals the CustomPredicate into a buffer and an args
 // slice. It propagates the excludedTableQualifiers down to its child elements.
-func (p CustomPredicate) AppendSQLExclude(buf *strings.Builder, args *[]interface{}, excludedTableQualifiers []string) {
+func (p CustomPredicate) AppendSQLExclude(buf *strings.Builder, args *[]interface{}, params map[string]int, excludedTableQualifiers []string) {
 	if p.Negative {
 		buf.WriteString("NOT ")
 	}
@@ -88,7 +88,7 @@ type VariadicPredicate struct {
 
 // AppendSQLExclude marshals the VariadicPredicate into a buffer and an args
 // slice. It propagates the excludedTableQualifiers down to its child elements.
-func (p VariadicPredicate) AppendSQLExclude(buf *strings.Builder, args *[]interface{}, excludedTableQualifiers []string) {
+func (p VariadicPredicate) AppendSQLExclude(buf *strings.Builder, args *[]interface{}, params map[string]int, excludedTableQualifiers []string) {
 	if p.Operator == "" {
 		p.Operator = PredicateAnd
 	}
@@ -106,12 +106,12 @@ func (p VariadicPredicate) AppendSQLExclude(buf *strings.Builder, args *[]interf
 				buf.WriteString("(")
 			}
 			v.toplevel = true
-			v.AppendSQLExclude(buf, args, excludedTableQualifiers)
+			v.AppendSQLExclude(buf, args, nil, excludedTableQualifiers)
 			if !p.toplevel {
 				buf.WriteString(")")
 			}
 		default:
-			p.Predicates[0].AppendSQLExclude(buf, args, excludedTableQualifiers)
+			p.Predicates[0].AppendSQLExclude(buf, args, nil, excludedTableQualifiers)
 		}
 	default:
 		if p.Negative {
@@ -129,7 +129,7 @@ func (p VariadicPredicate) AppendSQLExclude(buf *strings.Builder, args *[]interf
 			if predicate == nil {
 				buf.WriteString("NULL")
 			} else {
-				predicate.AppendSQLExclude(buf, args, excludedTableQualifiers)
+				predicate.AppendSQLExclude(buf, args, nil, excludedTableQualifiers)
 			}
 		}
 		if !p.toplevel {

@@ -72,7 +72,7 @@ func CustomJoin(joinType JoinType, table Table, predicates ...Predicate) JoinTab
 	}
 }
 
-func (join JoinTable) AppendSQL(buf *strings.Builder, args *[]interface{}) {
+func (join JoinTable) AppendSQL(buf *strings.Builder, args *[]interface{}, params map[string]int) {
 	if join.JoinType == "" {
 		join.JoinType = JoinTypeInner
 	}
@@ -82,10 +82,10 @@ func (join JoinTable) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 		buf.WriteString("NULL")
 	case Query:
 		buf.WriteString("(")
-		v.NestThis().AppendSQL(buf, args)
+		v.NestThis().AppendSQL(buf, args, nil)
 		buf.WriteString(")")
 	default:
-		join.Table.AppendSQL(buf, args)
+		join.Table.AppendSQL(buf, args, nil)
 	}
 	if join.Table != nil {
 		alias := join.Table.GetAlias()
@@ -97,7 +97,7 @@ func (join JoinTable) AppendSQL(buf *strings.Builder, args *[]interface{}) {
 	if len(join.OnPredicates.Predicates) > 0 {
 		buf.WriteString(" ON ")
 		join.OnPredicates.toplevel = true
-		join.OnPredicates.AppendSQLExclude(buf, args, nil)
+		join.OnPredicates.AppendSQLExclude(buf, args, nil, nil)
 	}
 }
 
@@ -107,11 +107,11 @@ type JoinTables []JoinTable
 // AppendSQL will write the JOIN clause into the buffer and args. If there are
 // no JoinTables it simply writes nothing into the buffer. It returns a flag
 // indicating whether anything was written into the buffer.
-func (joins JoinTables) AppendSQL(buf *strings.Builder, args *[]interface{}) {
+func (joins JoinTables) AppendSQL(buf *strings.Builder, args *[]interface{}, params map[string]int) {
 	for i, join := range joins {
 		if i > 0 {
 			buf.WriteString(" ")
 		}
-		join.AppendSQL(buf, args)
+		join.AppendSQL(buf, args, nil)
 	}
 }

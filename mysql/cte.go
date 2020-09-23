@@ -76,9 +76,9 @@ func appendCTEs(buf *strings.Builder, args *[]interface{}, CTEs []CTE, fromTable
 			buf.WriteString("NULL")
 		case VariadicQuery:
 			q.topLevel = true
-			q.NestThis().AppendSQL(buf, args)
+			q.NestThis().AppendSQL(buf, args, nil)
 		default:
-			q.NestThis().AppendSQL(buf, args)
+			q.NestThis().AppendSQL(buf, args, nil)
 		}
 		buf.WriteString(")")
 	}
@@ -145,7 +145,7 @@ func (cte CTE) As(alias string) CTE {
 }
 
 // AppendSQL marshals the CTE into a buffer and args slice.
-func (cte CTE) AppendSQL(buf *strings.Builder, _ *[]interface{}) {
+func (cte CTE) AppendSQL(buf *strings.Builder, args *[]interface{}, params map[string]int) {
 	buf.WriteString(cte.GetName())
 }
 

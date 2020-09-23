@@ -63,7 +63,7 @@ func TestRowValues_AppendSQL(t *testing.T) {
 			is := is.New(t)
 			buf := &strings.Builder{}
 			var args []interface{}
-			tt.vl.AppendSQL(buf, &args)
+			tt.vl.AppendSQL(buf, &args, nil)
 			is.Equal(tt.wantQuery, buf.String())
 			is.Equal(tt.wantArgs, args)
 		})
@@ -131,7 +131,7 @@ func TestRowValue_In(t *testing.T) {
 			is := is.New(t)
 			buf := &strings.Builder{}
 			var args []interface{}
-			tt.p.AppendSQLExclude(buf, &args, tt.exclude)
+			tt.p.AppendSQLExclude(buf, &args, nil, tt.exclude)
 			is.Equal(tt.wantQuery, buf.String())
 			is.Equal(tt.wantArgs, args)
 		})
@@ -177,7 +177,7 @@ func TestCustomAssignment_AppendSQLExclude(t *testing.T) {
 			is := is.New(t)
 			buf := &strings.Builder{}
 			var args []interface{}
-			tt.a.AppendSQLExclude(buf, &args, tt.exclude)
+			tt.a.AppendSQLExclude(buf, &args, nil, tt.exclude)
 			is.Equal(tt.wantQuery, buf.String())
 			is.Equal(tt.wantArgs, args)
 		})
