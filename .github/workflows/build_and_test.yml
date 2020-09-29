@@ -32,6 +32,8 @@ jobs:
           --health-retries 5
         ports:
           - 3310:3306
+      sqlite3:
+        image: keinos/sqlite3
     steps:
     - name: Clone repo
       uses: actions/checkout@v2
@@ -47,6 +49,11 @@ jobs:
       run: |
         mysql -h 127.0.0.1 -P 3310 -D devlab -uroot -proot -e 'source testdata/mysql/init.sql'
         mysql -h 127.0.0.1 -P 3310 -D devlab -uroot -proot -e 'source testdata/mysql/data.sql'
+    - name: load sqlite3 data
+      run: |
+        sqlite3 testdata/sqlite3/devlab.sqlite3 '.read testdata/sqlite3/init.sql'
+        sqlite3 testdata/sqlite3/devlab.sqlite3 '.read testdata/sqlite3/data.sql'
+        cat testdata/sqlite3/views/*.sql | sqlite3 testdata/sqlite3/devlab.sqlite3
     - name: go test ./... -failfast -race -coverprofile=coverage.out
       run: go test ./... -failfast -race -coverprofile=coverage.out
     - name: Convert coverage.out to coverage.lcov

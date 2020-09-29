@@ -3,6 +3,7 @@ Additional Features that don't break API
 - Query compiling + argument rebinding
 - Custom loggers with structured logging support
 - Fleshed out JSON support
+- Migrate to pgx
 
 
 Queries can be precompiled to avoid the paying the price of string serialization over and over
