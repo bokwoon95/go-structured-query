@@ -1,0 +1,43 @@
+ideas to implement when go gets generics
+
+type Boolean interface {
+    type bool, BooleanField, CustomField
+}
+
+type String interface {
+    type string, StringField, CustomField
+}
+
+type Number interface {
+    type int, int32, int64, float64, NumberField, CustomField
+}
+
+type Time interface {
+    type time.Time, TimeField, CustomField
+}
+
+func (f NumberField) Eq(num Number)
+f.USER_ID.Eq(2)
+f.USER_ID.Eq(f.TEAM_ID)
+f.USER_ID.Eq(Fieldf("CONCAT(?, ' ', ?)", f.NAME, f.EMAIL))
+
+type Expression interface {
+    type Field, Query, Number, String, Boolean, Time
+}
+func Sum(expr Expression) NumberField
+sq.Sum(u.USER_ID)
+sq.Sum(sq.Select(u.USER_ID).From(u))
+sq.Sum(5)
+
+func Value(val interface{}) CustomField {
+    return CustomField{
+        Format: "?",
+        Values: []interface{}{val},
+    }
+}
+sq.Value(4).Eq(u.USER_ID)
+
+func (r *Row) Get[T](Field) T
+user.UserID = row.Int(u.USER_ID)
+user.UserID = row.Get[int](u.USER_ID)
+submission.Answers = row.Get[formx.Answers](s.ANSWERS)
