@@ -164,8 +164,8 @@ func Array(slice interface{}) ArrayField {
 	}
 }
 
-// SetArray returns a FieldAssignment associating the ArrayField to the value
-// i.e. 'field = value'. It only accepts ArrayField.
+// Set returns a FieldAssignment associating the ArrayField to the value i.e.
+// 'field = value'. It only accepts ArrayField.
 func (f ArrayField) Set(value ArrayField) FieldAssignment {
 	return FieldAssignment{
 		Field: f,
@@ -284,7 +284,7 @@ func (f ArrayField) Contains(field ArrayField) Predicate {
 	}
 }
 
-// Contains checks whether the subject ArrayField is contained by the object
+// ContainedBy checks whether the subject ArrayField is contained by the object
 // ArrayField.
 func (f ArrayField) ContainedBy(field ArrayField) Predicate {
 	return CustomPredicate{

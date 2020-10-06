@@ -20,6 +20,7 @@ type JoinTable struct {
 	OnPredicates VariadicPredicate
 }
 
+// Join creates a new inner join.
 func Join(table Table, predicates ...Predicate) JoinTable {
 	return JoinTable{
 		JoinType: JoinTypeInner,
@@ -30,6 +31,7 @@ func Join(table Table, predicates ...Predicate) JoinTable {
 	}
 }
 
+// LeftJoin creates a new left join.
 func LeftJoin(table Table, predicates ...Predicate) JoinTable {
 	return JoinTable{
 		JoinType: JoinTypeLeft,
@@ -40,6 +42,7 @@ func LeftJoin(table Table, predicates ...Predicate) JoinTable {
 	}
 }
 
+// RightJoin creates a new right join.
 func RightJoin(table Table, predicates ...Predicate) JoinTable {
 	return JoinTable{
 		JoinType: JoinTypeRight,
@@ -50,6 +53,7 @@ func RightJoin(table Table, predicates ...Predicate) JoinTable {
 	}
 }
 
+// FullJoin creates a new full join.
 func FullJoin(table Table, predicates ...Predicate) JoinTable {
 	return JoinTable{
 		JoinType: JoinTypeFull,
@@ -72,6 +76,7 @@ func CustomJoin(joinType JoinType, table Table, predicates ...Predicate) JoinTab
 	}
 }
 
+// AppendSQL marshals the JoinTable into a buffer and an args slice.
 func (join JoinTable) AppendSQL(buf *strings.Builder, args *[]interface{}, params map[string]int) {
 	if join.JoinType == "" {
 		join.JoinType = JoinTypeInner

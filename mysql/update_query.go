@@ -143,6 +143,7 @@ func Update(table BaseTable) UpdateQuery {
 	}
 }
 
+// With appends a list of CTEs into the UpdateQuery.
 func (q UpdateQuery) With(ctes ...CTE) UpdateQuery {
 	q.CTEs = append(q.CTEs, ctes...)
 	return q
@@ -160,6 +161,7 @@ func (q UpdateQuery) Set(assignments ...Assignment) UpdateQuery {
 	return q
 }
 
+// Setx sets the column mapper function UpdateQuery.
 func (q UpdateQuery) Setx(mapper func(*Column)) UpdateQuery {
 	q.ColumnMapper = mapper
 	return q

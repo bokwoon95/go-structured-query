@@ -12,6 +12,7 @@ import (
 	"time"
 )
 
+// UpdateQuery represents an UPDATE query.
 type UpdateQuery struct {
 	nested bool
 	// WITH
@@ -38,6 +39,7 @@ type UpdateQuery struct {
 	logSkip int
 }
 
+// ToSQL marshals the UpdateQuery into a query string and args slice.
 func (q UpdateQuery) ToSQL() (string, []interface{}) {
 	q.logSkip += 1
 	buf := &strings.Builder{}
@@ -46,6 +48,7 @@ func (q UpdateQuery) ToSQL() (string, []interface{}) {
 	return buf.String(), args
 }
 
+// AppendSQL marshals the UpdateQuery into a buffer and args slice.
 func (q UpdateQuery) AppendSQL(buf *strings.Builder, args *[]interface{}, params map[string]int) {
 	var excludedTableQualifiers []string
 	if q.ColumnMapper != nil {
@@ -136,37 +139,44 @@ func (q UpdateQuery) AppendSQL(buf *strings.Builder, args *[]interface{}, params
 	}
 }
 
+// Update creates a new UpdateQuery.
 func Update(table BaseTable) UpdateQuery {
 	return UpdateQuery{
 		UpdateTable: table,
 	}
 }
 
+// With appends a list of CTEs into the UpdateQuery.
 func (q UpdateQuery) With(ctes ...CTE) UpdateQuery {
 	q.CTEs = append(q.CTEs, ctes...)
 	return q
 }
 
+// Update sets the update table for the UpdateQuery.
 func (q UpdateQuery) Update(table BaseTable) UpdateQuery {
 	q.UpdateTable = table
 	return q
 }
 
+// Set appends the assignments to SET clause of the UpdateQuery.
 func (q UpdateQuery) Set(assignments ...Assignment) UpdateQuery {
 	q.Assignments = append(q.Assignments, assignments...)
 	return q
 }
 
+// Setx sets the column mapper function UpdateQuery.
 func (q UpdateQuery) Setx(mapper func(*Column)) UpdateQuery {
 	q.ColumnMapper = mapper
 	return q
 }
 
+// From specifies a table to select from for the purposes of the UpdateQuery.
 func (q UpdateQuery) From(table Table) UpdateQuery {
 	q.FromTable = table
 	return q
 }
 
+// Join joins a new table to the UpdateQuery based on the predicates.
 func (q UpdateQuery) Join(table Table, predicate Predicate, predicates ...Predicate) UpdateQuery {
 	predicates = append([]Predicate{predicate}, predicates...)
 	q.JoinTables = append(q.JoinTables, JoinTable{
@@ -179,6 +189,7 @@ func (q UpdateQuery) Join(table Table, predicate Predicate, predicates ...Predic
 	return q
 }
 
+// LeftJoin left joins a new table to the UpdateQuery based on the predicates.
 func (q UpdateQuery) LeftJoin(table Table, predicate Predicate, predicates ...Predicate) UpdateQuery {
 	predicates = append([]Predicate{predicate}, predicates...)
 	q.JoinTables = append(q.JoinTables, JoinTable{
@@ -191,6 +202,7 @@ func (q UpdateQuery) LeftJoin(table Table, predicate Predicate, predicates ...Pr
 	return q
 }
 
+// RightJoin right joins a new table to the UpdateQuery based on the predicates.
 func (q UpdateQuery) RightJoin(table Table, predicate Predicate, predicates ...Predicate) UpdateQuery {
 	predicates = append([]Predicate{predicate}, predicates...)
 	q.JoinTables = append(q.JoinTables, JoinTable{
@@ -203,6 +215,7 @@ func (q UpdateQuery) RightJoin(table Table, predicate Predicate, predicates ...P
 	return q
 }
 
+// FullJoin full joins a table to the UpdateQuery based on the predicates.
 func (q UpdateQuery) FullJoin(table Table, predicate Predicate, predicates ...Predicate) UpdateQuery {
 	predicates = append([]Predicate{predicate}, predicates...)
 	q.JoinTables = append(q.JoinTables, JoinTable{
@@ -215,6 +228,8 @@ func (q UpdateQuery) FullJoin(table Table, predicate Predicate, predicates ...Pr
 	return q
 }
 
+// CustomJoin custom joins a table to the UpdateQuery. The join type can be
+// specified with a string, e.g. "CROSS JOIN".
 func (q UpdateQuery) CustomJoin(joinType JoinType, table Table, predicates ...Predicate) UpdateQuery {
 	q.JoinTables = append(q.JoinTables, JoinTable{
 		JoinType: joinType,
@@ -226,37 +241,47 @@ func (q UpdateQuery) CustomJoin(joinType JoinType, table Table, predicates ...Pr
 	return q
 }
 
+// Where appends the predicates to the WHERE clause in the UpdateQuery.
 func (q UpdateQuery) Where(predicates ...Predicate) UpdateQuery {
 	q.WherePredicate.Predicates = append(q.WherePredicate.Predicates, predicates...)
 	return q
 }
 
+// Returning appends the fields to the RETURNING clause of the InsertQuery.
 func (q UpdateQuery) Returning(fields ...Field) UpdateQuery {
 	q.ReturningFields = append(q.ReturningFields, fields...)
 	return q
 }
 
+// ReturningOne sets the RETURNING clause to RETURNING 1 in the InsertQuery.
 func (q UpdateQuery) ReturningOne() UpdateQuery {
 	q.ReturningFields = Fields{FieldLiteral("1")}
 	return q
 }
 
+// Returningx sets the rowmapper and accumulator function of the InsertQuery.
 func (q UpdateQuery) Returningx(mapper func(*Row), accumulator func()) UpdateQuery {
 	q.RowMapper = mapper
 	q.Accumulator = accumulator
 	return q
 }
 
+// ReturningRowx sets the rowmapper function of the InsertQuery.
 func (q UpdateQuery) ReturningRowx(mapper func(*Row)) UpdateQuery {
 	q.RowMapper = mapper
 	return q
 }
 
+// Fetch will run UpdateQuery with the given DB. It then maps the results based
+// on the mapper function (and optionally runs the accumulator function).
 func (q UpdateQuery) Fetch(db DB) (err error) {
 	q.logSkip += 1
 	return q.FetchContext(nil, db)
 }
 
+// FetchContext will run UpdateQuery with the given DB and context. It then
+// maps the results based on the mapper function (and optionally runs the
+// accumulator function).
 func (q UpdateQuery) FetchContext(ctx context.Context, db DB) (err error) {
 	if db == nil {
 		if q.DB == nil {
@@ -372,11 +397,15 @@ func (q UpdateQuery) FetchContext(ctx context.Context, db DB) (err error) {
 	return r.rows.Err()
 }
 
+// Exec will execute the UpdateQuery with the given DB. It will only compute
+// the rowsAffected if the ErowsAffected Execflag is passed to it.
 func (q UpdateQuery) Exec(db DB, flag ExecFlag) (rowsAffected int64, err error) {
 	q.logSkip += 1
 	return q.ExecContext(nil, db, flag)
 }
 
+// ExecContext will execute the UpdateQuery with the given DB and context. It will
+// only compute the rowsAffected if the ErowsAffected Execflag is passed to it.
 func (q UpdateQuery) ExecContext(ctx context.Context, db DB, flag ExecFlag) (rowsAffected int64, err error) {
 	if db == nil {
 		if q.DB == nil {
@@ -429,6 +458,7 @@ func (q UpdateQuery) ExecContext(ctx context.Context, db DB, flag ExecFlag) (row
 	return rowsAffected, nil
 }
 
+// NestThis indicates to the UpdateQuery that it is nested.
 func (q UpdateQuery) NestThis() Query {
 	q.nested = true
 	return q

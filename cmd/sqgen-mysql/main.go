@@ -40,7 +40,7 @@ func main() {
 
 /* Error Handling Utilities */
 
-const RS rune = 30 // ASCII Record Separator
+const recSep rune = 30 // ASCII Record Separator
 
 // wrap will wrap an error and return a new error that is annotated with the
 // file/linenumber of where wrap() was called.
@@ -49,12 +49,12 @@ func wrap(err error) error {
 		return nil
 	}
 	_, filename, linenbr, _ := runtime.Caller(1)
-	return fmt.Errorf(string(RS)+" %s:%d %w", filename, linenbr, err)
+	return fmt.Errorf(string(recSep)+" %s:%d %w", filename, linenbr, err)
 }
 
 // dump will dump the formatted error string (with each error in its own line)
 // into w io.Writer.
 func dump(w io.Writer, err error) {
-	fmtedErr := strings.ReplaceAll(err.Error(), " "+string(RS)+" ", "\n")
+	fmtedErr := strings.ReplaceAll(err.Error(), " "+string(recSep)+" ", "\n")
 	fmt.Fprintln(w, fmtedErr)
 }

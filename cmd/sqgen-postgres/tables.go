@@ -14,6 +14,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// sq Field Types
 const (
 	FieldTypeBoolean = "sq.BooleanField"
 	FieldTypeJSON    = "sq.JSONField"
@@ -104,6 +105,7 @@ func (tbl {{$table.StructName.Export}}) As(alias string) {{$table.StructName.Exp
 {{- end}}
 {{- end}}`
 
+// Table represents a database table
 type Table struct {
 	Schema      string
 	Name        String
@@ -113,6 +115,7 @@ type Table struct {
 	Fields      []TableField
 }
 
+// TableField represents a field in a database table
 type TableField struct {
 	Name        String
 	RawType     string
@@ -120,12 +123,15 @@ type TableField struct {
 	Constructor string
 }
 
+// String is a custom string type
 type String string
 
+// String implements fmt.Stringer
 func (s String) String() string {
 	return string(s)
 }
 
+// Export will make the string follow Go's export rules.
 func (s String) Export() String {
 	str := strings.TrimPrefix(string(s), "_")
 	str = strings.ReplaceAll(str, " ", "_")
@@ -133,6 +139,7 @@ func (s String) Export() String {
 	return String(str)
 }
 
+// QuoteSpace will quote the string if it contains spaces.
 func (s String) QuoteSpace() String {
 	if strings.Contains(string(s), " ") {
 		return String(`"` + string(s) + `"`)

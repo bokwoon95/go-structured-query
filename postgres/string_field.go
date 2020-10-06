@@ -288,7 +288,7 @@ func (f StringField) NotLikeString(s string) Predicate {
 	}
 }
 
-// LikeString returns an 'A ILIKE B' Predicate. It only accepts string.
+// ILikeString returns an 'A ILIKE B' Predicate. It only accepts string.
 func (f StringField) ILikeString(s string) Predicate {
 	return CustomPredicate{
 		Format: "? ILIKE ?",
@@ -296,7 +296,7 @@ func (f StringField) ILikeString(s string) Predicate {
 	}
 }
 
-// NotLikeString returns an 'A NOT ILIKE B' Predicate. It only accepts string.
+// NotILikeString returns an 'A NOT ILIKE B' Predicate. It only accepts string.
 func (f StringField) NotILikeString(s string) Predicate {
 	return CustomPredicate{
 		Format: "? NOT ILIKE ?",

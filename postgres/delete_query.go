@@ -249,17 +249,22 @@ func (q DeleteQuery) Returningx(mapper func(*Row), accumulator func()) DeleteQue
 	return q
 }
 
-// Returningx sets the rowmapper function of the DeleteQuery.
+// ReturningRowx sets the rowmapper function of the DeleteQuery.
 func (q DeleteQuery) ReturningRowx(mapper func(*Row)) DeleteQuery {
 	q.RowMapper = mapper
 	return q
 }
 
+// Fetch will run DeleteQuery with the given DB. It then maps the results based
+// on the mapper function (and optionally runs the accumulator function).
 func (q DeleteQuery) Fetch(db DB) (err error) {
 	q.logSkip += 1
 	return q.FetchContext(nil, db)
 }
 
+// FetchContext will run DeleteQuery with the given DB and context. It then
+// maps the results based on the mapper function (and optionally runs the
+// accumulator function).
 func (q DeleteQuery) FetchContext(ctx context.Context, db DB) (err error) {
 	if db == nil {
 		if q.DB == nil {
@@ -375,11 +380,15 @@ func (q DeleteQuery) FetchContext(ctx context.Context, db DB) (err error) {
 	return r.rows.Err()
 }
 
+// Exec will execute the DeleteQuery with the given DB. It will only compute
+// the rowsAffected if the ErowsAffected Execflag is passed to it.
 func (q DeleteQuery) Exec(db DB, flag ExecFlag) (rowsAffected int64, err error) {
 	q.logSkip += 1
 	return q.ExecContext(nil, db, flag)
 }
 
+// ExecContext will execute the DeleteQuery with the given DB and context. It will
+// only compute the rowsAffected if the ErowsAffected Execflag is passed to it.
 func (q DeleteQuery) ExecContext(ctx context.Context, db DB, flag ExecFlag) (rowsAffected int64, err error) {
 	if db == nil {
 		if q.DB == nil {

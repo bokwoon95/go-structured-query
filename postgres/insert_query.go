@@ -213,7 +213,8 @@ func (q InsertQuery) OnConflict(fields ...Field) InsertConflict {
 	return InsertConflict{insertQuery: &q}
 }
 
-// OnConflict specifies which constraint may potentially experience a conflict.
+// OnConflictOnConstraint specifies which constraint may potentially experience
+// a conflict.
 func (q InsertQuery) OnConflictOnConstraint(name string) InsertConflict {
 	q.HandleConflict = true
 	q.ConflictConstraint = name
@@ -280,16 +281,22 @@ func (q InsertQuery) Returningx(mapper func(*Row), accumulator func()) InsertQue
 	return q
 }
 
+// ReturningRowx sets the rowmapper function of the InsertQuery.
 func (q InsertQuery) ReturningRowx(mapper func(*Row)) InsertQuery {
 	q.RowMapper = mapper
 	return q
 }
 
+// Fetch will run InsertQuery with the given DB. It then maps the results based
+// on the mapper function (and optionally runs the accumulator function).
 func (q InsertQuery) Fetch(db DB) (err error) {
 	q.logSkip += 1
 	return q.FetchContext(nil, db)
 }
 
+// FetchContext will run InsertQuery with the given DB and context. It then
+// maps the results based on the mapper function (and optionally runs the
+// accumulator function).
 func (q InsertQuery) FetchContext(ctx context.Context, db DB) (err error) {
 	if db == nil {
 		if q.DB == nil {
@@ -405,11 +412,15 @@ func (q InsertQuery) FetchContext(ctx context.Context, db DB) (err error) {
 	return r.rows.Err()
 }
 
+// Exec will execute the InsertQuery with the given DB. It will only compute
+// the rowsAffected if the ErowsAffected Execflag is passed to it.
 func (q InsertQuery) Exec(db DB, flag ExecFlag) (rowsAffected int64, err error) {
 	q.logSkip += 1
 	return q.ExecContext(nil, db, flag)
 }
 
+// ExecContext will execute the InsertQuery with the given DB and context. It will
+// only compute the rowsAffected if the ErowsAffected Execflag is passed to it.
 func (q InsertQuery) ExecContext(ctx context.Context, db DB, flag ExecFlag) (rowsAffected int64, err error) {
 	if db == nil {
 		if q.DB == nil {

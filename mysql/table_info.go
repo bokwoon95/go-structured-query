@@ -11,7 +11,7 @@ type TableInfo struct {
 	Alias  string
 }
 
-// AppendSQLExclude marshals the TableInfo into a buffer and an args slice.
+// AppendSQL marshals the TableInfo into a buffer and an args slice.
 func (tbl *TableInfo) AppendSQL(buf *strings.Builder, args *[]interface{}, params map[string]int) {
 	if tbl == nil {
 		return

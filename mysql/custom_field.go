@@ -32,7 +32,7 @@ func Fieldf(format string, values ...interface{}) CustomField {
 	}
 }
 
-// Aliases the CustomField i.e. 'field AS Alias'.
+// As aliases the CustomField i.e. 'field AS Alias'.
 func (f CustomField) As(alias string) CustomField {
 	f.Alias = alias
 	return f

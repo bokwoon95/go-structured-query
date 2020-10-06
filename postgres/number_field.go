@@ -401,6 +401,7 @@ func (f NumberField) GetName() string {
 	return f.name
 }
 
+// NumberFieldf creates a new number expression.
 func NumberFieldf(format string, values ...interface{}) NumberField {
 	return NumberField{
 		format: &format,

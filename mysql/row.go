@@ -230,7 +230,7 @@ func RowInt64(r *Row, field NumberField) int64 {
 	return RowNullInt64(r, field).Int64
 }
 
-// Int64Valid_ returns the bool value indicating if the Field is non-NULL.
+// RowInt64Valid returns the bool value indicating if the Field is non-NULL.
 func RowInt64Valid(r *Row, field NumberField) bool {
 	return RowNullInt64(r, field).Valid
 }

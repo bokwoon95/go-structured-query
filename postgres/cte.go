@@ -33,9 +33,8 @@ func appendCTEs(buf *strings.Builder, args *[]interface{}, CTEs []CTE, fromTable
 		name := cte.GetName()
 		if cteNames[name] {
 			return // already seen this CTE, skip
-		} else {
-			cteNames[name] = true
 		}
+		cteNames[name] = true
 		if !hasRecursiveCTE && cte.IsRecursive() {
 			hasRecursiveCTE = true
 		}
@@ -231,7 +230,7 @@ func (cte CTE) GetQuery() Query {
 	return nil
 }
 
-// GetQuery returns the CTE's columns.
+// GetColumns returns the CTE's columns.
 func (cte CTE) GetColumns() []string {
 	field := cte[metadataColumns]
 	if len(field.Values) > 0 {
@@ -337,7 +336,7 @@ func (cte IntermediateCTE) Union(queries ...Query) CTE {
 	return cte.union(queries, QueryUnion)
 }
 
-// Union specifies the queries to be UNION-ALLed into the CTE. If the CTE is
+// UnionAll specifies the queries to be UNION-ALLed into the CTE. If the CTE is
 // not recursive, this operation is a no-op.
 func (cte IntermediateCTE) UnionAll(queries ...Query) CTE {
 	if !CTE(cte).IsRecursive() {

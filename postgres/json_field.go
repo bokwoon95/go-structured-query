@@ -22,8 +22,8 @@ type JSONField struct {
 	nullsfirst *bool
 }
 
-// AppendSQL marshals the JSONField into an SQL query and args as described in the
-// JSONField internal struct comments.
+// AppendSQLExclude marshals the JSONField into an SQL query and args as
+// described in the JSONField internal struct comments.
 func (f JSONField) AppendSQLExclude(buf *strings.Builder, args *[]interface{}, params map[string]int, excludedTableQualifiers []string) {
 	switch {
 	case f.value != nil:
