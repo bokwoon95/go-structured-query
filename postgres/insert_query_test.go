@@ -152,6 +152,27 @@ func TestInsertQuery_ToSQL(t *testing.T) {
 			}
 			return tt
 		}(),
+		func() TT {
+			var tt TT
+			tt.description = "ToSQL ColumnMapper panic translates to empty query and panicked value in args"
+			user := User{}
+			u := USERS().As("u")
+			var errEmptyEmail = errors.New("email cannot be empty")
+			tt.q = WithDefaultLog(Lverbose).
+				InsertInto(u).
+				Valuesx(func(col *Column) {
+					if user.Email == "" {
+						panic(errEmptyEmail)
+					}
+					col.SetString(u.DISPLAYNAME, user.Displayname)
+					col.SetString(u.EMAIL, user.Email)
+					col.SetString(u.PASSWORD, user.Password)
+				}).
+				Returning(u.USER_ID)
+			tt.wantQuery = ""
+			tt.wantArgs = []interface{}{errEmptyEmail}
+			return tt
+		}(),
 	}
 	for _, tt := range tests {
 		tt := tt
@@ -303,7 +324,7 @@ func TestInsertQuery_Fetch(t *testing.T) {
 	is.Equal(10, len(emails))
 	tempDB.Close()
 
-	// Valuesx + Returningx
+	// ColumnMapper
 	tempDB, err = sql.Open("txdb", randomString(8))
 	is.NoErr(err)
 	var userIDs []int
@@ -347,6 +368,25 @@ func TestInsertQuery_Fetch(t *testing.T) {
 		Fetch(nil)
 	is.NoErr(err)
 	is.Equal(4, len(userIDs))
+	tempDB.Close()
+
+	// Panic with validation error in ColumnMapper
+	tempDB, err = sql.Open("txdb", randomString(8))
+	is.NoErr(err)
+	var errEmptyEmail = errors.New("email cannot be empty")
+	user := User{} // Empty email
+	_, err = WithDefaultLog(Lverbose).
+		InsertInto(u).
+		Valuesx(func(col *Column) {
+			if user.Email == "" {
+				panic(errEmptyEmail)
+			}
+			col.SetString(u.DISPLAYNAME, user.Displayname)
+			col.SetString(u.EMAIL, user.Email)
+			col.SetString(u.PASSWORD, user.Password)
+		}).
+		Exec(tempDB, 0)
+	is.Equal(err, errEmptyEmail)
 	tempDB.Close()
 
 	// Panic with ExitPeacefully

@@ -136,6 +136,26 @@ func TestInsertQuery_ToSQL(t *testing.T) {
 			}
 			return tt
 		}(),
+		func() TT {
+			var tt TT
+			tt.description = "ToSQL ColumnMapper panic translates to empty query and panicked value in args"
+			user := User{}
+			u := USERS().As("u")
+			var errEmptyEmail = errors.New("email cannot be empty")
+			tt.q = WithDefaultLog(Lverbose).
+				InsertInto(u).
+				Valuesx(func(col *Column) {
+					if user.Email == "" {
+						panic(errEmptyEmail)
+					}
+					col.SetString(u.DISPLAYNAME, user.Displayname)
+					col.SetString(u.EMAIL, user.Email)
+					col.SetString(u.PASSWORD, user.Password)
+				})
+			tt.wantQuery = ""
+			tt.wantArgs = []interface{}{errEmptyEmail}
+			return tt
+		}(),
 	}
 	for _, tt := range tests {
 		tt := tt
@@ -189,10 +209,13 @@ func TestInsertQuery_Exec(t *testing.T) {
 		Values("aaa", "aaa@email.com").
 		ExecContext(ctx, nil, ElastInsertID|ErowsAffected)
 	is.True(errors.Is(err, context.DeadlineExceeded))
+	tempDB.Close()
 
 	// rowsAffected
+	tempDB, err = sql.Open("txdb", randomString(8))
+	is.NoErr(err)
 	lastInsertID, rowsAffected, err := WithDefaultLog(Lverbose).
-		WithDB(db).
+		WithDB(tempDB).
 		InsertInto(u).
 		Columns(u.DISPLAYNAME, u.EMAIL).
 		Values("aaa", "aaa@email.com").
@@ -203,13 +226,13 @@ func TestInsertQuery_Exec(t *testing.T) {
 	err = From(u).
 		Where(u.EMAIL.EqString("aaa@email.com")).
 		SelectRowx(func(row *Row) { id = row.Int64(u.USER_ID) }).
-		Fetch(db)
+		Fetch(tempDB)
 	is.NoErr(err)
 	is.Equal(id, lastInsertID)
 
 	// again
 	_, rowsAffected, err = WithDefaultLog(Lverbose).
-		WithDB(db).
+		WithDB(tempDB).
 		InsertInto(u).
 		Columns(u.DISPLAYNAME, u.EMAIL).
 		Values("aaa", "aaa@email.com").
@@ -220,6 +243,47 @@ func TestInsertQuery_Exec(t *testing.T) {
 		Exec(nil, ElastInsertID|ErowsAffected)
 	is.NoErr(err)
 	is.Equal(int64(0), rowsAffected)
+	tempDB.Close()
+
+	// ColumnMapper
+	tempDB, err = sql.Open("txdb", randomString(8))
+	is.NoErr(err)
+	user := User{
+		Displayname: "Bob",
+		Email:       "bob@email.com",
+		Password:    "cant_hack_me",
+	}
+	_, rowsAffected, err = WithDefaultLog(Lverbose).
+		WithDB(tempDB).
+		InsertInto(u).
+		Valuesx(func(col *Column) {
+			col.SetString(u.DISPLAYNAME, user.Displayname)
+			col.SetString(u.EMAIL, user.Email)
+			col.SetString(u.PASSWORD, user.Password)
+		}).
+		Exec(nil, ErowsAffected)
+	is.NoErr(err)
+	is.Equal(int64(1), rowsAffected)
+	tempDB.Close()
+
+	// Panic with validation error in ColumnMapper
+	tempDB, err = sql.Open("txdb", randomString(8))
+	is.NoErr(err)
+	var errEmptyEmail = errors.New("email cannot be empty")
+	user = User{} // Empty email
+	_, _, err = WithDefaultLog(Lverbose).
+		InsertInto(u).
+		Valuesx(func(col *Column) {
+			if user.Email == "" {
+				panic(errEmptyEmail)
+			}
+			col.SetString(u.DISPLAYNAME, user.Displayname)
+			col.SetString(u.EMAIL, user.Email)
+			col.SetString(u.PASSWORD, user.Password)
+		}).
+		Exec(tempDB, 0)
+	is.Equal(err, errEmptyEmail)
+	tempDB.Close()
 }
 
 func TestInsertQuery_Basic(t *testing.T) {

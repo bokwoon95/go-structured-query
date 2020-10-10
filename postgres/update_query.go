@@ -39,16 +39,22 @@ type UpdateQuery struct {
 	logSkip int
 }
 
-// ToSQL marshals the UpdateQuery into a query string and args slice.
-func (q UpdateQuery) ToSQL() (string, []interface{}) {
+func (q UpdateQuery) ToSQL() (query string, args []interface{}) {
+	defer func() {
+		if r := recover(); r != nil {
+			args = []interface{}{r}
+		}
+	}()
 	q.logSkip += 1
 	buf := &strings.Builder{}
-	var args []interface{}
 	q.AppendSQL(buf, &args, nil)
 	return buf.String(), args
 }
 
-// AppendSQL marshals the UpdateQuery into a buffer and args slice.
+// AppendSQL marshals the UpdateQuery into a buffer and args slice. Do not call
+// this as an end user, use ToSQL instead. AppendSQL may panic if you wrote
+// panic code in your ColumnMapper, it is only exported to satisfy the Query
+// interface.
 func (q UpdateQuery) AppendSQL(buf *strings.Builder, args *[]interface{}, params map[string]int) {
 	var excludedTableQualifiers []string
 	if q.ColumnMapper != nil {
@@ -416,6 +422,15 @@ func (q UpdateQuery) ExecContext(ctx context.Context, db DB, flag ExecFlag) (row
 	logBuf := &strings.Builder{}
 	start := time.Now()
 	defer func() {
+		if r := recover(); r != nil {
+			switch v := r.(type) {
+			case error:
+				err = v
+			default:
+				err = fmt.Errorf("%#v", r)
+			}
+			return
+		}
 		if q.Log == nil {
 			return
 		}

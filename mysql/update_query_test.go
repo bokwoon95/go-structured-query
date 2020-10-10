@@ -95,6 +95,27 @@ func TestUpdateQuery_ToSQL(t *testing.T) {
 			tt.wantArgs = []interface{}{user.Displayname, user.Email, user.Password, user.UserID}
 			return tt
 		}(),
+		func() TT {
+			var tt TT
+			tt.description = "ToSQL ColumnMapper panic translates to empty query and panicked value in args"
+			user := User{}
+			u := USERS().As("u")
+			var errEmptyEmail = errors.New("email cannot be empty")
+			tt.q = WithDefaultLog(Lverbose).
+				Update(u).
+				Setx(func(col *Column) {
+					if user.Email == "" {
+						panic(errEmptyEmail)
+					}
+					col.SetString(u.DISPLAYNAME, user.Displayname)
+					col.SetString(u.EMAIL, user.Email)
+					col.SetString(u.PASSWORD, user.Password)
+				}).
+				Where(u.USER_ID.EqInt(1))
+			tt.wantQuery = ""
+			tt.wantArgs = []interface{}{errEmptyEmail}
+			return tt
+		}(),
 	}
 	for _, tt := range tests {
 		tt := tt
@@ -170,12 +191,61 @@ func TestUpdateQuery_Exec(t *testing.T) {
 	is.Equal(3, lastInsertID)
 	tempDB.Close()
 
+	tempDB, err = sql.Open("txdb", randomString(8))
+	is.NoErr(err)
 	rowsAffected, err = WithDefaultLog(Lverbose).
-		WithDB(db).
+		WithDB(tempDB).
 		Update(u).
 		Set(u.DISPLAYNAME.SetString("bbb")).
 		Where(u.USER_ID.EqInt(4)).
 		Exec(nil, ErowsAffected)
 	is.NoErr(err)
 	is.Equal(int64(1), rowsAffected)
+	tempDB.Close()
+
+	// ColumnMapper
+	tempDB, err = sql.Open("txdb", randomString(8))
+	is.NoErr(err)
+	user := User{
+		Displayname: "Bob",
+		Email:       "bob@email.com",
+		Password:    "cant_hack_me",
+	}
+	rowsAffected, err = WithDefaultLog(Lverbose).
+		WithDB(tempDB).
+		Update(u).
+		Setx(func(col *Column) {
+			col.SetString(u.DISPLAYNAME, user.Displayname)
+			col.SetString(u.EMAIL, user.Email)
+			col.SetString(u.PASSWORD, user.Password)
+		}).
+		Where(u.USER_ID.EqInt(1)).
+		Exec(nil, ErowsAffected)
+	is.NoErr(err)
+	is.Equal(int64(1), rowsAffected)
+	tempDB.Close()
+
+	// Panic with validation error in ColumnMapper
+	tempDB, err = sql.Open("txdb", randomString(8))
+	is.NoErr(err)
+	var errEmptyEmail = errors.New("email cannot be empty")
+	user = User{
+		Displayname: "Bob",
+		Email:       "", // Empty email
+		Password:    "cant_hack_me",
+	}
+	_, err = WithDefaultLog(Lverbose).
+		Update(u).
+		Setx(func(col *Column) {
+			if user.Email == "" {
+				panic(errEmptyEmail)
+			}
+			col.SetString(u.DISPLAYNAME, user.Displayname)
+			col.SetString(u.EMAIL, user.Email)
+			col.SetString(u.PASSWORD, user.Password)
+		}).
+		Where(u.USER_ID.EqInt(1)).
+		Exec(tempDB, 0)
+	is.Equal(err, errEmptyEmail)
+	tempDB.Close()
 }
