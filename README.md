@@ -30,6 +30,21 @@ This package provides type safe querying on top of Go's database/sql. It is esse
     - In sq whatever you SELECT is automatically mapped. **This means you just have to write your query, execute it and if there were no errors, the data is already in your Go variables.** No iterating rows, no specifying column scan order, no error checking three times. *Write your query, run it, you're done*.
     - [more info](https://bokwoon95.github.io/sq/basics/struct-mapping.html)
 
+## Features
+- [WITH (Common Table Expressions)](https://bokwoon95.github.io/sq/sql-expressions/common-table-expressions.html)
+- [Window Functions](https://bokwoon95.github.io/sq/sql-expressions/window-functions.html)
+- [Subqueries](https://bokwoon95.github.io/sq/sql-expressions/subqueries.html)
+- [IN](https://bokwoon95.github.io/sq/sql-expressions/in.html) (supports [Go slices](https://bokwoon95.github.io/sq/sql-expressions/in.html#in-slice) and [subqueries](https://bokwoon95.github.io/sq/sql-expressions/in.html#in-subquery))
+- [COUNT/SUM/AVG/MIN/MAX](https://bokwoon95.github.io/sq/sql-expressions/aggregate-functions.html)
+- [UNION/INTERSECT/EXCEPT](https://bokwoon95.github.io/sq/sql-expressions/union.html)
+- [CASE](https://bokwoon95.github.io/sq/sql-expressions/case.html)
+- [DISTINCT ON](https://bokwoon95.github.io/sq/query-building/select.html#distinct-on) (postgres only)
+- [EXISTS](https://bokwoon95.github.io/sq/query-building/select.html#exists)
+- [Upsert](https://bokwoon95.github.io/sq/query-building/insert.html#upsert)
+- [INSERT ... SELECT](https://bokwoon95.github.io/sq/query-building/insert.html#insert-from-select)
+- [UPDATE with JOIN](https://bokwoon95.github.io/sq/query-building/update.html#join)
+- [DELETE with JOIN](https://bokwoon95.github.io/sq/query-building/delete.html#join)
+
 ## Getting started
 ```bash
 go get github.com/bokwoon95/go-structured-query
