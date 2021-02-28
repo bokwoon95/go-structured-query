@@ -1,43 +1,184 @@
 ideas to implement when go gets generics
 
-type Boolean interface {
-    type bool, BooleanField, CustomField
+q := sq.NewSelect[User](config...)
+
+users, err := q.
+    From(u).
+    Join(s, s.USER_ID.Eq(u.USER_ID)).
+    Where(s.SESSION_HASH.EqString("1234")).
+    Selectx(func (row *sq.Row) (User, error) {
+        var user User
+        user.UserID = row.Int64(u.USER_ID)
+        user.Username = sq.Get[string](row, u.USERNAME)
+        return user, nil
+    }).
+    FetchSlice(db)
+
+user, err := q.
+    From(u).
+    Join(s, s.USER_ID.Eq(u.USER_ID)).
+    Where(s.SESSION_HASH.EqString("1234")).
+    Selectx(func (row *sq.Row) (User, error) {
+        var user User
+        user.UserID = row.Int64(u.USER_ID)
+        user.Username = sq.Get[string](row, u.USERNAME)
+        return user, nil
+    }).
+    Fetch(db)
+
+db := sq.NewDB(DB, sq.WithLogger(logger, sq.LVerbose))
+db := sq.NewPgxDB(pgxDB, sq.WithLogger(logger, sq.LStats))
+// This means that if you don't use the db to make queries, you won't be logging
+// anything. If you use sq as a pure query builder, you'll have to log the
+// resultant queries yourself (which makes my job a lot easier).
+q2 := sq.From(u).Join(s, s.USER_ID.Eq(u.USER_ID)).Where(s.SESSION_HASH.EqString("1234"))
+q3 := sq.QueryLiteral(`FROM users AS u JOIN sessions AS s USING (user_id) WHERE s.session_hash = ?`, "1234")
+
+user, err := db.FetchOne(q2, func (row *sq.Row) (User, error) {
+    var user User
+    user.UserID = row.Int64(u.USER_ID)
+    user.Username = sq.Get[string](row, u.USERNAME)
+    return user, nil
+})
+
+user, err := db.FetchOne(q2, user.RowMapper(u))
+
+user, err := db.FetchOne(
+    sq.From(u).Join(s, s.USER_ID.Eq(u.USER_ID)).Where(u.USER_ID.EqInt(3)),
+    func(row *sq.Row) (User, error) {
+        var user User
+        user.userID = row.Int64(u.USER_ID)
+        user.Username = row.String(u.USERNAME)
+        return user, nil
+    },
+)
+
+x, y := X{}, Y{}
+_, err := db.FetchOne(
+    sq.From(u).Join(s, s.USER_ID.Eq(u.USER_ID)).Where(u.USER_ID.EqInt(3)),
+    func(row *sq.Row) (User, error) {
+        x.userID = row.Int64(u.USER_ID)
+        y.Username = row.String(u.USERNAME)
+        return User{}, nil
+    },
+)
+
+import (
+    sq "github.com/bokwoon95/go-structured-query"
+    pgsq "github.com/bokwoon95/go-structured-query/postgres"
+    mysq "github.com/bokwoon95/go-structured-query/mysql"
+    sqlt "github.com/bokwoon95/go-structured-query/sqlite3"
+)
+var q sq.Query
+q = pgsq.From(u)
+q = mysq.From(u)
+q = sqlt.From(u)
+
+users, err := sq.FetchMany(q2, func (row *sq.Row) (User, error) {
+    var user User
+    user.UserID = row.Int64(u.USER_ID)
+    user.Username = sq.Get[string](row, u.USERNAME)
+    return user, nil
+})
+
+users, err := db.FetchMany(q2, user.RowMapper(u))
+
+var users []User
+err := sq.Fetch(q2, func(row *sq.Row) error {
+    var user User
+    user.UserID = row.Int64(u.USER_ID)
+    user.Username = sq.Get[string](row, u.USERNAME)
+    if row.Count() == 0 {
+        users = append(users, user)
+    }
+    return nil
+})
+
+type USERS struct {
+    sq.TableInfo
+    USER_ID sq.NumberField `sq:"INTEGER PRIMARY KEY"`
+    USERNAME sq.StringField `sq:"TEXT NOT NULL"`
+    PASSWORD_HASH sq.StringField `sq:"TEXT"`
 }
 
-type String interface {
-    type string, StringField, CustomField
+func newUsers(alias string) USERS {
+    u := USERS{TableInfo: sq.TableInfo{
+        Name:   "users",
+        Schema: "public",
+        Alias: alias,
+    }}
+    u.USER_ID = sq.NewNumberField("user_id", u.TableInfo)
+    u.USERNAME = sq.NewStringField("username", u.TableInfo)
+    u.PASSWORD_HASH = sq.NewStringField("password_hash", u.TableInfo)
+    return u
 }
 
-type Number interface {
-    type int, int32, int64, float64, NumberField, CustomField
+func newUsers(alias string) USERS {
+    u := sq.NewTable(&USERS{}) // is Go able to enforce pointer arguments?
+    u.TableInfo.Alias = alias
+    return u
 }
 
-type Time interface {
-    type time.Time, TimeField, CustomField
+u, s := sq.New(&tables.USERS{}), sq.New(&tables.SESSIONS{})
+
+func main() {
+    err := sq.EnsureTables(
+        sq.NewTable(&tables.USERS{}),
+        sq.NewTable(&tables.SESSIONS{}),
+        sq.NewTable(&tables.USER_POSTS{}),
+    )
 }
 
-func (f NumberField) Eq(num Number)
-f.USER_ID.Eq(2)
-f.USER_ID.Eq(f.TEAM_ID)
-f.USER_ID.Eq(Fieldf("CONCAT(?, ' ', ?)", f.NAME, f.EMAIL))
-
-type Expression interface {
-    type Field, Query, Number, String, Boolean, Time
-}
-func Sum(expr Expression) NumberField
-sq.Sum(u.USER_ID)
-sq.Sum(sq.Select(u.USER_ID).From(u))
-sq.Sum(5)
-
-func Value(val interface{}) CustomField {
-    return CustomField{
-        Format: "?",
-        Values: []interface{}{val},
+# return a collection with all users
+func (user User) RowMapper(u tables.USERS) func(*sq.Row) (User, error) {
+    return func(row *sq.Row) (User, error) {
+        user.UserID = row.Int64(u.USER_ID)
+        user.Username = row.String(u.USERNAME)
+        user.CreatedAt = row.Time(u.CREATED_AT)
+        return user, nil
     }
 }
-sq.Value(4).Eq(u.USER_ID)
+users = User.all
+users, err := db.FetchMany(pgsq.From(u), user.RowMapper(u))
 
-func (r *Row) Get[T](Field) T
-user.UserID = row.Int(u.USER_ID)
-user.UserID = row.Get[int](u.USER_ID)
-submission.Answers = row.Get[formx.Answers](s.ANSWERS)
+# return the first user
+user = User.first
+user, err := db.FetchOne(pgsq.From(u).Limit(1), user.RowMapper(u))
+
+# return the first user named David
+david = User.find_by(name: 'David')
+david, err := db.FetchOne(pgsq.From(u).Where(u.NAME.EqString("David")), user.RowMapper(u))
+
+# find all users named David who are Code Artists and sort by created_at in reverse chronological order
+users = User.where(name: 'David', occupation: 'Code Artist').order(created_at: :desc)
+users, err := db.FetchMany(pgsq.
+    From(u).
+    Where(
+        u.NAME.EqString("David"),
+        u.OCCUPATION.EqString("Code Artist"),
+    ).
+    OrderBy(
+        u.CREATED_AT.Desc(),
+    ),
+    user.RowMapper(u),
+)
+
+u := sq.NewTable(&USERS{})
+cte := pgsq.Select(u.USER_ID, u.DISPLAYNAME, u.EMAIL).From(u).Where(u.USER_ID.LtInt(5)).CTE("cte")
+users, err := db.FetchMany(pgsq.
+    From(cte).
+    Where(cte["displayname"].Eq(cte["email"])),
+    func(row *sq.Row) (user User, err error) {
+        err = row.ScanInto(&user.UserID, cte["user_id"])
+        if err != nil {
+            return user, err
+        }
+        row.ScanInto(&user.Displayname, cte["displayname"])
+        if err != nil {
+            return user, err
+        }
+        return user, nil
+    },
+)
+
+Is it possible to keep sq.Fetch/FetchOne/FetchMany database agnostic? The main issue is that the column signatures will have to be fixed because row.Int64/etc will have to accept a NumberField from a specific package. If type lists get accepted into Go, I can simply type list over pgsq/mysq/sqlt.NumberField. Otherwise I will have to think about splitting everything into its own package -again- (which means I cannot support pagemanager, which must be parametric over sqlite/postgres and maybe mysql).
