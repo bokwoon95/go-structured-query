@@ -182,3 +182,59 @@ users, err := db.FetchMany(pgsq.
 )
 
 Is it possible to keep sq.Fetch/FetchOne/FetchMany database agnostic? The main issue is that the column signatures will have to be fixed because row.Int64/etc will have to accept a NumberField from a specific package. If type lists get accepted into Go, I can simply type list over pgsq/mysq/sqlt.NumberField. Otherwise I will have to think about splitting everything into its own package -again- (which means I cannot support pagemanager, which must be parametric over sqlite/postgres and maybe mysql).
+
+ctx.select(
+      AUTHOR.FIRST_NAME,
+      AUTHOR.LAST_NAME,
+      BOOK.ID,
+      BOOK.TITLE)
+   .from(BOOK)
+   .join(AUTHOR).on(BOOK.AUTHOR_ID.eq(AUTHOR.ID))
+   .where(BOOK.ID.eq(1))
+   .and(BOOK.TITLE.isNull().or(BOOK.TITLE.ne(randomValue)));
+
+AUTHOR := sq.NewAliasedTable(&tables.AUTHOR{}, "a")
+BOOK := sq.NewAliasedTable(&tables.BOOKS{}, "b")
+
+book, err := sq.FetchOne(pgsq.
+    From(BOOK).
+    Join(AUTHOR, BOOK.AUTHOR_ID.Eq(AUTHOR.ID)).
+    Where(
+        BOOK.ID.Eq(1),
+        sq.Or(
+            BOOK.TITLE.IsNull(),
+            BOOK.TITLE.NeString(randomValue),
+        ),
+    ),
+    func(row *sq.Row) (Book, error) {
+        var book Book
+        book.AuthorFirstName = row.String(AUTHOR.FIRST_NAME)
+        book.AuthorLastName = row.String(AUTHOR.LAST_NAME)
+        book.ID = row.Int64(BOOK.ID)
+        book.Title = row.String(BOOK.TITLE)
+        return book, nil
+    },
+)
+
+var q sq.CompiledSelectQuery
+q, err = db.Compile(pgsq.
+    From(BOOK).
+    Join(AUTHOR, BOOK.AUTHOR_ID.Eq(AUTHOR.ID)).
+    Where(
+        BOOK.ID.Eq(sq.Param("id", 1)),
+        sq.Or(
+            BOOK.TITLE.IsNull(),
+            BOOK.TITLE.NeString(sq.Param("randomValue", randomValue)),
+        ),
+    ),
+    func(row *sq.Row) (Book, error) {
+        var book Book
+        book.AuthorFirstName = row.String(AUTHOR.FIRST_NAME)
+        book.AuthorLastName = row.String(AUTHOR.LAST_NAME)
+        book.ID = row.Int64(BOOK.ID)
+        book.Title = row.String(BOOK.TITLE)
+    },
+)
+
+book, err := q.FetchOne(map[string]interface{"id": 2, "randomValue": "yeet"})
+books, err := q.FetchMany(map[string]interface{ "id": 3, "randomValue": "abcd"})
