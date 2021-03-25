@@ -32,8 +32,8 @@ jobs:
           --health-retries 5
         ports:
           - 3310:3306
-      sqlite3:
-        image: keinos/sqlite3
+      # sqlite3:
+      #   image: keinos/sqlite3
     steps:
     - name: Clone repo
       uses: actions/checkout@v2

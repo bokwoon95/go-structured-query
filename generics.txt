@@ -63,17 +63,6 @@ _, err := db.FetchOne(
     },
 )
 
-import (
-    sq "github.com/bokwoon95/go-structured-query"
-    pgsq "github.com/bokwoon95/go-structured-query/postgres"
-    mysq "github.com/bokwoon95/go-structured-query/mysql"
-    sqlt "github.com/bokwoon95/go-structured-query/sqlite3"
-)
-var q sq.Query
-q = pgsq.From(u)
-q = mysq.From(u)
-q = sqlt.From(u)
-
 users, err := sq.FetchMany(q2, func (row *sq.Row) (User, error) {
     var user User
     user.UserID = row.Int64(u.USER_ID)
@@ -139,19 +128,19 @@ func (user User) RowMapper(u tables.USERS) func(*sq.Row) (User, error) {
     }
 }
 users = User.all
-users, err := db.FetchMany(pgsq.From(u), user.RowMapper(u))
+users, err := db.FetchMany(sq.Postgres.From(u), user.RowMapper(u))
 
 # return the first user
 user = User.first
-user, err := db.FetchOne(pgsq.From(u).Limit(1), user.RowMapper(u))
+user, err := db.FetchOne(sq.Postgres.From(u).Limit(1), user.RowMapper(u))
 
 # return the first user named David
 david = User.find_by(name: 'David')
-david, err := db.FetchOne(pgsq.From(u).Where(u.NAME.EqString("David")), user.RowMapper(u))
+david, err := db.FetchOne(sq.Postgres.From(u).Where(u.NAME.EqString("David")), user.RowMapper(u))
 
 # find all users named David who are Code Artists and sort by created_at in reverse chronological order
 users = User.where(name: 'David', occupation: 'Code Artist').order(created_at: :desc)
-users, err := db.FetchMany(pgsq.
+users, err := db.FetchMany(sq.Postgres.
     From(u).
     Where(
         u.NAME.EqString("David"),
@@ -164,8 +153,8 @@ users, err := db.FetchMany(pgsq.
 )
 
 u := sq.NewTable(&USERS{})
-cte := pgsq.Select(u.USER_ID, u.DISPLAYNAME, u.EMAIL).From(u).Where(u.USER_ID.LtInt(5)).CTE("cte")
-users, err := db.FetchMany(pgsq.
+cte := sq.Postgres.Select(u.USER_ID, u.DISPLAYNAME, u.EMAIL).From(u).Where(u.USER_ID.LtInt(5)).CTE("cte")
+users, err := db.FetchMany(ctx, sq.Postgres.
     From(cte).
     Where(cte["displayname"].Eq(cte["email"])),
     func(row *sq.Row) (user User, err error) {
@@ -180,6 +169,12 @@ users, err := db.FetchMany(pgsq.
         return user, nil
     },
 )
+
+func Exec(ctx context.Context, db DB, q Query, execflag ExecFlag) (lastInsertID, rowsAffected int64, err error)
+func Fetch(ctx context.Context, db DB, q Query, func(*Row) error) error
+func FetchOne[Item any](ctx context.Context, db DB, q Query, func(*Row) (Item, error)) (Item, error)
+func FetchSlice[Item any](ctx context.Context, db DB, q Query, mapper func(*Row) (Item, error)) ([]Item, error)
+func FetchAccumulate[Item, Items any](ctx context.Context, db DB, q Query, mapper func(*Row) (Item, error), accumulator func(Item, Items) Items) (Items, error)
 
 Is it possible to keep sq.Fetch/FetchOne/FetchMany database agnostic? The main issue is that the column signatures will have to be fixed because row.Int64/etc will have to accept a NumberField from a specific package. If type lists get accepted into Go, I can simply type list over pgsq/mysq/sqlt.NumberField. Otherwise I will have to think about splitting everything into its own package -again- (which means I cannot support pagemanager, which must be parametric over sqlite/postgres and maybe mysql).
 
@@ -196,14 +191,14 @@ ctx.select(
 AUTHOR := sq.NewAliasedTable(&tables.AUTHOR{}, "a")
 BOOK := sq.NewAliasedTable(&tables.BOOKS{}, "b")
 
-book, err := sq.FetchOne(pgsq.
+book, err := sq.FetchOne(db, sq.Postgres.
     From(BOOK).
     Join(AUTHOR, BOOK.AUTHOR_ID.Eq(AUTHOR.ID)).
     Where(
-        BOOK.ID.Eq(1),
+        sq.Eq(BOOK.ID, sq.Param("id", 1)),
         sq.Or(
             BOOK.TITLE.IsNull(),
-            BOOK.TITLE.NeString(randomValue),
+            sq.Ne(BOOK.TITLE, sq.Param("randomValue", randomValue))
         ),
     ),
     func(row *sq.Row) (Book, error) {
@@ -216,15 +211,16 @@ book, err := sq.FetchOne(pgsq.
     },
 )
 
-var q sq.CompiledSelectQuery
-q, err = db.Compile(pgsq.
+type CompiledFetch[T any] struct { ... }
+var q sq.CompiledFetch
+q, err = sq.CompileFetch(sq.Postgres.
     From(BOOK).
     Join(AUTHOR, BOOK.AUTHOR_ID.Eq(AUTHOR.ID)).
     Where(
-        BOOK.ID.Eq(sq.Param("id", 1)),
+        sq.Eq(BOOK.ID, sq.Param("id", 1)),
         sq.Or(
             BOOK.TITLE.IsNull(),
-            BOOK.TITLE.NeString(sq.Param("randomValue", randomValue)),
+            sq.Ne(BOOK.TITLE, sq.Param("randomValue", randomValue))
         ),
     ),
     func(row *sq.Row) (Book, error) {
@@ -235,6 +231,5 @@ q, err = db.Compile(pgsq.
         book.Title = row.String(BOOK.TITLE)
     },
 )
-
-book, err := q.FetchOne(map[string]interface{"id": 2, "randomValue": "yeet"})
-books, err := q.FetchMany(map[string]interface{ "id": 3, "randomValue": "abcd"})
+book, err := q.FetchOne(sq.Params{"id": 2, "randomValue": "yeet"})
+books, err := q.FetchSlice(sq.Params{ "id": 3, "randomValue": "abcd"})
