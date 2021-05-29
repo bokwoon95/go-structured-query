@@ -157,6 +157,7 @@ func init() {
 	tablesCmd.Flags().Bool("overwrite", false, "(optional) Overwrite any files that already exist")
 	tablesCmd.Flags().String("pkg", "tables", "(optional) Package name of the file to be generated")
 	tablesCmd.Flags().String("schemas", "public", "(optional) A comma separated list of database schemas that you want to generate tables for. Please don't include any spaces")
+    tablesCmd.Flags().StringSlice("exclude", []string{}, "(optional) A comma separated list of case-insensitive table names that you wish to exclude from table generation. Please don't include any spaces")
 	// Mark required flags
 	cobra.MarkFlagRequired(tablesCmd.LocalFlags(), "database")
 }
@@ -173,6 +174,8 @@ func tablesRun(cmd *cobra.Command, args []string) error {
 	pkg, _ := cmd.Flags().GetString("pkg")
 	schemasStr, _ := cmd.Flags().GetString("schemas")
 	schemas := strings.FieldsFunc(schemasStr, func(r rune) bool { return r == ',' || unicode.IsSpace(r) })
+    exclude, _ := cmd.Flags().GetStringSlice("exclude")
+
 	if !strings.HasSuffix(file, ".go") {
 		file = file + ".go"
 	}
@@ -192,7 +195,7 @@ func tablesRun(cmd *cobra.Command, args []string) error {
 	}
 
 	// Get list of tables from database
-	tables, err := getTables(db, database, schemas)
+	tables, err := getTables(db, database, schemas, exclude)
 	if err != nil {
 		return wrap(err)
 	}
@@ -212,34 +215,53 @@ func tablesRun(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func getTables(db *sql.DB, databaseURL string, schemas []string) ([]Table, error) {
-	// replacePlaceholders will replace question mark placeholders with dollar
-	// placeholders e.g. ?, ?, ? -> $1, $2, $3 etc
-	replacePlaceholders := func(query string) string {
-		buf := &strings.Builder{}
-		var i int
-		for pos := strings.Index(query, "?"); pos >= 0; pos = strings.Index(query, "?") {
-			i++
-			buf.WriteString(query[:pos] + "$" + strconv.Itoa(i))
-			query = query[pos+1:]
-		}
-		buf.WriteString(query)
-		return buf.String()
+// replacePlaceholders will replace question mark placeholders with dollar
+// placeholders e.g. ?, ?, ? -> $1, $2, $3 etc
+func replacePlaceholders(query string) string {
+    buf := &strings.Builder{}
+    var i int
+    for pos := strings.Index(query, "?"); pos >= 0; pos = strings.Index(query, "?") {
+        i++
+        buf.WriteString(query[:pos] + "$" + strconv.Itoa(i))
+        query = query[pos+1:]
+    }
+    buf.WriteString(query)
+    return buf.String()
+}
+
+func buildQuery(schemas []string, exclude []string) (string, []interface{}) {
+	query := "SELECT t.table_type, c.table_schema, c.table_name, c.column_name, c.data_type" +
+        " FROM information_schema.tables AS t" +
+        " JOIN information_schema.columns AS c USING (table_schema, table_name)" +
+        " WHERE table_schema IN (?" + strings.Repeat(", ?", len(schemas)-1) + ")"
+
+	if len(exclude) > 0 {
+		query += " AND table_name NOT IN (?" + strings.Repeat(", ?", len(exclude)-1) + ")"
 	}
 
+	// sql custom ordering: https://stackoverflow.com/q/4088532
+	query += " ORDER BY c.table_schema <> 'public', c.table_schema, t.table_type, c.table_name, c.column_name"
+
+    q := replacePlaceholders(query)
+
+    args := make([]interface{}, len(schemas) + len(exclude))
+
+	// if schemas is len 4
+	// max index is 3
+    for i, schema := range schemas {
+		args[i] = schema
+    }
+
+    for i, ex := range exclude {
+		args[i + len(schemas)] = ex
+    }
+
+    return q, args
+}
+
+func getTables(db *sql.DB, databaseURL string, schemas []string, exclude []string) ([]Table, error) {
 	// Prepare the query and args
-	query := replacePlaceholders(
-		"SELECT t.table_type, c.table_schema, c.table_name, c.column_name, c.data_type" +
-			" FROM information_schema.tables AS t" +
-			" JOIN information_schema.columns AS c USING (table_schema, table_name)" +
-			" WHERE table_schema IN (?" + strings.Repeat(", ?", len(schemas)-1) + ")" +
-			" ORDER BY c.table_schema <> 'public', c.table_schema, t.table_type, c.table_name, c.column_name",
-		// sql custom ordering: https://stackoverflow.com/q/4088532
-	)
-	args := make([]interface{}, len(schemas))
-	for i := range schemas {
-		args[i] = schemas[i]
-	}
+    query, args := buildQuery(schemas, exclude)
 
 	// Query the database and aggregate the results into a []Table slice
 	rows, err := db.Query(query, args...)

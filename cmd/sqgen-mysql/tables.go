@@ -156,6 +156,7 @@ func init() {
 	tablesCmd.Flags().Bool("overwrite", false, "(optional) Overwrite any files that already exist")
 	tablesCmd.Flags().String("pkg", "tables", "(optional) Package name of the file to be generated")
 	tablesCmd.Flags().String("schemas", "", "(required) A comma separated list of schemas (databases) that you want to generate tables for. In MySQL this is usually the database name you are using. Please don't include any spaces")
+	tablesCmd.Flags().StringSlice("exclude", []string{}, "(optional) A comma separated list of case-insensitive table names that you wish to exclude from table generation. Please don't include any spaces")
 	// Mark required flags
 	cobra.MarkFlagRequired(tablesCmd.LocalFlags(), "database")
 	cobra.MarkFlagRequired(tablesCmd.LocalFlags(), "schemas")
@@ -176,6 +177,7 @@ func tablesRun(cmd *cobra.Command, args []string) error {
 	if len(schemas) == 0 {
 		return fmt.Errorf("'%s' is not a valid comma separated list of schemas", schemasStr)
 	}
+	exclude, _ := cmd.Flags().GetStringSlice("exclude")
 	if !strings.HasSuffix(file, ".go") {
 		file = file + ".go"
 	}
@@ -191,7 +193,7 @@ func tablesRun(cmd *cobra.Command, args []string) error {
 	}
 
 	// Get list of tables from database
-	tables, err := getTables(db, database, schemas)
+	tables, err := getTables(db, database, schemas, exclude)
 	if err != nil {
 		return wrap(err)
 	}
@@ -216,17 +218,33 @@ func tablesRun(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func getTables(db *sql.DB, databaseURL string, schemas []string) ([]Table, error) {
-	// Prepare the query and args
+func buildQuery(schemas []string, exclude []string) (string, []interface{}) {
 	query := "SELECT t.table_type, c.table_schema, c.table_name, c.column_name, c.data_type, c.column_type" +
 		" FROM information_schema.tables AS t" +
 		" JOIN information_schema.columns AS c USING (table_schema, table_name)" +
-		" WHERE table_schema IN (?" + strings.Repeat(", ?", len(schemas)-1) + ")" +
-		" ORDER BY c.table_schema, t.table_type, c.table_name, c.column_name"
-	args := make([]interface{}, len(schemas))
-	for i := range schemas {
-		args[i] = schemas[i]
+		" WHERE table_schema IN (?" + strings.Repeat(", ?", len(schemas)-1) + ")"
+
+	if len(exclude) > 0 {
+		query += " AND table_name NOT IN (?" + strings.Repeat(", ?", len(exclude)-1) + ")"
 	}
+
+	query += " ORDER BY c.table_schema, t.table_type, c.table_name, c.column_name"
+
+	args := make([]interface{}, len(schemas) + len(exclude))
+	for i, schema := range schemas {
+		args[i] = schema
+	}
+
+	for i, ex := range exclude {
+		args[i + len(schemas)] = ex
+	}
+
+	return query, args
+}
+
+func getTables(db *sql.DB, databaseURL string, schemas []string, exclude []string) ([]Table, error) {
+	// Prepare the query and args
+	query, args := buildQuery(schemas, exclude)
 
 	// Query the database and aggregate the results into a []Table slice
 	rows, err := db.Query(query, args...)
