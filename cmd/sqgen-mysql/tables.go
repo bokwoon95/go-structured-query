@@ -230,13 +230,13 @@ func buildQuery(schemas []string, exclude []string) (string, []interface{}) {
 
 	query += " ORDER BY c.table_schema, t.table_type, c.table_name, c.column_name"
 
-	args := make([]interface{}, len(schemas) + len(exclude))
+	args := make([]interface{}, len(schemas)+len(exclude))
 	for i, schema := range schemas {
 		args[i] = schema
 	}
 
 	for i, ex := range exclude {
-		args[i + len(schemas)] = ex
+		args[i+len(schemas)] = ex
 	}
 
 	return query, args

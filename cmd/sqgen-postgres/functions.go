@@ -31,6 +31,29 @@ const (
 	GoTypeByteSlice    = "[]byte"
 )
 
+type String string
+
+// String implements fmt.Stringer
+func (s String) String() string {
+	return string(s)
+}
+
+// Export will make the string follow Go's export rules.
+func (s String) Export() String {
+	str := strings.TrimPrefix(string(s), "_")
+	str = strings.ReplaceAll(str, " ", "_")
+	str = strings.ToUpper(str)
+	return String(str)
+}
+
+// QuoteSpace will quote the string if it contains spaces.
+func (s String) QuoteSpace() String {
+	if strings.Contains(string(s), " ") {
+		return String(`"` + string(s) + `"`)
+	}
+	return s
+}
+
 var functionsCmd = &cobra.Command{
 	Use:   "functions",
 	Short: "Generate functions from the database",
