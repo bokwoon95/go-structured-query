@@ -1,3 +1,4 @@
+// contains the logic for the sqgen-postgres tables command
 package postgres
 
 import (
@@ -6,27 +7,6 @@ import (
 	"fmt"
 	"io"
 	"strings"
-)
-
-// sq Field Types
-const (
-	FieldTypeBoolean = "sq.BooleanField"
-	FieldTypeJSON    = "sq.JSONField"
-	FieldTypeNumber  = "sq.NumberField"
-	FieldTypeString  = "sq.StringField"
-	FieldTypeTime    = "sq.TimeField"
-	FieldTypeEnum    = "sq.EnumField"
-	FieldTypeArray   = "sq.ArrayField"
-	FieldTypeBinary  = "sq.BinaryField"
-
-	FieldConstructorBoolean = "sq.NewBooleanField"
-	FieldConstructorJSON    = "sq.NewJSONField"
-	FieldConstructorNumber  = "sq.NewNumberField"
-	FieldConstructorString  = "sq.NewStringField"
-	FieldConstructorTime    = "sq.NewTimeField"
-	FieldConstructorEnum    = "sq.NewEnumField"
-	FieldConstructorArray   = "sq.NewArrayField"
-	FieldConstructorBinary  = "sq.NewBinaryField"
 )
 
 var _ fmt.Stringer = (*Table)(nil)
@@ -48,16 +28,10 @@ type TableField struct {
 }
 
 func BuildTables(config Config, writer io.Writer) error {
-	db, err := sql.Open("postgres", config.Database)
+	db, err := openAndPing(config.Database)
 
 	if err != nil {
 		return wrap(err)
-	}
-
-	err = db.Ping()
-
-	if err != nil {
-		return fmt.Errorf("Could not ping the database, is the database reachable via %s? %w", config.Database, err)
 	}
 
 	tables, err := executeTables(config, db)
@@ -66,7 +40,7 @@ func BuildTables(config Config, writer io.Writer) error {
 		return wrap(err)
 	}
 
-	templateData := TableTemplateData{
+	templateData := TablesTemplateData{
 		PackageName: config.Package,
 		Imports: []string{
 			`sq "github.com/bokwoon95/go-structured-query/postgres"`,
@@ -155,7 +129,7 @@ func executeTables(config Config, db *sql.DB) ([]Table, error) {
 	var tables []Table
 
 	for _, fullTableName := range orderedTables {
-		table, _ := tableMap[fullTableName]
+		table := tableMap[fullTableName]
 		isDuplicate := tableNameCount[table.Name] > 1
 		t := table.Populate(config, isDuplicate)
 
@@ -169,10 +143,10 @@ func buildTablesQuery(schemas, exclude []string) (string, []interface{}) {
 	query := "SELECT t.table_type, c.table_schema, c.table_name, c.column_name, c.data_type" +
 		" FROM information_schema.tables AS t" +
 		" JOIN information_schema.columns AS c USING (table_schema, table_name)" +
-		" WHERE table_schema IN (?" + strings.Repeat(", ?", len(schemas)-1) + ")"
+		" WHERE table_schema IN " + sliceToSQL(schemas)
 
 	if len(exclude) > 0 {
-		query += " AND table_name NOT IN (?" + strings.Repeat(", ?", len(exclude)-1) + ")"
+		query += " AND table_name NOT IN " + sliceToSQL(exclude)
 	}
 
 	// sql custom ordering: https://stackoverflow.com/q/4088532

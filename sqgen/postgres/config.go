@@ -9,10 +9,11 @@ type Config struct {
 	Schemas []string
 	// Slice of case-insensitive table names or functions to exclude from generation
 	Exclude []string
-	// Logger
+	// Used to log any skipped/unsupported column types
 	Logger Logger
 }
 
 type Logger interface {
 	Printf(format string, v ...interface{})
+	Println(v ...interface{})
 }

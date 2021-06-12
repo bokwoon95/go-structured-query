@@ -12,27 +12,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// sq Field Types
-const (
-	FieldTypeBoolean = "sq.BooleanField"
-	FieldTypeJSON    = "sq.JSONField"
-	FieldTypeNumber  = "sq.NumberField"
-	FieldTypeString  = "sq.StringField"
-	FieldTypeTime    = "sq.TimeField"
-	FieldTypeEnum    = "sq.EnumField"
-	FieldTypeArray   = "sq.ArrayField"
-	FieldTypeBinary  = "sq.BinaryField"
-
-	FieldConstructorBoolean = "sq.NewBooleanField"
-	FieldConstructorJSON    = "sq.NewJSONField"
-	FieldConstructorNumber  = "sq.NewNumberField"
-	FieldConstructorString  = "sq.NewStringField"
-	FieldConstructorTime    = "sq.NewTimeField"
-	FieldConstructorEnum    = "sq.NewEnumField"
-	FieldConstructorArray   = "sq.NewArrayField"
-	FieldConstructorBinary  = "sq.NewBinaryField"
-)
-
 var tablesCmd = &cobra.Command{
 	Use:   "tables",
 	Short: "Generate tables from the database",
@@ -106,11 +85,5 @@ func tablesRun(cmd *cobra.Command, args []string) error {
 		defer f.Close()
 	}
 
-	err := postgres.BuildTables(config, writer)
-
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return postgres.BuildTables(config, writer)
 }
