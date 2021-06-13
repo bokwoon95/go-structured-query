@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+
+	_ "github.com/lib/pq"
 )
 
 func openAndPing(database string) (*sql.DB, error) {
