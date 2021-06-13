@@ -213,8 +213,12 @@ func (table Table) Populate(config Config, isDuplicate bool) Table {
 		f := field.Populate()
 
 		if f.Type == "" {
-			// skips appending to table's list of fields, logs the skipped column later
 			config.Logger.Printf("Skipping %s.%s because type '%s' is unknown\n", table.Name, field.Name, field.RawType)
+			continue
+		}
+
+		if strings.ToLower(f.Name) != f.Name {
+			config.Logger.Printf("Skipping %s.%s because column name is case sensitive\n", table.Name, field.Name)
 			continue
 		}
 

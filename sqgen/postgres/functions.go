@@ -69,13 +69,13 @@ func BuildFunctions(config Config, writer io.Writer) error {
 		return wrap(err)
 	}
 
-	// src, err := formatBytes(buf.Bytes())
+	src, err := formatBytes(buf.Bytes())
 
 	if err != nil {
-		config.Logger.Printf("%v\n", err)
+		return err
 	}
 
-	_, err = writer.Write(buf.Bytes())
+	_, err = writer.Write(src)
 
 	return err
 }
@@ -134,13 +134,15 @@ func executeFunctions(config Config, db *sql.DB) ([]Function, error) {
 		}
 
 		qualifiedName := fmt.Sprintf("%s.%s", schema, name)
-		orderedFunctions = append(orderedFunctions, qualifiedName)
-
 		functionArr := functionMap[qualifiedName]
 
 		// first time a function with this name was encountered in a given schema
 		if len(functionArr) == 0 {
 			functionNameCount[name]++
+			
+			// only need one item in this slice per set of function overloads
+			// prevents generating the same function more than once
+			orderedFunctions = append(orderedFunctions, qualifiedName)
 		}
 
 		functionMap[qualifiedName] = append(functionArr, function)
@@ -334,8 +336,8 @@ func (function Function) Populate(isDuplicate bool, overloadCount int) (*Functio
 				return nil, err
 			}
 
-			if strings.ToLower(field.FieldType) != field.FieldType {
-				err := fmt.Errorf("Skipping %s.%s because return type '%s' is case-sensitive", function.Schema, function.Name, field.RawField)
+			if strings.ToLower(field.Name) != field.Name {
+				err := fmt.Errorf("Skipping %s.%s because return type '%s' is case-sensitive", function.Schema, function.Name, field.Name)
 				return nil, err
 			}
 
@@ -356,8 +358,8 @@ func (function Function) Populate(isDuplicate bool, overloadCount int) (*Functio
 			return nil, err
 		}
 
-		if strings.ToLower(field.FieldType) != field.FieldType {
-			err := fmt.Errorf("Skipping %s.%s because return type '%s' is case-sensitive", function.Schema, function.Name, field.RawField)
+		if strings.ToLower(field.Name) != field.Name {
+			err := fmt.Errorf("Skipping %s.%s because return type '%s' is case-sensitive", function.Schema, function.Name, field.Name)
 			return nil, err
 		}
 
