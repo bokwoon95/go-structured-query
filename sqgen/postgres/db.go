@@ -39,13 +39,3 @@ func replacePlaceholders(query string) string {
 	return buf.String()
 }
 
-// used with "column IN (values)" queries
-// expands []string{"val1", "val2"} to "(?, ?, ?)"
-// should not accept nil slice
-func sliceToSQL(args []string) string {
-	if len(args) == 0 {
-		return ""
-	}
-
-	return "(?" + strings.Repeat(", ?", len(args)-1) + ")"
-}

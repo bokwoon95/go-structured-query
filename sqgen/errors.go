@@ -1,4 +1,4 @@
-package postgres
+package sqgen
 
 import (
 	"fmt"
@@ -9,7 +9,7 @@ import (
 
 const recSep rune = 30 // ASCII Record Separator
 
-func wrap(err error) error {
+func Wrap(err error) error {
 	if err == nil {
 		return nil
 	}

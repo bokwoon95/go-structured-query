@@ -9,6 +9,8 @@ import (
 	"regexp"
 	"strings"
 	"strconv"
+
+	"github.com/bokwoon95/go-structured-query/sqgen"
 )
 
 
@@ -39,13 +41,13 @@ func BuildFunctions(config Config, writer io.Writer) error {
 	db, err := openAndPing(config.Database)
 
 	if err != nil {
-		return wrap(err)
+		return sqgen.Wrap(err)
 	}
 
 	functions, err := executeFunctions(config, db)
 
 	if err != nil {
-		return wrap(err)
+		return sqgen.Wrap(err)
 	}
 
 	templateData := FunctionsTemplateData{
@@ -59,17 +61,17 @@ func BuildFunctions(config Config, writer io.Writer) error {
 	t, err := getFunctionsTemplate()
 
 	if err != nil {
-		return wrap(err)
+		return sqgen.Wrap(err)
 	}
 
 	var buf bytes.Buffer
 	err = t.Execute(&buf, templateData)
 
 	if err != nil {
-		return wrap(err)
+		return sqgen.Wrap(err)
 	}
 
-	src, err := formatBytes(buf.Bytes())
+	src, err := sqgen.FormatOutput(buf.Bytes())
 
 	if err != nil {
 		return err
@@ -84,7 +86,7 @@ func executeFunctions(config Config, db *sql.DB) ([]Function, error) {
 	pgVersion, err := queryPgVersion(db)
 
 	if err != nil {
-		return nil, wrap(err)
+		return nil, sqgen.Wrap(err)
 	}
 
 	supportsProkind := checkProkindSupport(pgVersion)
@@ -94,7 +96,7 @@ func executeFunctions(config Config, db *sql.DB) ([]Function, error) {
 	rows, err := db.Query(query, args...)
 
 	if err != nil {
-		return nil, wrap(err)
+		return nil, sqgen.Wrap(err)
 	}
 
 	defer rows.Close()
@@ -186,7 +188,7 @@ func buildFunctionsQuery(schemas, exclude []string, supportsProkind bool) (strin
 		", pg_catalog.pg_get_function_identity_arguments(p.oid) as arguments" +
 		" FROM pg_catalog.pg_proc AS p" +
 		" LEFT JOIN pg_catalog.pg_namespace AS n ON n.oid = p.pronamespace" +
-		" WHERE n.nspname IN " + sliceToSQL(schemas)
+		" WHERE n.nspname IN " + sqgen.SliceToSQL(schemas)
 
 	// following block filters for only functions, not window/aggregate/procedures
 	// support for prokind column in pg_proc changed in postgres 11
@@ -200,7 +202,7 @@ func buildFunctionsQuery(schemas, exclude []string, supportsProkind bool) (strin
 	}
 
 	if len(exclude) > 0 {
-		query += " AND p.proname NOT IN " + sliceToSQL(exclude)
+		query += " AND p.proname NOT IN " + sqgen.SliceToSQL(exclude)
 	}
 
 	// sql custom ordering: https://stackoverflow.com/q/4088532

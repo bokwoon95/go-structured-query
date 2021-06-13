@@ -82,7 +82,7 @@ func init() {
 	tablesOverwrite = 	tablesCmd.Flags().Bool("overwrite", false, "(optional) Overwrite any files that already exist")
 	tablesPkg = 	tablesCmd.Flags().String("pkg", "tables", "(optional) Package name of the file to be generated")
 	tablesSchemas = 	tablesCmd.Flags().StringSlice("schemas", []string{"public"}, "(optional) A comma separated list of database schemas that you want to generate tables for. Please don't include any spaces")
-	tablesExclude = 	tablesCmd.Flags().StringSlice("exclude", []string{}, "(optional) A comma separated list of case-insensitive table names that you wish to exclude from table generation. Please don't include any spaces")
+	tablesExclude = 	tablesCmd.Flags().StringSlice("exclude", nil, "(optional) A comma separated list of case-insensitive table names that you wish to exclude from table generation. Please don't include any spaces")
 	// required flag
 	err := cobra.MarkFlagRequired(tablesCmd.LocalFlags(), "database")
 
@@ -99,7 +99,7 @@ func init() {
 	functionsOverwrite = 	functionsCmd.Flags().Bool("overwrite", false, "(optional) Overwrite any files that already exist")
 	functionsPkg = 	functionsCmd.Flags().String("pkg", "tables", "(optional) Package name of the file to be generated")
 	functionsSchemas = 	functionsCmd.Flags().StringSlice("schemas", []string{"public"}, "(optional) A comma separated list of database schemas that you want to generate functions for. Please don't include any spaces")
-	functionsExclude = 	functionsCmd.Flags().StringSlice("exclude", []string{}, "(optional) A comma separated list of case-insensitive function names that you wish to exclude from table generation. Please don't include any spaces")
+	functionsExclude = 	functionsCmd.Flags().StringSlice("exclude", nil, "(optional) A comma separated list of case-insensitive function names that you wish to exclude from table generation. Please don't include any spaces")
 	// required flag
 	err = cobra.MarkFlagRequired(functionsCmd.LocalFlags(), "database")
 
