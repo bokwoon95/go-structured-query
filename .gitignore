@@ -2,5 +2,5 @@
 **/tables*/
 **/coverage.out
 **/Sakila/
-/sqgen-postrges
+/sqgen-postgres
 /sqgen-mysql
