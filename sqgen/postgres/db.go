@@ -28,7 +28,7 @@ func openAndPing(database string) (*sql.DB, error) {
 // replacePlaceholders will replace question mark placeholders with dollar
 // placeholders e.g. ?, ?, ? -> $1, $2, $3 etc
 func replacePlaceholders(query string) string {
-	buf := &strings.Builder{}
+	var buf strings.Builder
 	var i int
 	for pos := strings.Index(query, "?"); pos >= 0; pos = strings.Index(query, "?") {
 		i++
