@@ -130,7 +130,7 @@ func executeTables(config Config, db *sql.DB) ([]Table, error) {
 	for _, fullTableName := range orderedTables {
 		table := tableMap[fullTableName]
 		isDuplicate := tableNameCount[table.Name] > 1
-		t := table.Populate(config, isDuplicate)
+		t := table.Populate(&config, isDuplicate)
 
 		tables = append(tables, t)
 	}
@@ -172,7 +172,7 @@ func buildTablesQuery(schemas, exclude []string) (string, []interface{}) {
 
 // Adds constructor and struct names to table, populates Fields
 // isDuplicate parameter indicates if there is a table in another schema with the same name
-func (table Table) Populate(config Config, isDuplicate bool) Table {
+func (table Table) Populate(config *Config, isDuplicate bool) Table {
 	// Add struct type prefix to struct name. For a list of possible
 	// RawTypes that can appear, consult this link (look for table_type):
 	// https://www.postgresql.org/docs/current/infoschema-tables.html
@@ -196,12 +196,16 @@ func (table Table) Populate(config Config, isDuplicate bool) Table {
 		f := field.Populate()
 
 		if f.Type == "" {
-			config.Logger.Printf("Skipping %s.%s because type '%s' is unknown\n", table.Name, field.Name, field.RawType)
+			if config != nil {
+				config.Logger.Printf("Skipping %s.%s because type '%s' is unknown\n", table.Name, field.Name, field.RawType)
+			}
 			continue
 		}
 
 		if strings.ToLower(f.Name) != f.Name {
-			config.Logger.Printf("Skipping %s.%s because column name is case sensitive\n", table.Name, field.Name)
+			if config != nil {
+				config.Logger.Printf("Skipping %s.%s because column name is case sensitive\n", table.Name, field.Name)
+			}
 			continue
 		}
 
