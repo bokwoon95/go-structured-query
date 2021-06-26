@@ -288,3 +288,165 @@ func TestTablePopulate(t *testing.T) {
 		})
 	}
 }
+
+func TestTableFieldPopulate(t *testing.T) {
+	type TC struct {
+		name string
+		field TableField
+		result TableField
+	}
+	tt := []TC{
+		{
+			name: "unknown field",
+			field: TableField{
+				Name: "flag",
+				RawType: "some_unknown_type",
+			},
+			result: TableField{
+				Name: "flag",
+				RawType: "some_unknown_type",
+			},
+		},
+		{
+			name: "boolean field",
+			field: TableField{
+				Name: "flag",
+				RawType: "boolean",
+			},
+			result: TableField{
+				Name: "flag",
+				RawType: "boolean",
+				Type: FieldTypeBoolean,
+				Constructor: FieldConstructorBoolean,
+			},
+		},
+		{
+			name: "json field",
+			field: TableField{
+				Name: "data",
+				RawType: "json",
+			},
+			result: TableField{
+				Name: "data",
+				RawType: "json",
+				Type: FieldTypeJSON,
+				Constructor: FieldConstructorJSON,
+			},
+		},
+		{
+			name: "jsonb field",
+			field: TableField{
+				Name: "data",
+				RawType: "jsonb",
+			},
+			result: TableField{
+				Name: "data",
+				RawType: "jsonb",
+				Type: FieldTypeJSON,
+				Constructor: FieldConstructorJSON,
+			},
+		},
+		{
+			name: "user-defined field",
+			field: TableField{
+				Name: "type",
+				RawType: "USER-DEFINED",
+			},
+			result: TableField{
+				Name: "type",
+				RawType: "USER-DEFINED",
+				Type: FieldTypeEnum,
+				Constructor: FieldConstructorEnum,
+			},
+		},
+		{
+			name: "array field",
+			field: TableField{
+				Name: "arr",
+				RawType: "ARRAY",
+			},
+			result: TableField{
+				Name: "arr",
+				RawType: "ARRAY",
+				Type: FieldTypeArray,
+				Constructor: FieldConstructorArray,
+			},
+		},
+		{
+			name: "bytea field",
+			field: TableField{
+				Name: "hash",
+				RawType: "bytea",
+			},
+			result: TableField{
+				Name: "hash",
+				RawType: "bytea",
+				Type: FieldTypeBinary,
+				Constructor: FieldConstructorBinary,
+			},
+		},
+	}
+
+	numberFields := []string{
+		"oid",
+		"decimal",
+		"numeric",
+		"real",
+		"double precision",
+		"smallint",
+		"integer",
+		"bigint",
+		"smallserial",
+		"serial",
+		"bigserial",
+	}
+
+	for _, rawType := range numberFields {
+		tt = append(tt, TC{
+			name: rawType + " field",
+			field: TableField{
+				Name: "number",
+				RawType: rawType,
+			},
+			result: TableField{
+				Name: "number",
+				RawType: rawType,
+				Type: FieldTypeNumber,
+				Constructor: FieldConstructorNumber,
+			},
+		})
+	}
+
+	stringFields := []string{
+		"name",
+		"text",
+		"char",
+		"char(64)",
+		"varchar",
+		"varchar(64)",
+	}
+
+	for _, rawType := range stringFields {
+		tt = append(tt, TC{
+			name: rawType + " field",
+			field: TableField{
+				Name: "name",
+				RawType: rawType,
+			},
+			result: TableField{
+				Name: "name",
+				RawType: rawType,
+				Type: FieldTypeString,
+				Constructor: FieldConstructorString,
+			},
+		})
+	}
+
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			is := is.New(t)
+			is.Equal(tc.field.Populate(), tc.result)
+		})
+	}
+}
