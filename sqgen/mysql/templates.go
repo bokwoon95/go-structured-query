@@ -8,8 +8,8 @@ import (
 
 type TablesTemplateData struct {
 	PackageName string
-	Imports []string
-	Tables []Table
+	Imports     []string
+	Tables      []Table
 }
 
 func getTablesTemplate() (*template.Template, error) {
@@ -80,4 +80,3 @@ func (tbl {{export table.StructName}}) As(alias string) {{export table.StructNam
 }
 {{- end}}
 {{- end}}`
-

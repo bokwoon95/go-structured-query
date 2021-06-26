@@ -197,14 +197,23 @@ func (table Table) Populate(config *Config, isDuplicate bool) Table {
 
 		if f.Type == "" {
 			if config != nil {
-				config.Logger.Printf("Skipping %s.%s because type '%s' is unknown\n", table.Name, field.Name, field.RawType)
+				config.Logger.Printf(
+					"Skipping %s.%s because type '%s' is unknown\n",
+					table.Name,
+					field.Name,
+					field.RawType,
+				)
 			}
 			continue
 		}
 
 		if strings.ToLower(f.Name) != f.Name {
 			if config != nil {
-				config.Logger.Printf("Skipping %s.%s because column name is case sensitive\n", table.Name, field.Name)
+				config.Logger.Printf(
+					"Skipping %s.%s because column name is case sensitive\n",
+					table.Name,
+					field.Name,
+				)
 			}
 			continue
 		}
@@ -251,7 +260,9 @@ func (field TableField) Populate() TableField {
 	switch {
 	case field.RawType == "name": // https://dba.stackexchange.com/questions/217533/what-is-the-data-type-name-in-postgresql
 		fallthrough
-	case field.RawType == "text", strings.HasPrefix(field.RawType, "char"), strings.HasPrefix(field.RawType, "varchar"):
+	case field.RawType == "text",
+		strings.HasPrefix(field.RawType, "char"),
+		strings.HasPrefix(field.RawType, "varchar"):
 		field.Type = FieldTypeString
 		field.Constructor = FieldConstructorString
 		return field

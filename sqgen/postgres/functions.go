@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"io"
 	"regexp"
-	"strings"
 	"strconv"
+	"strings"
 
 	"github.com/bokwoon95/go-structured-query/sqgen"
 )
@@ -113,7 +113,7 @@ func executeFunctions(config Config, db *sql.DB) ([]Function, error) {
 	var orderedFunctions []string
 
 	for rows.Next() {
-		// scan into functionMap, 
+		// scan into functionMap,
 		var schema, name, rawResults, rawArguments string
 
 		err := rows.Scan(&schema, &name, &rawResults, &rawArguments)
@@ -126,9 +126,9 @@ func executeFunctions(config Config, db *sql.DB) ([]Function, error) {
 		name = strings.ReplaceAll(name, " ", "_")
 
 		function := Function{
-			Schema: schema,
-			Name: name,
-			RawResults: rawResults,
+			Schema:       schema,
+			Name:         name,
+			RawResults:   rawResults,
 			RawArguments: rawArguments,
 		}
 
@@ -138,7 +138,7 @@ func executeFunctions(config Config, db *sql.DB) ([]Function, error) {
 		// first time a function with this name was encountered in a given schema
 		if len(functionArr) == 0 {
 			functionNameCount[name]++
-			
+
 			// only need one item in this slice per set of function overloads
 			// prevents generating the same function more than once
 			orderedFunctions = append(orderedFunctions, qualifiedName)
@@ -155,7 +155,7 @@ func executeFunctions(config Config, db *sql.DB) ([]Function, error) {
 		if funcSlice == nil {
 			continue
 		}
-		
+
 		for i, function := range funcSlice {
 			var overloadCount int
 			isDuplicate := functionNameCount[function.Name] > 1
@@ -292,17 +292,32 @@ func (function Function) Populate(isDuplicate bool, overloadCount int) (*Functio
 			rawField := strings.ToUpper(field.RawField)
 
 			if strings.HasPrefix(rawField, "VARIADIC ") {
-				err := fmt.Errorf("Skipping %s.%s because VARIADIC arguments are not supported '%s'", function.Schema, function.Name, field.RawField)
+				err := fmt.Errorf(
+					"Skipping %s.%s because VARIADIC arguments are not supported '%s'",
+					function.Schema,
+					function.Name,
+					field.RawField,
+				)
 				return nil, err
 			}
 
 			if strings.HasPrefix(rawField, "IN ") || strings.HasPrefix(rawField, "OUT ") {
-				err := fmt.Errorf("Skipping %s.%s because INOUT arguments are not supported '%s'", function.Schema, function.Name, function.RawArguments)
+				err := fmt.Errorf(
+					"Skipping %s.%s because INOUT arguments are not supported '%s'",
+					function.Schema,
+					function.Name,
+					function.RawArguments,
+				)
 				return nil, err
 			}
 
 			if field.FieldType == "" {
-				err := fmt.Errorf("Skipping %s.%s because user-defined type '%s' is not supported", function.Schema, function.Name, field.RawField)
+				err := fmt.Errorf(
+					"Skipping %s.%s because user-defined type '%s' is not supported",
+					function.Schema,
+					function.Name,
+					field.RawField,
+				)
 				return nil, err
 			}
 
@@ -316,7 +331,8 @@ func (function Function) Populate(isDuplicate bool, overloadCount int) (*Functio
 
 	// Function Return Types
 
-	isTable := strings.HasPrefix(function.RawResults, "TABLE(") && strings.HasSuffix(function.RawResults, ")")
+	isTable := strings.HasPrefix(function.RawResults, "TABLE(") &&
+		strings.HasSuffix(function.RawResults, ")")
 
 	if function.RawResults == "void" {
 		// no return type
@@ -324,12 +340,12 @@ func (function Function) Populate(isDuplicate bool, overloadCount int) (*Functio
 		err := fmt.Errorf("Skipping %s.%s because it is a trigger function", function.Schema, function.Name)
 		return nil, err
 	} else if isTable {
-		rawResults := function.RawResults[6 : len(function.RawResults) - 1] // remove 'TABLE (' prefix and ')' suffix
+		rawResults := function.RawResults[6 : len(function.RawResults)-1] // remove 'TABLE (' prefix and ')' suffix
 		rawFields := strings.Split(rawResults, ",")
 
 		for i := range rawFields {
 			field := extractNameAndType(rawFields[i])
-			
+
 			if field.FieldType == "" {
 				err := fmt.Errorf("Skipping %s.%s because return type '%s' is not supported", function.Schema, function.Name, field.RawField)
 				return nil, err

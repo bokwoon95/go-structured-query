@@ -1,34 +1,34 @@
 package sqgen
 
 import (
-	"testing"
 	"github.com/matryer/is"
+	"testing"
 )
 
 func TestSliceToSQL(t *testing.T) {
-	tt := []struct{
-		name string
-		args []string
+	tt := []struct {
+		name   string
+		args   []string
 		result string
 	}{
 		{
-			name: "empty args returns empty string",
-			args: nil,
+			name:   "empty args returns empty string",
+			args:   nil,
 			result: "",
 		},
 		{
-			name: "one arg result",
-			args: []string{""},
+			name:   "one arg result",
+			args:   []string{""},
 			result: "(?)",
 		},
 		{
-			name: "two arg result",
-			args: []string{"", ""},
+			name:   "two arg result",
+			args:   []string{"", ""},
 			result: "(?, ?)",
 		},
 		{
-			name: "three arg result",
-			args: []string{"", "", ""},
+			name:   "three arg result",
+			args:   []string{"", "", ""},
 			result: "(?, ?, ?)",
 		},
 	}

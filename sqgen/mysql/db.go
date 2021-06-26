@@ -17,9 +17,12 @@ func openAndPing(database string) (*sql.DB, error) {
 	err = db.Ping()
 
 	if err != nil {
-		return nil, fmt.Errorf("Could not ping the database, is the database reachable via %s? %w", database, err)
+		return nil, fmt.Errorf(
+			"Could not ping the database, is the database reachable via %s? %w",
+			database,
+			err,
+		)
 	}
 
 	return db, nil
 }
-

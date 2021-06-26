@@ -1,8 +1,8 @@
 package postgres
 
 import (
-	"testing"
 	"github.com/matryer/is"
+	"testing"
 )
 
 func TestBuildTablesQuery(t *testing.T) {
@@ -21,7 +21,7 @@ func TestBuildTablesQuery(t *testing.T) {
 		is.Equal(args, expectedArgs)
 	})
 
-	t.Run("multiple schemas, no excluded tables", func (t *testing.T) {
+	t.Run("multiple schemas, no excluded tables", func(t *testing.T) {
 		is := is.New(t)
 
 		schemas := []string{"public", "geo"}
@@ -53,149 +53,149 @@ func TestBuildTablesQuery(t *testing.T) {
 }
 
 func TestTablePopulate(t *testing.T) {
-	tt := []struct{
-		name string
-		table Table
+	tt := []struct {
+		name        string
+		table       Table
 		isDuplicate bool
-		result Table
+		result      Table
 	}{
 		{
 			name: "normal table name, not duplicate",
 			table: Table{
-				Name: "users",
+				Name:   "users",
 				Schema: "public",
 			},
 			isDuplicate: false,
 			result: Table{
-				Name: "users",
-				Schema: "public",
-				StructName: "TABLE_USERS",
+				Name:        "users",
+				Schema:      "public",
+				StructName:  "TABLE_USERS",
 				Constructor: "USERS",
 			},
 		},
 		{
 			name: "normal table name, is duplicate",
 			table: Table{
-				Name: "users",
+				Name:   "users",
 				Schema: "public",
 			},
 			isDuplicate: true,
 			result: Table{
-				Name: "users",
-				Schema: "public",
-				StructName: "TABLE_PUBLIC__USERS",
+				Name:        "users",
+				Schema:      "public",
+				StructName:  "TABLE_PUBLIC__USERS",
 				Constructor: "PUBLIC__USERS",
 			},
 		},
 		{
 			name: "normal table name with different schema, is duplicate",
 			table: Table{
-				Name: "users",
+				Name:   "users",
 				Schema: "geo",
 			},
 			isDuplicate: true,
 			result: Table{
-				Name: "users",
-				Schema: "geo",
-				StructName: "TABLE_GEO__USERS",
+				Name:        "users",
+				Schema:      "geo",
+				StructName:  "TABLE_GEO__USERS",
 				Constructor: "GEO__USERS",
 			},
 		},
 		{
 			name: "normal view, is not duplicate",
 			table: Table{
-				Name: "verified_users",
-				Schema: "public",
+				Name:    "verified_users",
+				Schema:  "public",
 				RawType: "VIEW",
 			},
 			isDuplicate: false,
 			result: Table{
-				Name: "verified_users",
-				Schema: "public",
-				RawType: "VIEW",
-				StructName: "VIEW_VERIFIED_USERS",
+				Name:        "verified_users",
+				Schema:      "public",
+				RawType:     "VIEW",
+				StructName:  "VIEW_VERIFIED_USERS",
 				Constructor: "VERIFIED_USERS",
 			},
 		},
 		{
 			name: "normal view, is duplicate",
 			table: Table{
-				Name: "verified_users",
-				Schema: "public",
+				Name:    "verified_users",
+				Schema:  "public",
 				RawType: "VIEW",
 			},
 			isDuplicate: true,
 			result: Table{
-				Name: "verified_users",
-				Schema: "public",
-				RawType: "VIEW",
-				StructName: "VIEW_PUBLIC__VERIFIED_USERS",
+				Name:        "verified_users",
+				Schema:      "public",
+				RawType:     "VIEW",
+				StructName:  "VIEW_PUBLIC__VERIFIED_USERS",
 				Constructor: "PUBLIC__VERIFIED_USERS",
 			},
 		},
 		{
 			name: "normal table name, not duplicate, skips unknown fields",
 			table: Table{
-				Name: "users",
+				Name:   "users",
 				Schema: "public",
 				Fields: []TableField{
 					{
-						Name: "id",
+						Name:    "id",
 						RawType: "some_unknown_type",
 					},
 				},
 			},
 			isDuplicate: false,
 			result: Table{
-				Name: "users",
-				Schema: "public",
-				StructName: "TABLE_USERS",
+				Name:        "users",
+				Schema:      "public",
+				StructName:  "TABLE_USERS",
 				Constructor: "USERS",
 			},
 		},
 		{
 			name: "normal table name, not duplicate, skips case-sensitive field names",
 			table: Table{
-				Name: "users",
+				Name:   "users",
 				Schema: "public",
 				Fields: []TableField{
 					{
-						Name: "ID",
+						Name:    "ID",
 						RawType: "boolean",
 					},
 				},
 			},
 			isDuplicate: false,
 			result: Table{
-				Name: "users",
-				Schema: "public",
-				StructName: "TABLE_USERS",
+				Name:        "users",
+				Schema:      "public",
+				StructName:  "TABLE_USERS",
 				Constructor: "USERS",
 			},
 		},
 		{
 			name: "normal table name, not duplicate, doesn't skip supported fields",
 			table: Table{
-				Name: "users",
+				Name:   "users",
 				Schema: "public",
 				Fields: []TableField{
 					{
-						Name: "id",
+						Name:    "id",
 						RawType: "boolean",
 					},
 				},
 			},
 			isDuplicate: false,
 			result: Table{
-				Name: "users",
-				Schema: "public",
-				StructName: "TABLE_USERS",
+				Name:        "users",
+				Schema:      "public",
+				StructName:  "TABLE_USERS",
 				Constructor: "USERS",
 				Fields: []TableField{
 					{
-						Name: "id",
-						RawType: "boolean",
-						Type: FieldTypeBoolean,
+						Name:        "id",
+						RawType:     "boolean",
+						Type:        FieldTypeBoolean,
 						Constructor: FieldConstructorBoolean,
 					},
 				},
@@ -204,76 +204,76 @@ func TestTablePopulate(t *testing.T) {
 		{
 			name: "normal table name, not duplicate, can populate multiple fields",
 			table: Table{
-				Name: "users",
+				Name:   "users",
 				Schema: "public",
 				Fields: []TableField{
 					{
-						Name: "id",
+						Name:    "id",
 						RawType: "integer",
 					},
 					{
-						Name: "first_name",
+						Name:    "first_name",
 						RawType: "text",
 					},
 					{
-						Name: "last_name",
+						Name:    "last_name",
 						RawType: "varchar",
 					},
 					{
-						Name: "date_created",
+						Name:    "date_created",
 						RawType: "timestamp",
 					},
 					{
-						Name: "is_verified",
+						Name:    "is_verified",
 						RawType: "boolean",
 					},
 					{
-						Name: "data",
+						Name:    "data",
 						RawType: "jsonb",
 					},
 				},
 			},
 			isDuplicate: false,
 			result: Table{
-				Name: "users",
-				Schema: "public",
-				StructName: "TABLE_USERS",
+				Name:        "users",
+				Schema:      "public",
+				StructName:  "TABLE_USERS",
 				Constructor: "USERS",
 				Fields: []TableField{
 					{
-						Name: "id",
-						RawType: "integer",
-						Type: FieldTypeNumber,
+						Name:        "id",
+						RawType:     "integer",
+						Type:        FieldTypeNumber,
 						Constructor: FieldConstructorNumber,
 					},
 					{
-						Name: "first_name",
-						RawType: "text",
-						Type: FieldTypeString,
+						Name:        "first_name",
+						RawType:     "text",
+						Type:        FieldTypeString,
 						Constructor: FieldConstructorString,
 					},
 					{
-						Name: "last_name",
-						RawType: "varchar",
-						Type: FieldTypeString,
+						Name:        "last_name",
+						RawType:     "varchar",
+						Type:        FieldTypeString,
 						Constructor: FieldConstructorString,
 					},
 					{
-						Name: "date_created",
-						RawType: "timestamp",
-						Type: FieldTypeTime,
+						Name:        "date_created",
+						RawType:     "timestamp",
+						Type:        FieldTypeTime,
 						Constructor: FieldConstructorTime,
 					},
 					{
-						Name: "is_verified",
-						RawType: "boolean",
-						Type: FieldTypeBoolean,
+						Name:        "is_verified",
+						RawType:     "boolean",
+						Type:        FieldTypeBoolean,
 						Constructor: FieldConstructorBoolean,
 					},
 					{
-						Name: "data",
-						RawType: "jsonb",
-						Type: FieldTypeJSON,
+						Name:        "data",
+						RawType:     "jsonb",
+						Type:        FieldTypeJSON,
 						Constructor: FieldConstructorJSON,
 					},
 				},
@@ -291,97 +291,97 @@ func TestTablePopulate(t *testing.T) {
 
 func TestTableFieldPopulate(t *testing.T) {
 	type TC struct {
-		name string
-		field TableField
+		name   string
+		field  TableField
 		result TableField
 	}
 	tt := []TC{
 		{
 			name: "unknown field",
 			field: TableField{
-				Name: "flag",
+				Name:    "flag",
 				RawType: "some_unknown_type",
 			},
 			result: TableField{
-				Name: "flag",
+				Name:    "flag",
 				RawType: "some_unknown_type",
 			},
 		},
 		{
 			name: "boolean field",
 			field: TableField{
-				Name: "flag",
+				Name:    "flag",
 				RawType: "boolean",
 			},
 			result: TableField{
-				Name: "flag",
-				RawType: "boolean",
-				Type: FieldTypeBoolean,
+				Name:        "flag",
+				RawType:     "boolean",
+				Type:        FieldTypeBoolean,
 				Constructor: FieldConstructorBoolean,
 			},
 		},
 		{
 			name: "json field",
 			field: TableField{
-				Name: "data",
+				Name:    "data",
 				RawType: "json",
 			},
 			result: TableField{
-				Name: "data",
-				RawType: "json",
-				Type: FieldTypeJSON,
+				Name:        "data",
+				RawType:     "json",
+				Type:        FieldTypeJSON,
 				Constructor: FieldConstructorJSON,
 			},
 		},
 		{
 			name: "jsonb field",
 			field: TableField{
-				Name: "data",
+				Name:    "data",
 				RawType: "jsonb",
 			},
 			result: TableField{
-				Name: "data",
-				RawType: "jsonb",
-				Type: FieldTypeJSON,
+				Name:        "data",
+				RawType:     "jsonb",
+				Type:        FieldTypeJSON,
 				Constructor: FieldConstructorJSON,
 			},
 		},
 		{
 			name: "user-defined field",
 			field: TableField{
-				Name: "type",
+				Name:    "type",
 				RawType: "USER-DEFINED",
 			},
 			result: TableField{
-				Name: "type",
-				RawType: "USER-DEFINED",
-				Type: FieldTypeEnum,
+				Name:        "type",
+				RawType:     "USER-DEFINED",
+				Type:        FieldTypeEnum,
 				Constructor: FieldConstructorEnum,
 			},
 		},
 		{
 			name: "array field",
 			field: TableField{
-				Name: "arr",
+				Name:    "arr",
 				RawType: "ARRAY",
 			},
 			result: TableField{
-				Name: "arr",
-				RawType: "ARRAY",
-				Type: FieldTypeArray,
+				Name:        "arr",
+				RawType:     "ARRAY",
+				Type:        FieldTypeArray,
 				Constructor: FieldConstructorArray,
 			},
 		},
 		{
 			name: "bytea field",
 			field: TableField{
-				Name: "hash",
+				Name:    "hash",
 				RawType: "bytea",
 			},
 			result: TableField{
-				Name: "hash",
-				RawType: "bytea",
-				Type: FieldTypeBinary,
+				Name:        "hash",
+				RawType:     "bytea",
+				Type:        FieldTypeBinary,
 				Constructor: FieldConstructorBinary,
 			},
 		},
@@ -405,13 +405,13 @@ func TestTableFieldPopulate(t *testing.T) {
 		tt = append(tt, TC{
 			name: rawType + " field",
 			field: TableField{
-				Name: "number",
+				Name:    "number",
 				RawType: rawType,
 			},
 			result: TableField{
-				Name: "number",
-				RawType: rawType,
-				Type: FieldTypeNumber,
+				Name:        "number",
+				RawType:     rawType,
+				Type:        FieldTypeNumber,
 				Constructor: FieldConstructorNumber,
 			},
 		})
@@ -430,18 +430,17 @@ func TestTableFieldPopulate(t *testing.T) {
 		tt = append(tt, TC{
 			name: rawType + " field",
 			field: TableField{
-				Name: "name",
+				Name:    "name",
 				RawType: rawType,
 			},
 			result: TableField{
-				Name: "name",
-				RawType: rawType,
-				Type: FieldTypeString,
+				Name:        "name",
+				RawType:     rawType,
+				Type:        FieldTypeString,
 				Constructor: FieldConstructorString,
 			},
 		})
 	}
-
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {

@@ -111,8 +111,8 @@ func executeTables(config Config, db *sql.DB) ([]Table, error) {
 
 		if _, ok := tableMap[fullTableName]; !ok {
 			table := &Table{
-				Schema: tableSchema,
-				Name: tableName,
+				Schema:  tableSchema,
+				Name:    tableName,
 				RawType: tableType,
 			}
 			tableNameCount[tableName]++
@@ -120,9 +120,9 @@ func executeTables(config Config, db *sql.DB) ([]Table, error) {
 			orderedTables = append(orderedTables, fullTableName)
 		}
 
-		field := TableField {
-			Name: columnName,
-			RawType: columnType,
+		field := TableField{
+			Name:      columnName,
+			RawType:   columnType,
 			RawTypeEx: columnTypeEx,
 		}
 
@@ -146,7 +146,9 @@ func buildTablesQuery(schemas, exclude []string) (string, []interface{}) {
 	query := "SELECT t.table_type, c.table_schema, c.table_name, c.column_name, c.data_type, c.column_type" +
 		" FROM information_schema.tables AS t" +
 		" JOIN information_schema.columns AS c USING (table_schema, table_name)" +
-		" WHERE table_schema IN " + sqgen.SliceToSQL(schemas)
+		" WHERE table_schema IN " + sqgen.SliceToSQL(
+		schemas,
+	)
 
 	if len(exclude) > 0 {
 		query += " AND table_name NOT IN " + sqgen.SliceToSQL(exclude)
@@ -169,7 +171,13 @@ func buildTablesQuery(schemas, exclude []string) (string, []interface{}) {
 func (table Table) String() string {
 	var output string
 	if table.Constructor != "" && table.StructName != "" {
-		output += fmt.Sprintf("%s.%s => func %s() %s\n", table.Schema, table.Name, table.Constructor, table.StructName)
+		output += fmt.Sprintf(
+			"%s.%s => func %s() %s\n",
+			table.Schema,
+			table.Name,
+			table.Constructor,
+			table.StructName,
+		)
 	} else {
 		output += fmt.Sprintf("%s.%s\n", table.Schema, table.Name)
 	}
@@ -204,8 +212,13 @@ func (table Table) Populate(config Config, isDuplicate bool) Table {
 		f := field.Populate()
 
 		if f.Type == "" {
-				config.Logger.Printf("Skipping %s.%s because type '%s' is unknown\n", table.Name, field.Name, field.RawType)
-				continue
+			config.Logger.Printf(
+				"Skipping %s.%s because type '%s' is unknown\n",
+				table.Name,
+				field.Name,
+				field.RawType,
+			)
+			continue
 		}
 
 		fields = append(fields, field)

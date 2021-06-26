@@ -7,7 +7,7 @@ import (
 )
 
 // functions required to transforms strings within the template
-// removes the need to declare a custom string alias with these methods attached 
+// removes the need to declare a custom string alias with these methods attached
 // since all the template variables are referenced either with $ or . accessor in the template
 // we won't have any naming collisions
 
@@ -27,6 +27,6 @@ func QuoteSpace(s string) string {
 }
 
 var FuncMap template.FuncMap = map[string]interface{}{
-	"export": Export,
+	"export":     Export,
 	"quoteSpace": QuoteSpace,
 }

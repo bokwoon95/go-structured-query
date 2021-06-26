@@ -25,28 +25,28 @@ func TestTablesTemplate(t *testing.T) {
 		},
 		Tables: []Table{
 			{
-				Name: "users",
-				Schema: "public",
-				StructName: "USERS",
-				RawType: "BASE TABLE",
+				Name:        "users",
+				Schema:      "public",
+				StructName:  "USERS",
+				RawType:     "BASE TABLE",
 				Constructor: "TABLE_USERS",
 				Fields: []TableField{
 					{
-						Name: "id",
-						RawType: "integer",
-						Type: FieldTypeNumber,
+						Name:        "id",
+						RawType:     "integer",
+						Type:        FieldTypeNumber,
 						Constructor: FieldConstructorNumber,
 					},
 					{
-						Name: "first_name",
-						RawType: "text",
-						Type: FieldTypeString,
+						Name:        "first_name",
+						RawType:     "text",
+						Type:        FieldTypeString,
 						Constructor: FieldConstructorString,
 					},
 					{
-						Name: "date_created",
-						RawType: "timestamp",
-						Type: FieldTypeTime,
+						Name:        "date_created",
+						RawType:     "timestamp",
+						Type:        FieldTypeTime,
 						Constructor: FieldConstructorTime,
 					},
 				},
@@ -115,29 +115,29 @@ func TestFunctionsTemplate(t *testing.T) {
 		},
 		Functions: []Function{
 			{
-				Name: "insert_user",
-				Schema: "public",
-				StructName: "FUNCTION_INSERT_USER",
+				Name:        "insert_user",
+				Schema:      "public",
+				StructName:  "FUNCTION_INSERT_USER",
 				Constructor: "INSERT_USER",
 				Arguments: []FunctionField{
 					{
-						Name: "first_name",
-						GoType: GoTypeString,
-						FieldType: FieldTypeString,
+						Name:        "first_name",
+						GoType:      GoTypeString,
+						FieldType:   FieldTypeString,
 						Constructor: FieldConstructorString,
 					},
 					{
-						Name: "date_created",
-						GoType: GoTypeTime,
-						FieldType: FieldTypeTime,
+						Name:        "date_created",
+						GoType:      GoTypeTime,
+						FieldType:   FieldTypeTime,
 						Constructor: FieldConstructorTime,
 					},
 				},
 				Results: []FunctionField{
 					{
-						Name: "user_id",
-						GoType: GoTypeInt,
-						FieldType: FieldTypeNumber,
+						Name:        "user_id",
+						GoType:      GoTypeInt,
+						FieldType:   FieldTypeNumber,
 						Constructor: FieldConstructorNumber,
 					},
 				},
@@ -190,7 +190,6 @@ func (f FUNCTION_INSERT_USER) As(alias string) FUNCTION_INSERT_USER {
 	f.FunctionInfo.Alias = alias
 	return f
 }`
-
 
 	is.Equal(len(out), len(expected))
 	is.Equal(out, expected)

@@ -16,4 +16,3 @@ func Wrap(err error) error {
 	_, filename, linenbr, _ := runtime.Caller(1)
 	return fmt.Errorf(string(recSep)+" %s:%d %w", filename, linenbr, err)
 }
-
