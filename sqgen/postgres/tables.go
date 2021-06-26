@@ -4,14 +4,11 @@ package postgres
 import (
 	"bytes"
 	"database/sql"
-	"fmt"
 	"io"
 	"strings"
 
 	"github.com/bokwoon95/go-structured-query/sqgen"
 )
-
-var _ fmt.Stringer = (*Table)(nil)
 
 type Table struct {
 	Schema      string
@@ -172,22 +169,6 @@ func buildTablesQuery(schemas, exclude []string) (string, []interface{}) {
 }
 
 // used in templates
-func (table Table) String() string {
-	var output string
-	if table.Constructor != "" && table.StructName != "" {
-		output += fmt.Sprintf("%s.%s => func %s() %s\n", table.Schema, table.Name, table.Constructor, table.StructName)
-	} else {
-		output += fmt.Sprintf("%s.%s\n", table.Schema, table.Name)
-	}
-	for _, field := range table.Fields {
-		if field.Constructor != "" && field.Type != "" {
-			output += fmt.Sprintf("    %s: %s => %s\n", field.Name, field.RawType, field.Type)
-		} else {
-			output += fmt.Sprintf("    %s: %s\n", field.Name, field.RawType)
-		}
-	}
-	return output
-}
 
 // Adds constructor and struct names to table, populates Fields
 // isDuplicate parameter indicates if there is a table in another schema with the same name
