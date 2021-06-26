@@ -13,9 +13,6 @@ import (
 	"github.com/bokwoon95/go-structured-query/sqgen"
 )
 
-
-var _ fmt.Stringer = (*Function)(nil)
-
 // Function contains metadata for a plpgsql function.
 type Function struct {
 	Schema       string
@@ -512,32 +509,4 @@ func extractNameAndType(rawField string) FunctionField {
 		}
 	}
 	return field
-}
-
-
-// used in templates
-func (f Function) String() string {
-	var output string
-	if f.Constructor != "" && f.StructName != "" {
-		output += fmt.Sprintf("%s.%s => func %s() %s\n", f.Schema, f.Name, f.Constructor, f.StructName)
-	} else {
-		output += fmt.Sprintf("%s.%s\n", f.Schema, f.Name)
-	}
-	output += "    Arguments\n"
-	for _, field := range f.Arguments {
-		if field.Constructor != "" && field.GoType != "" {
-			output += fmt.Sprintf("        %s: %s\n", field.Name, field.GoType)
-		} else {
-			output += fmt.Sprintf("        %s\n", field.RawField)
-		}
-	}
-	output += "    Results\n"
-	for _, field := range f.Results {
-		if field.Constructor != "" && field.FieldType != "" {
-			output += fmt.Sprintf("        %s: %s\n", field.Name, field.FieldType)
-		} else {
-			output += fmt.Sprintf("        %s\n", field.RawField)
-		}
-	}
-	return output
 }
