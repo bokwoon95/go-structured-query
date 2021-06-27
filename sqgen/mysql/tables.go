@@ -19,6 +19,11 @@ type Table struct {
 }
 
 // TableField represents a field in a database table
+//
+// In the MySQL information_schema.columns table, the data_type column (mapped into TableField.RawType) has the general type of the column (i.e. char, integer, etc.), but it does not have information on the exact size of the column
+// The information_schema.column_type column (mapped into TableField.RawTypeEx) contains the full data type for the column, including size
+//
+// We need to have this extra field to distinguish between boolean columns and number columns, since MySQL stores boolean values as tinyint(1), and we can only get the (1) part from information_schema.column_type
 type TableField struct {
 	Name        string
 	RawType     string
