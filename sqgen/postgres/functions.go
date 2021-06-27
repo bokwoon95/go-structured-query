@@ -385,28 +385,27 @@ func (function Function) Populate(isDuplicate bool, overloadCount int) (*Functio
 
 // patterns used to match the types of arguments/return types of a function
 var (
-	// optionally matches a [] at the end of a type in a capturing group
-	ArrayPattern = `(\[\])?`
-	FieldPatternBoolean = regexp.MustCompile(`boolean` + ArrayPattern + `$`)
-	FieldPatternJSON = regexp.MustCompile(`json` + `(?:b)?` + ArrayPattern + `$`)
+	// optionally matches a [] at the end of a type in a capturing group, inclued EOL match
+	ArrayPattern = `(\[\])?$`
+	FieldPatternBoolean = regexp.MustCompile(`boolean` + ArrayPattern)
+	FieldPatternJSON = regexp.MustCompile(`json` + `(?:b)?` + ArrayPattern)
 	FieldPatternInt = regexp.MustCompile(
-		`(?:` + `smallint` +
+		`(?:` + 
+		`smallint` +
 		`|` + `oid` +
 		`|` + `integer` +
 		`|` + `bigint` +
 		`|` + `smallserial` +
 		`|` + `serial` +
 		`|` + `bigserial` + `)` +
-		ArrayPattern +
-		`$`,
+		ArrayPattern,
 	)
 	FieldPatternFloat = regexp.MustCompile(
 		`(?:` + `decimal` +
 		`|` + `numeric` +
 		`|` + `real` +
 		`|` + `double precision` + `)` +
-		ArrayPattern +
-		`$`,
+		ArrayPattern,
 	)
 	FieldPatternString = regexp.MustCompile(
 		`(?:` + `text` +
@@ -415,21 +414,18 @@ var (
 		`|` + `character` + `(?:\(\d+\))?` +
 		`|` + `varchar` + `(?:\(\d+\))?` +
 		`|` + `character varying` + `(?:\(\d+\))?` + `)` +
-		ArrayPattern +
-		`$`,
+		ArrayPattern,
 	)
 	FieldPatternTime = regexp.MustCompile(
 		`(?:` + `date` +
 		`|` + `(?:time|timestamp)` +
 		`(?: \(\d+\))?` +
 		`(?: without time zone| with time zone)?` + `)` +
-		ArrayPattern +
-		`$`,
+		ArrayPattern,
 	)
 	FieldPatternBinary = regexp.MustCompile(
 		`bytea` +
-		`(\[\])?` +
-		`$`,
+		ArrayPattern,
 	)
 )
 
@@ -542,7 +538,10 @@ func isArrayType(matches []string) bool {
 	return len(matches) > 1 && matches[1] == "[]"
 }
 
-// parses the name of the field from the rawField name, and the matches from the first regex capturing group
+// parses the name of the field from the rawField name
+// if the rawField starts with whitespace, that means that the parameter is unnamed
+// so the field name should be equal to "" (hence the TrimSpace)
+// the empty field name will be replaced with a _arg# value in the generated code
 func getFieldName(rawField string, matches []string) string {
 	endNameIdx := len(rawField) - len(matches[0])
 	return strings.TrimSpace(rawField[:endNameIdx])
