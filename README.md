@@ -65,7 +65,7 @@ Generate tables from your database
 sqgen-postgres tables --database 'postgres://name:pass@localhost:5432/dbname?sslmode=disable' --overwrite
 
 # MySQL
-sqgen-postgres tables --database 'name:pass@tcp(127.0.0.1:3306)/dbname' --schema dbname --overwrite
+sqgen-mysql tables --database 'name:pass@tcp(127.0.0.1:3306)/dbname' --schemas dbname --overwrite
 ```
 
 For an example of what the generated file looks like, check out [postgres/devlab\_tables\_test.go](postgres/devlab_tables_test.go).
