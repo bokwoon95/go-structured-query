@@ -156,15 +156,27 @@ func TestGetFieldName(t *testing.T) {
 	tests := []TT{
 		{
 			name: "text field",
-			rawField: "text",
+			rawField: "col text",
 			matches: []string{"text", ""},
-			result: "text",
+			result: "col",
 		},
 		{
-			name: "text field with leading space",
+			name: "text field with leading space returns empty",
 			rawField: " text",
 			matches: []string{"text", ""},
-			result: "text",
+			result: "",
+		},
+		{
+			name: "integer field with trailing whitespace",
+			rawField: "col integer",
+			matches: []string{"integer", ""},
+			result: "col",
+		},
+		{
+			name: "integer field with leading space returns empty",
+			rawField: " integer",
+			matches: []string{"integer", ""},
+			result: "",
 		},
 	}
 
