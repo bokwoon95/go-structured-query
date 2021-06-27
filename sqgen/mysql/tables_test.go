@@ -57,12 +57,13 @@ func TestBuildTablesQuery(t *testing.T) {
 }
 
 func TestTablePopulate(t *testing.T) {
-	tt := []struct {
+	type TT struct {
 		name        string
 		table       Table
 		isDuplicate bool
 		result      Table
-	}{
+	}
+	tests := []TT{
 		{
 			name: "normal table name, not duplicate",
 			table: Table{
@@ -289,22 +290,22 @@ func TestTablePopulate(t *testing.T) {
 		},
 	}
 
-	for _, tc := range tt {
-		t.Run(tc.name, func(t *testing.T) {
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
 			is := is.New(t)
-			is.Equal(tc.table.Populate(nil, tc.isDuplicate), tc.result)
+			is.Equal(tt.table.Populate(nil, tt.isDuplicate), tt.result)
 		})
 	}
 }
 
 func TestTableFieldPopulate(t *testing.T) {
-	type TC struct {
+	type TT struct {
 		name   string
 		field  TableField
 		result TableField
 	}
 
-	tt := []TC{
+	tests := []TT{
 		{
 			name: "unknown field",
 			field: TableField{
@@ -371,7 +372,7 @@ func TestTableFieldPopulate(t *testing.T) {
 	}
 
 	for _, rawType := range numberFields {
-		tt = append(tt, TC{
+		tests = append(tests, TT{
 			name: rawType + " field",
 			field: TableField{
 				Name:    "number",
@@ -396,7 +397,7 @@ func TestTableFieldPopulate(t *testing.T) {
 	}
 
 	for _, rawType := range stringFields {
-		tt = append(tt, TC{
+		tests = append(tests, TT{
 			name: rawType + " field",
 			field: TableField{
 				Name:    "string",
@@ -421,7 +422,7 @@ func TestTableFieldPopulate(t *testing.T) {
 	}
 
 	for _, rawType := range blobFields {
-		tt = append(tt, TC{
+		tests = append(tests, TT{
 			name: rawType + " field",
 			field: TableField{
 				Name:    "blobby",
@@ -444,7 +445,7 @@ func TestTableFieldPopulate(t *testing.T) {
 	}
 
 	for _, rawType := range timeFields {
-		tt = append(tt, TC{
+		tests = append(tests, TT{
 			name: rawType + " field",
 			field: TableField{
 				Name:    "its_5_o_clock_somewhere",
@@ -459,10 +460,10 @@ func TestTableFieldPopulate(t *testing.T) {
 		})
 	}
 
-	for _, tc := range tt {
-		t.Run(tc.name, func(t *testing.T) {
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
 			is := is.New(t)
-			is.Equal(tc.field.Populate(), tc.result)
+			is.Equal(tt.field.Populate(), tt.result)
 		})
 	}
 }

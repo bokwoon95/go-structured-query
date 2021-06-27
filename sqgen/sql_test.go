@@ -7,11 +7,12 @@ import (
 )
 
 func TestSliceToSQL(t *testing.T) {
-	tt := []struct {
+	type TT struct {
 		name   string
 		args   []string
 		result string
-	}{
+	}
+	tests := []TT{
 		{
 			name:   "empty args returns empty string",
 			args:   nil,
@@ -34,10 +35,10 @@ func TestSliceToSQL(t *testing.T) {
 		},
 	}
 
-	for _, tc := range tt {
-		t.Run(tc.name, func(t *testing.T) {
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
 			is := is.New(t)
-			is.Equal(SliceToSQL(tc.args), tc.result)
+			is.Equal(SliceToSQL(tt.args), tt.result)
 		})
 	}
 }

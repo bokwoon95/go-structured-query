@@ -7,11 +7,12 @@ import (
 )
 
 func TestReplacePlaceholders(t *testing.T) {
-	tt := []struct {
+	type TT struct {
 		name   string
 		query  string
 		result string
-	}{
+	}
+	tests := []TT{
 		{
 			name:   "string without placeholders is untouched",
 			query:  "select * from public.some_table where status = 200",
@@ -29,10 +30,10 @@ func TestReplacePlaceholders(t *testing.T) {
 		},
 	}
 
-	for _, tc := range tt {
-		t.Run(tc.name, func(t *testing.T) {
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
 			is := is.New(t)
-			is.Equal(replacePlaceholders(tc.query), tc.result)
+			is.Equal(replacePlaceholders(tt.query), tt.result)
 		})
 	}
 }

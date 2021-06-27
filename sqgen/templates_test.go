@@ -7,11 +7,12 @@ import (
 )
 
 func TestExport(t *testing.T) {
-	tt := []struct {
+	type TT struct {
 		name   string
 		s      string
 		result string
-	}{
+	}
+	tests := []TT{
 		{
 			name:   "can remove prefix",
 			s:      "_VALUE_",
@@ -34,20 +35,21 @@ func TestExport(t *testing.T) {
 		},
 	}
 
-	for _, tc := range tt {
-		t.Run(tc.name, func(t *testing.T) {
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
 			is := is.New(t)
-			is.Equal(Export(tc.s), tc.result)
+			is.Equal(Export(tt.s), tt.result)
 		})
 	}
 }
 
 func TestQuoteSpace(t *testing.T) {
-	tt := []struct {
+	type TT struct {
 		name   string
 		s      string
 		result string
-	}{
+	}
+	tests := []TT{
 		{
 			name:   "no spaces",
 			s:      "no_spaces_included",
@@ -60,10 +62,10 @@ func TestQuoteSpace(t *testing.T) {
 		},
 	}
 
-	for _, tc := range tt {
-		t.Run(tc.name, func(t *testing.T) {
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
 			is := is.New(t)
-			is.Equal(QuoteSpace(tc.s), tc.result)
+			is.Equal(QuoteSpace(tt.s), tt.result)
 		})
 	}
 }
