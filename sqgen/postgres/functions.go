@@ -261,7 +261,7 @@ func checkProkindSupport(version string) bool {
 func (function Function) Populate(isDuplicate bool, overloadCount int) (*Function, error) {
 	function.StructName = "FUNCTION_"
 
-	if isDuplicate {
+	if isDuplicate || overloadCount > 0 {
 		schemaPrefix := strings.ToUpper(function.Schema) + "__"
 		function.StructName += schemaPrefix
 		function.Constructor += schemaPrefix
