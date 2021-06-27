@@ -2,7 +2,7 @@ package postgres
 
 var _ Logger = (*mockLogger)(nil)
 
-type mockLogger struct {}
+type mockLogger struct{}
 
 func (l *mockLogger) Printf(f string, v ...interface{}) {}
 

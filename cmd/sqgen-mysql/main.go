@@ -1,14 +1,16 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	"io"
 	"log"
 	"os"
-	"strings"
 	"path/filepath"
+	"strings"
 
 	"github.com/bokwoon95/go-structured-query/sqgen/mysql"
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/spf13/cobra"
 )
 
@@ -45,25 +47,32 @@ var currdir string = func() string {
 }()
 
 var (
-	tablesDatabase *string
+	tablesDatabase  *string
 	tablesDirectory *string
-	tablesDryrun *bool
-	tablesFile *string
+	tablesDryrun    *bool
+	tablesFile      *string
 	tablesOverwrite *bool
-	tablesPkg *string
-	tablesSchemas *[]string
-	tablesExclude *[]string
+	tablesPkg       *string
+	tablesSchemas   *[]string
+	tablesExclude   *[]string
 )
 
 func init() {
-	tablesDatabase = 	tablesCmd.Flags().String("database", "", "(required) Database URL")
-	tablesDirectory = 	tablesCmd.Flags().String("directory", filepath.Join(currdir, "tables"), "(optional) Directory to place the generated file. Can be absolute or relative filepath")
-	tablesDryrun = 	tablesCmd.Flags().Bool("dryrun", false, "(optional) Print the list of tables to be generated without generating the file")
-	tablesFile = 	tablesCmd.Flags().String("file", "tables.go", "(optional) Name of the file to be generated. If file already exists, -overwrite flag must be specified to overwrite the file")
-	tablesOverwrite = 	tablesCmd.Flags().Bool("overwrite", false, "(optional) Overwrite any files that already exist")
-	tablesPkg = 	tablesCmd.Flags().String("pkg", "tables", "(optional) Package name of the file to be generated")
-	tablesSchemas = 	tablesCmd.Flags().StringSlice("schemas", nil, "(required) A comma separated list of schemas (databases) that you want to generate tables for. In MySQL this is usually the database name you are using. Please don't include any spaces")
-	tablesExclude = 	tablesCmd.Flags().StringSlice("exclude", nil, "(optional) A comma separated list of case-insensitive table names that you wish to exclude from table generation. Please don't include any spaces")
+	tablesDatabase = tablesCmd.Flags().String("database", "", "(required) Database URL")
+	tablesDirectory = tablesCmd.Flags().
+		String("directory", filepath.Join(currdir, "tables"), "(optional) Directory to place the generated file. Can be absolute or relative filepath")
+	tablesDryrun = tablesCmd.Flags().
+		Bool("dryrun", false, "(optional) Print the list of tables to be generated without generating the file")
+	tablesFile = tablesCmd.Flags().
+		String("file", "tables.go", "(optional) Name of the file to be generated. If file already exists, -overwrite flag must be specified to overwrite the file")
+	tablesOverwrite = tablesCmd.Flags().
+		Bool("overwrite", false, "(optional) Overwrite any files that already exist")
+	tablesPkg = tablesCmd.Flags().
+		String("pkg", "tables", "(optional) Package name of the file to be generated")
+	tablesSchemas = tablesCmd.Flags().
+		StringSlice("schemas", nil, "(required) A comma separated list of schemas (databases) that you want to generate tables for. In MySQL this is usually the database name you are using. Please don't include any spaces")
+	tablesExclude = tablesCmd.Flags().
+		StringSlice("exclude", nil, "(optional) A comma separated list of case-insensitive table names that you wish to exclude from table generation. Please don't include any spaces")
 
 	// required flags
 	err := cobra.MarkFlagRequired(tablesCmd.LocalFlags(), "database")
@@ -86,12 +95,18 @@ func tablesRun(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("'%v' is not a valid comma separated list of schemas", tablesSchemas)
 	}
 
+	db, err := openAndPing(*tablesDatabase)
+
+	if err != nil {
+		return err
+	}
+
 	config := mysql.Config{
-		Database: *tablesDatabase,
-		Package:  *tablesPkg,
-		Schemas:  *tablesSchemas,
-		Exclude:  *tablesExclude,
-		Logger:   log.New(os.Stderr, "", log.Ltime),
+		DB:      db,
+		Package: *tablesPkg,
+		Schemas: *tablesSchemas,
+		Exclude: *tablesExclude,
+		Logger:  log.New(os.Stderr, "", log.Ltime),
 	}
 
 	writer, err := getWriter(*tablesDryrun, *tablesOverwrite, *tablesDirectory, *tablesFile)
@@ -116,7 +131,10 @@ func getWriter(dryrun, overwrite bool, directory, file string) (io.WriteCloser, 
 
 	asboluteFilePath := filepath.Join(directory, file)
 	if _, err := os.Stat(asboluteFilePath); err == nil && !overwrite {
-		return nil, fmt.Errorf("%s already exists. If you wish to overwrite it, provide the --overwrite flag", asboluteFilePath)
+		return nil, fmt.Errorf(
+			"%s already exists. If you wish to overwrite it, provide the --overwrite flag",
+			asboluteFilePath,
+		)
 	}
 
 	err := os.MkdirAll(directory, 0755)
@@ -129,6 +147,25 @@ func getWriter(dryrun, overwrite bool, directory, file string) (io.WriteCloser, 
 	return os.OpenFile(filename, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
 }
 
+func openAndPing(database string) (*sql.DB, error) {
+	db, err := sql.Open("mysql", database)
+
+	if err != nil {
+		return nil, err
+	}
+
+	err = db.Ping()
+
+	if err != nil {
+		return nil, fmt.Errorf(
+			"Could not ping the database, is the database reachable via %s? %w",
+			database,
+			err,
+		)
+	}
+
+	return db, nil
+}
 
 /* Error Handling Utilities */
 

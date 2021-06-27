@@ -1,17 +1,17 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	"io"
 	"log"
 	"os"
-	"strings"
 	"path/filepath"
-	"database/sql"
+	"strings"
 
 	"github.com/bokwoon95/go-structured-query/sqgen/postgres"
-	"github.com/spf13/cobra"
 	_ "github.com/lib/pq"
+	"github.com/spf13/cobra"
 )
 
 func main() {
@@ -53,23 +53,23 @@ var currdir string = func() string {
 }()
 
 var (
-	tablesDatabase *string
+	tablesDatabase  *string
 	tablesDirectory *string
-	tablesDryrun *bool
-	tablesFile *string
+	tablesDryrun    *bool
+	tablesFile      *string
 	tablesOverwrite *bool
-	tablesPkg *string
-	tablesSchemas *[]string
-	tablesExclude *[]string
+	tablesPkg       *string
+	tablesSchemas   *[]string
+	tablesExclude   *[]string
 
-	functionsDatabase *string
+	functionsDatabase  *string
 	functionsDirectory *string
-	functionsDryrun *bool
-	functionsFile *string
+	functionsDryrun    *bool
+	functionsFile      *string
 	functionsOverwrite *bool
-	functionsPkg *string
-	functionsSchemas *[]string
-	functionsExclude *[]string
+	functionsPkg       *string
+	functionsSchemas   *[]string
+	functionsExclude   *[]string
 )
 
 func init() {
@@ -78,13 +78,20 @@ func init() {
 	// initialize tables flags
 
 	tablesDatabase = tablesCmd.Flags().String("database", "", "(required) Database URL")
-	tablesDirectory = tablesCmd.Flags().String("directory", filepath.Join(currdir, "tables"), "(optional) Directory to place the generated file. Can be absolute or relative filepath")
-	tablesDryrun = 	tablesCmd.Flags().Bool("dryrun", false, "(optional) Print the list of tables to be generated without generating the file")
-	tablesFile = 	tablesCmd.Flags().String("file", "tables.go", "(optional) Name of the file to be generated. If file already exists, -overwrite flag must be specified to overwrite the file")
-	tablesOverwrite = 	tablesCmd.Flags().Bool("overwrite", false, "(optional) Overwrite any files that already exist")
-	tablesPkg = 	tablesCmd.Flags().String("pkg", "tables", "(optional) Package name of the file to be generated")
-	tablesSchemas = 	tablesCmd.Flags().StringSlice("schemas", []string{"public"}, "(optional) A comma separated list of database schemas that you want to generate tables for. Please don't include any spaces")
-	tablesExclude = 	tablesCmd.Flags().StringSlice("exclude", nil, "(optional) A comma separated list of case-insensitive table names that you wish to exclude from table generation. Please don't include any spaces")
+	tablesDirectory = tablesCmd.Flags().
+		String("directory", filepath.Join(currdir, "tables"), "(optional) Directory to place the generated file. Can be absolute or relative filepath")
+	tablesDryrun = tablesCmd.Flags().
+		Bool("dryrun", false, "(optional) Print the list of tables to be generated without generating the file")
+	tablesFile = tablesCmd.Flags().
+		String("file", "tables.go", "(optional) Name of the file to be generated. If file already exists, -overwrite flag must be specified to overwrite the file")
+	tablesOverwrite = tablesCmd.Flags().
+		Bool("overwrite", false, "(optional) Overwrite any files that already exist")
+	tablesPkg = tablesCmd.Flags().
+		String("pkg", "tables", "(optional) Package name of the file to be generated")
+	tablesSchemas = tablesCmd.Flags().
+		StringSlice("schemas", []string{"public"}, "(optional) A comma separated list of database schemas that you want to generate tables for. Please don't include any spaces")
+	tablesExclude = tablesCmd.Flags().
+		StringSlice("exclude", nil, "(optional) A comma separated list of case-insensitive table names that you wish to exclude from table generation. Please don't include any spaces")
 	// required flag
 	err := cobra.MarkFlagRequired(tablesCmd.LocalFlags(), "database")
 
@@ -94,14 +101,21 @@ func init() {
 
 	// initialize functions flags
 
-	functionsDatabase = 	functionsCmd.Flags().String("database", "", "(required) Database URL")
-	functionsDirectory = 	functionsCmd.Flags().String("directory", filepath.Join(currdir, "tables"), "(optional) Directory to place the generated file. Can be absolute or relative filepath")
-	functionsDryrun = 	functionsCmd.Flags().Bool("dryrun", false, "(optional) Print the list of functions to be generated without generating the file")
-	functionsFile = 	functionsCmd.Flags().String("file", "functions.go", "(optional) Name of the file to be generated. If file already exists, -overwrite flag must be specified to overwrite the file")
-	functionsOverwrite = 	functionsCmd.Flags().Bool("overwrite", false, "(optional) Overwrite any files that already exist")
-	functionsPkg = 	functionsCmd.Flags().String("pkg", "tables", "(optional) Package name of the file to be generated")
-	functionsSchemas = 	functionsCmd.Flags().StringSlice("schemas", []string{"public"}, "(optional) A comma separated list of database schemas that you want to generate functions for. Please don't include any spaces")
-	functionsExclude = 	functionsCmd.Flags().StringSlice("exclude", nil, "(optional) A comma separated list of case-insensitive function names that you wish to exclude from table generation. Please don't include any spaces")
+	functionsDatabase = functionsCmd.Flags().String("database", "", "(required) Database URL")
+	functionsDirectory = functionsCmd.Flags().
+		String("directory", filepath.Join(currdir, "tables"), "(optional) Directory to place the generated file. Can be absolute or relative filepath")
+	functionsDryrun = functionsCmd.Flags().
+		Bool("dryrun", false, "(optional) Print the list of functions to be generated without generating the file")
+	functionsFile = functionsCmd.Flags().
+		String("file", "functions.go", "(optional) Name of the file to be generated. If file already exists, -overwrite flag must be specified to overwrite the file")
+	functionsOverwrite = functionsCmd.Flags().
+		Bool("overwrite", false, "(optional) Overwrite any files that already exist")
+	functionsPkg = functionsCmd.Flags().
+		String("pkg", "tables", "(optional) Package name of the file to be generated")
+	functionsSchemas = functionsCmd.Flags().
+		StringSlice("schemas", []string{"public"}, "(optional) A comma separated list of database schemas that you want to generate functions for. Please don't include any spaces")
+	functionsExclude = functionsCmd.Flags().
+		StringSlice("exclude", nil, "(optional) A comma separated list of case-insensitive function names that you wish to exclude from table generation. Please don't include any spaces")
 	// required flag
 	err = cobra.MarkFlagRequired(functionsCmd.LocalFlags(), "database")
 
@@ -120,11 +134,11 @@ func tablesRun(cmd *cobra.Command, args []string) error {
 
 	// dereference to get flag values
 	config := postgres.Config{
-		DB: db,
-		Package:  *tablesPkg,
-		Schemas:  *tablesSchemas,
-		Exclude:  *tablesExclude,
-		Logger:   log.New(os.Stderr, "", log.Ltime),
+		DB:      db,
+		Package: *tablesPkg,
+		Schemas: *tablesSchemas,
+		Exclude: *tablesExclude,
+		Logger:  log.New(os.Stderr, "", log.Ltime),
 	}
 
 	writer, err := getWriter(*tablesDryrun, *tablesOverwrite, *tablesDirectory, *tablesFile)
@@ -139,7 +153,7 @@ func tablesRun(cmd *cobra.Command, args []string) error {
 
 // functionsRun is the main function to be run with `sqgen-postgres functions`
 func functionsRun(cmd *cobra.Command, args []string) error {
-	db, err := openAndPing(*tablesDatabase)
+	db, err := openAndPing(*functionsDatabase)
 
 	if err != nil {
 		return err
@@ -147,14 +161,19 @@ func functionsRun(cmd *cobra.Command, args []string) error {
 
 	// dereference to get flag values
 	config := postgres.Config{
-		DB: db,
+		DB:      db,
 		Package: *functionsPkg,
 		Schemas: *functionsSchemas,
 		Exclude: *functionsExclude,
-		Logger: log.New(os.Stderr, "", log.Ltime),
+		Logger:  log.New(os.Stderr, "", log.Ltime),
 	}
 
-	writer, err := getWriter(*functionsDryrun, *functionsOverwrite, *functionsDirectory, *functionsFile)
+	writer, err := getWriter(
+		*functionsDryrun,
+		*functionsOverwrite,
+		*functionsDirectory,
+		*functionsFile,
+	)
 
 	if err != nil {
 		return err
@@ -186,7 +205,6 @@ func openAndPing(database string) (*sql.DB, error) {
 	return db, nil
 }
 
-
 func getWriter(dryrun, overwrite bool, directory, file string) (io.WriteCloser, error) {
 	if dryrun {
 		return os.Stdout, nil
@@ -198,7 +216,10 @@ func getWriter(dryrun, overwrite bool, directory, file string) (io.WriteCloser, 
 
 	asboluteFilePath := filepath.Join(directory, file)
 	if _, err := os.Stat(asboluteFilePath); err == nil && !overwrite {
-		return nil, fmt.Errorf("%s already exists. If you wish to overwrite it, provide the --overwrite flag", asboluteFilePath)
+		return nil, fmt.Errorf(
+			"%s already exists. If you wish to overwrite it, provide the --overwrite flag",
+			asboluteFilePath,
+		)
 	}
 
 	err := os.MkdirAll(directory, 0755)

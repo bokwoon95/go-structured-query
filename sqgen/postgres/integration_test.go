@@ -2,16 +2,16 @@ package postgres
 
 import (
 	"database/sql"
-	"os"
 	"fmt"
+	"log"
+	"os"
 	"strings"
 	"testing"
-	"log"
 
 	"github.com/DATA-DOG/go-txdb"
 	"github.com/joho/godotenv"
-	"github.com/matryer/is"
 	_ "github.com/lib/pq"
+	"github.com/matryer/is"
 )
 
 func init() {
@@ -23,7 +23,17 @@ func init() {
 	POSTGRES_PASSWORD := os.Getenv("POSTGRES_PASSWORD")
 	POSTGRES_PORT := os.Getenv("POSTGRES_PORT")
 	POSTGRES_NAME := os.Getenv("POSTGRES_NAME")
-	txdb.Register("txdb", "postgres", fmt.Sprintf("postgres://%s:%s@localhost:%s/%s?sslmode=disable", POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_PORT, POSTGRES_NAME))
+	txdb.Register(
+		"txdb",
+		"postgres",
+		fmt.Sprintf(
+			"postgres://%s:%s@localhost:%s/%s?sslmode=disable",
+			POSTGRES_USER,
+			POSTGRES_PASSWORD,
+			POSTGRES_PORT,
+			POSTGRES_NAME,
+		),
+	)
 
 }
 
@@ -866,11 +876,11 @@ func TestBuildTables(t *testing.T) {
 	is.NoErr(err)
 
 	config := Config{
-		DB: db,
+		DB:      db,
 		Package: "tables",
 		Schemas: []string{"public"},
 		Exclude: nil,
-		Logger: &mockLogger{},
+		Logger:  &mockLogger{},
 	}
 
 	var writer strings.Builder
