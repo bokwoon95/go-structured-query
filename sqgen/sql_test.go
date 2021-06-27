@@ -1,8 +1,9 @@
 package sqgen
 
 import (
-	"github.com/matryer/is"
 	"testing"
+
+	"github.com/matryer/is"
 )
 
 func TestSliceToSQL(t *testing.T) {

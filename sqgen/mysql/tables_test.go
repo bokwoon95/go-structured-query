@@ -1,8 +1,9 @@
 package mysql
 
 import (
-	"github.com/matryer/is"
 	"testing"
+
+	"github.com/matryer/is"
 )
 
 func TestBuildTablesQuery(t *testing.T) {
