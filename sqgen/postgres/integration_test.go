@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/DATA-DOG/go-txdb"
+	"github.com/bokwoon95/go-structured-query/sqgen"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 	"github.com/matryer/is"
@@ -52,7 +53,7 @@ func TestBuildTables(t *testing.T) {
 		Package: "tables",
 		Schemas: []string{"public"},
 		Exclude: nil,
-		Logger:  &mockLogger{},
+		Logger:  &sqgen.MockLogger{},
 	}
 
 	var writer strings.Builder
@@ -79,7 +80,7 @@ func TestBuildFunctions(t *testing.T) {
 		Package: "tables",
 		Schemas: []string{"public"},
 		Exclude: nil,
-		Logger:  &mockLogger{},
+		Logger:  &sqgen.MockLogger{},
 	}
 
 	var writer strings.Builder

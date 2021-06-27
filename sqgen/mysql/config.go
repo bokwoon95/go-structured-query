@@ -1,6 +1,10 @@
 package mysql
 
-import "database/sql"
+import (
+	"database/sql"
+
+	"github.com/bokwoon95/go-structured-query/sqgen"
+)
 
 type Config struct {
 	// (required) DB URL
@@ -12,10 +16,5 @@ type Config struct {
 	// Slice of case-insensitive table names or functions to exclude from generation
 	Exclude []string
 	// Used to log any skipped/unsupported column types
-	Logger Logger
-}
-
-type Logger interface {
-	Printf(format string, v ...interface{})
-	Println(v ...interface{})
+	Logger sqgen.Logger
 }

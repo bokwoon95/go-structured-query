@@ -8,6 +8,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/bokwoon95/go-structured-query/sqgen"
+
 	"github.com/DATA-DOG/go-txdb"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/joho/godotenv"
@@ -51,7 +53,7 @@ func TestBuildTables(t *testing.T) {
 		Package: "tables",
 		Schemas: []string{"devlab"},
 		Exclude: nil,
-		Logger:  &mockLogger{},
+		Logger:  &sqgen.MockLogger{},
 	}
 
 	var writer strings.Builder
