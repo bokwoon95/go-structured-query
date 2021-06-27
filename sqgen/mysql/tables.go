@@ -136,7 +136,7 @@ func executeTables(config Config, db *sql.DB) ([]Table, error) {
 	for _, fullTableName := range orderedTables {
 		table := tableMap[fullTableName]
 		isDuplicate := tableNameCount[table.Name] > 1
-		t := table.Populate(config, isDuplicate)
+		t := table.Populate(&config, isDuplicate)
 
 		tables = append(tables, t)
 	}
@@ -170,7 +170,7 @@ func buildTablesQuery(schemas, exclude []string) (string, []interface{}) {
 	return query, args
 }
 
-func (table Table) Populate(config Config, isDuplicate bool) Table {
+func (table Table) Populate(config *Config, isDuplicate bool) Table {
 	table.StructName = "TABLE_"
 
 	if table.RawType == "VIEW" {
@@ -191,12 +191,15 @@ func (table Table) Populate(config Config, isDuplicate bool) Table {
 		f := field.Populate()
 
 		if f.Type == "" {
-			config.Logger.Printf(
-				"Skipping %s.%s because type '%s' is unknown\n",
-				table.Name,
-				field.Name,
-				field.RawType,
-			)
+			if config != nil {
+				config.Logger.Printf(
+					"Skipping %s.%s because type '%s' is unknown\n",
+					table.Name,
+					field.Name,
+					field.RawType,
+				)
+			}
+
 			continue
 		}
 
