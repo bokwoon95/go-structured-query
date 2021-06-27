@@ -1,6 +1,7 @@
 package postgres
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/matryer/is"
@@ -61,6 +62,52 @@ func TestBuildFunctionsQuery(t *testing.T) {
 
 			is.Equal(query, tt.expectedQuery)
 			is.Equal(args, tt.expectedArgs)
+		})
+	}
+}
+
+func TestCheckProkindSupport(t *testing.T) {
+	type TT struct {
+		name string
+		version string
+		support bool
+		err error
+	}
+
+	tests := []TT{
+		{
+			name: "version above 11 has support",
+			version: "11.0.5",
+			support: true,
+			err: nil,
+		},
+		{
+			name: "version above 11 has support",
+			version: "12.0.5",
+			support: true,
+			err: nil,
+		},
+		{
+			name: "version below 11 does not support",
+			version: "9.5",
+			support: false,
+			err: nil,
+		},
+		{
+			name: "empty version returns error",
+			version: "",
+			support: false,
+			err: errors.New("could not find version number in string: ''"),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			is := is.New(t)
+
+			hasSupport, err := checkProkindSupport(tt.version)
+			is.Equal(hasSupport, tt.support)
+			is.Equal(err, tt.err)
 		})
 	}
 }

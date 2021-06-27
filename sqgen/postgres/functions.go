@@ -80,7 +80,11 @@ func executeFunctions(config Config) ([]Function, error) {
 		return nil, sqgen.Wrap(err)
 	}
 
-	supportsProkind := checkProkindSupport(pgVersion)
+	supportsProkind, err := checkProkindSupport(pgVersion)
+
+	if err != nil {
+		return nil, sqgen.Wrap(err)
+	}
 
 	query, args := buildFunctionsQuery(config.Schemas, config.Exclude, supportsProkind)
 
@@ -232,12 +236,12 @@ func queryPgVersion(db *sql.DB) (string, error) {
 	return version, nil
 }
 
-func checkProkindSupport(version string) bool {
+func checkProkindSupport(version string) (bool, error) {
 	re := regexp.MustCompile(`(\d{1,2})\..*`)
 	matches := re.FindStringSubmatch(version)
 
 	if len(matches) < 2 {
-		panic("version matches not long enough")
+		return false, fmt.Errorf("could not find version number in string: '%s'", version)
 	}
 
 	// 0th match is the whole regexp
@@ -247,10 +251,10 @@ func checkProkindSupport(version string) bool {
 	majorVersion, err := strconv.Atoi(majorVersionStr)
 
 	if err != nil {
-		panic(err)
+		return false, err
 	}
 
-	return majorVersion >= 11
+	return majorVersion >= 11, nil
 }
 
 // isDuplicate refers to if the function name is duplicated in an other schema
