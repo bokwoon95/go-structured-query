@@ -111,3 +111,67 @@ func TestCheckProkindSupport(t *testing.T) {
 		})
 	}
 }
+
+func TestIsArrayType(t *testing.T) {
+	type TT struct {
+		name string
+		matches []string
+		result bool
+	}
+
+	tests := []TT{
+		{
+			name: "empty array",
+			matches: nil,
+			result: false,
+		},
+		{
+			name: "non-array second match",
+			matches: []string{"text", "(1)"},
+			result: false,
+		},
+		{
+			name: "array second match",
+			matches: []string{"text", "[]"},
+			result: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			is := is.New(t)
+			is.Equal(isArrayType(tt.matches), tt.result)
+		})
+	}
+}
+
+func TestGetFieldName(t *testing.T) {
+	type TT struct {
+		name string
+		rawField string
+		matches []string
+		result string
+	}
+
+	tests := []TT{
+		{
+			name: "text field",
+			rawField: "text",
+			matches: []string{"text", ""},
+			result: "text",
+		},
+		{
+			name: "text field with leading space",
+			rawField: " text",
+			matches: []string{"text", ""},
+			result: "text",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			is := is.New(t)
+			is.Equal(getFieldName(tt.rawField, tt.matches), tt.result)
+		})
+	}
+}
