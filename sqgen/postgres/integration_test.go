@@ -56,8 +56,9 @@ func TestBuildTables(t *testing.T) {
 	}
 
 	var writer strings.Builder
-	err = BuildTables(config, &writer)
+	numTables, err := BuildTables(config, &writer)
 	is.NoErr(err)
+	is.Equal(numTables, 27)
 
 	out := writer.String()
 	is.Equal(out, expectedTables)
@@ -82,8 +83,9 @@ func TestBuildFunctions(t *testing.T) {
 	}
 
 	var writer strings.Builder
-	err = BuildFunctions(config, &writer)
+	numFunctions, err := BuildFunctions(config, &writer)
 	is.NoErr(err)
+	is.Equal(numFunctions, 34)
 
 	out := writer.String()
 	is.Equal(out, expectedFunctions)

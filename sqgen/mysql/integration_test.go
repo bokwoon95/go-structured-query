@@ -9,8 +9,8 @@ import (
 	"testing"
 
 	"github.com/DATA-DOG/go-txdb"
-	"github.com/joho/godotenv"
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/joho/godotenv"
 	"github.com/matryer/is"
 )
 
@@ -23,7 +23,17 @@ func init() {
 	MYSQL_PASSWORD := os.Getenv("MYSQL_PASSWORD")
 	MYSQL_PORT := os.Getenv("MYSQL_PORT")
 	MYSQL_NAME := os.Getenv("MYSQL_NAME")
-	txdb.Register("txdb", "mysql", fmt.Sprintf("%s:%s@tcp(127.0.0.1:%s)/%s?parseTime=true", MYSQL_USER, MYSQL_PASSWORD, MYSQL_PORT, MYSQL_NAME))
+	txdb.Register(
+		"txdb",
+		"mysql",
+		fmt.Sprintf(
+			"%s:%s@tcp(127.0.0.1:%s)/%s?parseTime=true",
+			MYSQL_USER,
+			MYSQL_PASSWORD,
+			MYSQL_PORT,
+			MYSQL_NAME,
+		),
+	)
 }
 
 func TestBuildTables(t *testing.T) {
@@ -37,20 +47,19 @@ func TestBuildTables(t *testing.T) {
 	is.NoErr(err)
 
 	config := Config{
-		DB: db,
+		DB:      db,
 		Package: "tables",
 		Schemas: []string{"devlab"},
 		Exclude: nil,
-		Logger: &mockLogger{},
+		Logger:  &mockLogger{},
 	}
 
 	var writer strings.Builder
-	err = BuildTables(config, &writer)
-	
+	numTables, err := BuildTables(config, &writer)
 	is.NoErr(err)
+	is.Equal(numTables, 27)
 
 	out := writer.String()
-
 	is.Equal(out, expectedTables)
 }
 
