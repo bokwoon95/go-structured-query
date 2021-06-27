@@ -94,7 +94,6 @@ func (tbl USERS) As(alias string) USERS {
 	is.Equal(out, expected)
 
 	// checks that the go parser can parse the contents of out to an AST
-	// returns errors if it encounters any errors
 	fs := token.NewFileSet()
 	_, err = parser.ParseFile(fs, "", out, parser.AllErrors)
 	is.NoErr(err)

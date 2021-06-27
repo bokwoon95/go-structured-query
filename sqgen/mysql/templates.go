@@ -34,14 +34,14 @@ import (
 {{- define "table_struct_definition"}}
 {{- with $table := .}}
 {{- if eq $table.RawType "BASE TABLE"}}
-// {{export table.StructName}} references the {{$table.Schema}}.{{quoteSpace $table.Name}} table.
+// {{export $table.StructName}} references the {{$table.Schema}}.{{quoteSpace $table.Name}} table.
 {{- else if eq $table.RawType "VIEW"}}
-// {{export table.StructName}} references the {{$table.Schema}}.{{quoteSpace $table.Name}} view.
+// {{export $table.StructName}} references the {{$table.Schema}}.{{quoteSpace $table.Name}} view.
 {{- end}}
-type {{export table.StructName}} struct {
+type {{export $table.StructName}} struct {
 	*sq.TableInfo
 	{{- range $_, $field := $table.Fields}}
-	{{export field.Name}} {{$field.Type}}
+	{{export $field.Name}} {{$field.Type}}
 	{{- end}}
 }
 {{- end}}
@@ -50,17 +50,17 @@ type {{export table.StructName}} struct {
 {{- define "table_constructor"}}
 {{- with $table := .}}
 {{- if eq $table.RawType "BASE TABLE"}}
-// {{export table.Constructor}} creates an instance of the {{$table.Schema}}.{{$table.Name.QuoteSpace}} table.
+// {{export $table.Constructor}} creates an instance of the {{$table.Schema}}.{{quoteSpace $table.Name}} table.
 {{- else if eq $table.RawType "VIEW"}}
-// {{export table.Constructor}} creates an instance of the {{$table.Schema}}.{{$table.Name.QuoteSpace}} view.
+// {{export $table.Constructor}} creates an instance of the {{$table.Schema}}.{{quoteSpace $table.Name}} view.
 {{- end}}
-func {{export table.Constructor}}() {{export table.StructName}} {
-	tbl := {{export table.StructName}}{TableInfo: &sq.TableInfo{
+func {{export $table.Constructor}}() {{export $table.StructName}} {
+	tbl := {{export $table.StructName}}{TableInfo: &sq.TableInfo{
 		Schema: "{{$table.Schema}}",
 		Name: "{{$table.Name}}",
 	},}
 	{{- range $_, $field := $table.Fields}}
-	tbl.{{export field.Name}} = {{$field.Constructor}}("{{$field.Name}}", tbl.TableInfo)
+	tbl.{{export $field.Name}} = {{$field.Constructor}}("{{$field.Name}}", tbl.TableInfo)
 	{{- end}}
 	return tbl
 }
@@ -74,7 +74,7 @@ func {{export table.Constructor}}() {{export table.StructName}} {
 {{- else if eq $table.RawType "VIEW"}}
 // As modifies the alias of the underlying view.
 {{- end}}
-func (tbl {{export table.StructName}}) As(alias string) {{export table.StructName}} {
+func (tbl {{export $table.StructName}}) As(alias string) {{export $table.StructName}} {
 	tbl.TableInfo.Alias = alias
 	return tbl
 }
