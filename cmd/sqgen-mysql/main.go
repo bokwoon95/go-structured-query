@@ -117,10 +117,20 @@ func tablesRun(cmd *cobra.Command, args []string) error {
 
 	defer writer.Close()
 
-	return mysql.BuildTables(config, writer)
+	numTables, err := mysql.BuildTables(config, writer)
+
+	if err != nil {
+		return err
+	}
+
+	if !*tablesDryrun {
+		fmt.Printf("[RESULT] %d tables written into %s\n", numTables, writer.Name())
+	}
+
+	return nil
 }
 
-func getWriter(dryrun, overwrite bool, directory, file string) (io.WriteCloser, error) {
+func getWriter(dryrun, overwrite bool, directory, file string) (*os.File, error) {
 	if dryrun {
 		return os.Stdout, nil
 	}

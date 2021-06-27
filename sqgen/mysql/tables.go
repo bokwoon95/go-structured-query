@@ -31,11 +31,11 @@ type TableField struct {
 	Constructor string
 }
 
-func BuildTables(config Config, writer io.Writer) error {
+func BuildTables(config Config, writer io.Writer) (int, error) {
 	tables, err := executeTables(config)
 
 	if err != nil {
-		return sqgen.Wrap(err)
+		return 0, sqgen.Wrap(err)
 	}
 
 	templateData := TablesTemplateData{
@@ -49,25 +49,25 @@ func BuildTables(config Config, writer io.Writer) error {
 	t, err := getTablesTemplate()
 
 	if err != nil {
-		return sqgen.Wrap(err)
+		return 0, sqgen.Wrap(err)
 	}
 
 	var buf bytes.Buffer
 	err = t.Execute(&buf, templateData)
 
 	if err != nil {
-		return sqgen.Wrap(err)
+		return 0, sqgen.Wrap(err)
 	}
 
 	src, err := sqgen.FormatOutput(buf.Bytes())
 
 	if err != nil {
-		return sqgen.Wrap(err)
+		return 0, sqgen.Wrap(err)
 	}
 
 	_, err = writer.Write(src)
 
-	return err
+	return len(tables), err
 }
 
 func executeTables(config Config) ([]Table, error) {

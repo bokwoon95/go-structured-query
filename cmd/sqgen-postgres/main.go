@@ -148,7 +148,16 @@ func tablesRun(cmd *cobra.Command, args []string) error {
 	}
 
 	defer writer.Close()
-	return postgres.BuildTables(config, writer)
+	numTables, err := postgres.BuildTables(config, writer)
+
+	if err != nil {
+		return err
+	}
+
+	if !*tablesDryrun {
+		fmt.Printf("[RESULT] %d tables written into %s\n", numTables, writer.Name())
+	}
+	return nil
 }
 
 // functionsRun is the main function to be run with `sqgen-postgres functions`
@@ -181,8 +190,17 @@ func functionsRun(cmd *cobra.Command, args []string) error {
 
 	defer writer.Close()
 
-	return postgres.BuildFunctions(config, writer)
+	numFunctions, err := postgres.BuildFunctions(config, writer)
 
+	if err != nil {
+		return err
+	}
+
+	if !*functionsDryrun {
+		fmt.Printf("[RESULT] %d functions written into %s\n", numFunctions, writer.Name())
+	}
+
+	return nil
 }
 
 func openAndPing(database string) (*sql.DB, error) {
@@ -205,7 +223,7 @@ func openAndPing(database string) (*sql.DB, error) {
 	return db, nil
 }
 
-func getWriter(dryrun, overwrite bool, directory, file string) (io.WriteCloser, error) {
+func getWriter(dryrun, overwrite bool, directory, file string) (*os.File, error) {
 	if dryrun {
 		return os.Stdout, nil
 	}
@@ -228,7 +246,6 @@ func getWriter(dryrun, overwrite bool, directory, file string) (io.WriteCloser, 
 	}
 
 	filename := filepath.Join(directory, file)
-
 	return os.OpenFile(filename, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
 }
 

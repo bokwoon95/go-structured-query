@@ -34,11 +34,11 @@ type FunctionField struct {
 	Constructor string
 }
 
-func BuildFunctions(config Config, writer io.Writer) error {
+func BuildFunctions(config Config, writer io.Writer) (int, error) {
 	functions, err := executeFunctions(config)
 
 	if err != nil {
-		return sqgen.Wrap(err)
+		return 0, sqgen.Wrap(err)
 	}
 
 	templateData := FunctionsTemplateData{
@@ -52,25 +52,25 @@ func BuildFunctions(config Config, writer io.Writer) error {
 	t, err := getFunctionsTemplate()
 
 	if err != nil {
-		return sqgen.Wrap(err)
+		return 0, sqgen.Wrap(err)
 	}
 
 	var buf bytes.Buffer
 	err = t.Execute(&buf, templateData)
 
 	if err != nil {
-		return sqgen.Wrap(err)
+		return 0, sqgen.Wrap(err)
 	}
 
 	src, err := sqgen.FormatOutput(buf.Bytes())
 
 	if err != nil {
-		return err
+		return 0, err
 	}
 
 	_, err = writer.Write(src)
 
-	return err
+	return len(functions), err
 }
 
 func executeFunctions(config Config) ([]Function, error) {
