@@ -383,18 +383,65 @@ func (function Function) Populate(isDuplicate bool, overloadCount int) (*Functio
 	return &function, nil
 }
 
+// patterns used to match the types of arguments/return types of a function
+var (
+	// optionally matches a [] at the end of a type in a capturing group
+	ArrayPattern = `(\[\])?`
+	FieldPatternBoolean = regexp.MustCompile(`boolean` + ArrayPattern + `$`)
+	FieldPatternJSON = regexp.MustCompile(`json` + `(?:b)?` + ArrayPattern + `$`)
+	FieldPatternInt = regexp.MustCompile(
+		`(?:` + `smallint` +
+		`|` + `oid` +
+		`|` + `integer` +
+		`|` + `bigint` +
+		`|` + `smallserial` +
+		`|` + `serial` +
+		`|` + `bigserial` + `)` +
+		ArrayPattern +
+		`$`,
+	)
+	FieldPatternFloat = regexp.MustCompile(
+		`(?:` + `decimal` +
+		`|` + `numeric` +
+		`|` + `real` +
+		`|` + `double precision` + `)` +
+		ArrayPattern +
+		`$`,
+	)
+	FieldPatternString = regexp.MustCompile(
+		`(?:` + `text` +
+		`|` + `name` +
+		`|` + `char` + `(?:\(\d+\))?` +
+		`|` + `character` + `(?:\(\d+\))?` +
+		`|` + `varchar` + `(?:\(\d+\))?` +
+		`|` + `character varying` + `(?:\(\d+\))?` + `)` +
+		ArrayPattern +
+		`$`,
+	)
+	FieldPatternTime = regexp.MustCompile(
+		`(?:` + `date` +
+		`|` + `(?:time|timestamp)` +
+		`(?: \(\d+\))?` +
+		`(?: without time zone| with time zone)?` + `)` +
+		ArrayPattern +
+		`$`,
+	)
+	FieldPatternBinary = regexp.MustCompile(
+		`bytea` +
+		`(\[\])?` +
+		`$`,
+	)
+)
+
 func extractNameAndType(rawField string) FunctionField {
 	var field FunctionField
 	field.RawField = strings.TrimSpace(rawField)
-	if matches := regexp.
-		MustCompile(`boolean` +
-			`(\[\])?` +
-			`$`).
+	if matches := FieldPatternBoolean.
 		FindStringSubmatch(field.RawField); len(matches) == 2 {
 		// fmt.Println(rawField, matches)
 		// Boolean
-		field.Name = strings.TrimSpace(rawField[:len(rawField)-len(matches[0])])
-		if matches[1] == "[]" {
+		field.Name = getFieldName(rawField, matches)
+		if isArrayType(matches) {
 			field.FieldType = FieldTypeArray
 			field.GoType = GoTypeBoolSlice
 			field.Constructor = FieldConstructorArray
@@ -404,15 +451,12 @@ func extractNameAndType(rawField string) FunctionField {
 			field.Constructor = FieldConstructorBoolean
 		}
 
-	} else if matches := regexp.
-		MustCompile(`json` + `(?:b)?` +
-			`(\[\])?` +
-			`$`).
+	} else if matches := FieldPatternJSON.
 		FindStringSubmatch(field.RawField); len(matches) == 2 {
 		// fmt.Println(rawField, matches)
 		// JSON
-		field.Name = strings.TrimSpace(rawField[:len(rawField)-len(matches[0])])
-		if matches[1] == "[]" {
+		field.Name = getFieldName(rawField, matches)
+		if isArrayType(matches) {
 			field.FieldType = FieldTypeArray
 			field.GoType = GoTypeInterface
 			field.Constructor = FieldConstructorArray
@@ -422,21 +466,12 @@ func extractNameAndType(rawField string) FunctionField {
 			field.Constructor = FieldConstructorJSON
 		}
 
-	} else if matches := regexp.
-		MustCompile(`(?:` + `smallint` +
-			`|` + `oid` +
-			`|` + `integer` +
-			`|` + `bigint` +
-			`|` + `smallserial` +
-			`|` + `serial` +
-			`|` + `bigserial` + `)` +
-			`(\[\])?` +
-			`$`).
+	} else if matches := FieldPatternInt.
 		FindStringSubmatch(field.RawField); len(matches) == 2 {
 		// fmt.Println(rawField, matches)
 		// Integer
-		field.Name = strings.TrimSpace(rawField[:len(rawField)-len(matches[0])])
-		if matches[1] == "[]" {
+		field.Name = getFieldName(rawField, matches)
+		if isArrayType(matches) {
 			field.FieldType = FieldTypeArray
 			field.GoType = GoTypeIntSlice
 			field.Constructor = FieldConstructorArray
@@ -446,18 +481,12 @@ func extractNameAndType(rawField string) FunctionField {
 			field.Constructor = FieldConstructorNumber
 		}
 
-	} else if matches := regexp.
-		MustCompile(`(?:` + `decimal` +
-			`|` + `numeric` +
-			`|` + `real` +
-			`|` + `double precision` + `)` +
-			`(\[\])?` +
-			`$`).
+	} else if matches := FieldPatternFloat.
 		FindStringSubmatch(field.RawField); len(matches) == 2 {
 		// fmt.Println(rawField, matches)
 		// Float
-		field.Name = strings.TrimSpace(rawField[:len(rawField)-len(matches[0])])
-		if matches[1] == "[]" {
+		field.Name = getFieldName(rawField, matches)
+		if isArrayType(matches) {
 			field.FieldType = FieldTypeArray
 			field.GoType = GoTypeFloat64Slice
 			field.Constructor = FieldConstructorArray
@@ -467,20 +496,12 @@ func extractNameAndType(rawField string) FunctionField {
 			field.Constructor = FieldConstructorNumber
 		}
 
-	} else if matches := regexp.
-		MustCompile(`(?:` + `text` +
-			`|` + `name` +
-			`|` + `char` + `(?:\(\d+\))?` +
-			`|` + `character` + `(?:\(\d+\))?` +
-			`|` + `varchar` + `(?:\(\d+\))?` +
-			`|` + `character varying` + `(?:\(\d+\))?` + `)` +
-			`(\[\])?` +
-			`$`).
+	} else if matches := FieldPatternString.
 		FindStringSubmatch(field.RawField); len(matches) == 2 {
 		// fmt.Println(rawField, matches)
 		// String
-		field.Name = strings.TrimSpace(rawField[:len(rawField)-len(matches[0])])
-		if matches[1] == "[]" {
+		field.Name = getFieldName(rawField, matches)
+		if isArrayType(matches) {
 			field.FieldType = FieldTypeArray
 			field.GoType = GoTypeStringSlice
 			field.Constructor = FieldConstructorArray
@@ -490,18 +511,12 @@ func extractNameAndType(rawField string) FunctionField {
 			field.Constructor = FieldConstructorString
 		}
 
-	} else if matches := regexp.
-		MustCompile(`(?:` + `date` +
-			`|` + `(?:time|timestamp)` +
-			`(?: \(\d+\))?` +
-			`(?: without time zone| with time zone)?` + `)` +
-			`(\[\])?` +
-			`$`).
+	} else if matches := FieldPatternTime.
 		FindStringSubmatch(field.RawField); len(matches) == 2 {
 		// fmt.Println(rawField, matches)
 		// Time
-		field.Name = strings.TrimSpace(rawField[:len(rawField)-len(matches[0])])
-		if matches[1] == "[]" {
+		field.Name = getFieldName(rawField, matches)
+		if isArrayType(matches) {
 			// Do nothing
 		} else {
 			field.FieldType = FieldTypeTime
@@ -509,12 +524,9 @@ func extractNameAndType(rawField string) FunctionField {
 			field.Constructor = FieldConstructorTime
 		}
 
-	} else if matches := regexp.
-		MustCompile(`bytea` +
-			`(\[\])?` +
-			`$`).
+	} else if matches := FieldPatternBinary.
 		FindStringSubmatch(field.RawField); len(matches) == 2 {
-		if matches[1] == "[]" {
+		if isArrayType(matches) {
 			// Do nothing
 		} else {
 			field.FieldType = FieldTypeBinary
@@ -522,5 +534,16 @@ func extractNameAndType(rawField string) FunctionField {
 			field.Constructor = FieldConstructorBinary
 		}
 	}
+
 	return field
+}
+
+func isArrayType(matches []string) bool {
+	return len(matches) > 2 && matches[1] == "[]"
+}
+
+// parses the name of the field from the rawField name, and the matches from the first regex capturing group
+func getFieldName(rawField string, matches []string) string {
+	endNameIdx := len(rawField) - len(matches[0])
+	return strings.TrimSpace(rawField[:endNameIdx])
 }
