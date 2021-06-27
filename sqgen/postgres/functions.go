@@ -539,7 +539,7 @@ func extractNameAndType(rawField string) FunctionField {
 }
 
 func isArrayType(matches []string) bool {
-	return len(matches) > 2 && matches[1] == "[]"
+	return len(matches) > 1 && matches[1] == "[]"
 }
 
 // parses the name of the field from the rawField name, and the matches from the first regex capturing group
