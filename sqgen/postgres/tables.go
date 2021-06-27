@@ -3,7 +3,6 @@ package postgres
 
 import (
 	"bytes"
-	"database/sql"
 	"io"
 	"strings"
 
@@ -27,13 +26,7 @@ type TableField struct {
 }
 
 func BuildTables(config Config, writer io.Writer) error {
-	db, err := openAndPing(config.Database)
-
-	if err != nil {
-		return sqgen.Wrap(err)
-	}
-
-	tables, err := executeTables(config, db)
+	tables, err := executeTables(config)
 
 	if err != nil {
 		return sqgen.Wrap(err)
@@ -70,11 +63,11 @@ func BuildTables(config Config, writer io.Writer) error {
 	return err
 }
 
-func executeTables(config Config, db *sql.DB) ([]Table, error) {
+func executeTables(config Config) ([]Table, error) {
 	// Prepare the query and args
 	query, args := buildTablesQuery(config.Schemas, config.Exclude)
 	// Query the database and aggregate the results into a []Table slice
-	rows, err := db.Query(query, args...)
+	rows, err := config.DB.Query(query, args...)
 
 	if err != nil {
 		return nil, sqgen.Wrap(err)

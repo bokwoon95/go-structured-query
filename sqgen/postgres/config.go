@@ -1,8 +1,10 @@
 package postgres
 
+import "database/sql"
+
 type Config struct {
-	// (required) Database URL
-	Database string
+	// (required) DB URL
+	DB *sql.DB
 	// Package name of the file to be generated
 	Package string
 	// Slice of database schemas that you want to generate tables for

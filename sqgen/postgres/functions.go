@@ -35,13 +35,7 @@ type FunctionField struct {
 }
 
 func BuildFunctions(config Config, writer io.Writer) error {
-	db, err := openAndPing(config.Database)
-
-	if err != nil {
-		return sqgen.Wrap(err)
-	}
-
-	functions, err := executeFunctions(config, db)
+	functions, err := executeFunctions(config)
 
 	if err != nil {
 		return sqgen.Wrap(err)
@@ -79,8 +73,8 @@ func BuildFunctions(config Config, writer io.Writer) error {
 	return err
 }
 
-func executeFunctions(config Config, db *sql.DB) ([]Function, error) {
-	pgVersion, err := queryPgVersion(db)
+func executeFunctions(config Config) ([]Function, error) {
+	pgVersion, err := queryPgVersion(config.DB)
 
 	if err != nil {
 		return nil, sqgen.Wrap(err)
@@ -90,7 +84,7 @@ func executeFunctions(config Config, db *sql.DB) ([]Function, error) {
 
 	query, args := buildFunctionsQuery(config.Schemas, config.Exclude, supportsProkind)
 
-	rows, err := db.Query(query, args...)
+	rows, err := config.DB.Query(query, args...)
 
 	if err != nil {
 		return nil, sqgen.Wrap(err)

@@ -7,9 +7,11 @@ import (
 	"os"
 	"strings"
 	"path/filepath"
+	"database/sql"
 
 	"github.com/bokwoon95/go-structured-query/sqgen/postgres"
 	"github.com/spf13/cobra"
+	_ "github.com/lib/pq"
 )
 
 func main() {
@@ -110,9 +112,15 @@ func init() {
 
 // tablesRun is the main function to be run with `sqgen-postgres tables`
 func tablesRun(cmd *cobra.Command, args []string) error {
+	db, err := openAndPing(*tablesDatabase)
+
+	if err != nil {
+		return err
+	}
+
 	// dereference to get flag values
 	config := postgres.Config{
-		Database: *tablesDatabase,
+		DB: db,
 		Package:  *tablesPkg,
 		Schemas:  *tablesSchemas,
 		Exclude:  *tablesExclude,
@@ -131,10 +139,15 @@ func tablesRun(cmd *cobra.Command, args []string) error {
 
 // functionsRun is the main function to be run with `sqgen-postgres functions`
 func functionsRun(cmd *cobra.Command, args []string) error {
-	// dereference to get flag values
+	db, err := openAndPing(*tablesDatabase)
 
+	if err != nil {
+		return err
+	}
+
+	// dereference to get flag values
 	config := postgres.Config{
-		Database: *functionsDatabase,
+		DB: db,
 		Package: *functionsPkg,
 		Schemas: *functionsSchemas,
 		Exclude: *functionsExclude,
@@ -152,6 +165,27 @@ func functionsRun(cmd *cobra.Command, args []string) error {
 	return postgres.BuildFunctions(config, writer)
 
 }
+
+func openAndPing(database string) (*sql.DB, error) {
+	db, err := sql.Open("postgres", database)
+
+	if err != nil {
+		return nil, err
+	}
+
+	err = db.Ping()
+
+	if err != nil {
+		return nil, fmt.Errorf(
+			"Could not ping the database, is the database reachable via %s? %w",
+			database,
+			err,
+		)
+	}
+
+	return db, nil
+}
+
 
 func getWriter(dryrun, overwrite bool, directory, file string) (io.WriteCloser, error) {
 	if dryrun {
