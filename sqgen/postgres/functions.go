@@ -185,11 +185,11 @@ func buildFunctionsQuery(schemas, exclude []string, supportsProkind bool) (strin
 	// support for prokind column in pg_proc changed in postgres 11
 	// supportsProkind param indicates if that column on pg_proc is supported
 	if supportsProkind {
-		query += "  AND p.prokind = 'f'"
+		query += " AND p.prokind = 'f'"
 	} else {
 		// p.prokind also rules out any procedures... use the p.prorettype <> 0 check to remove procedures from result set
 		// see: https://git.postgresql.org/gitweb/?p=postgresql.git;a=commitdiff;h=fd1a421fe66173fb9b85d3fe150afde8e812cbe4
-		query += "  AND p.proisagg = false AND p.proiswindow = false AND p.prorettype <> 0"
+		query += " AND p.proisagg = false AND p.proiswindow = false AND p.prorettype <> 0"
 	}
 
 	if len(exclude) > 0 {
@@ -197,7 +197,7 @@ func buildFunctionsQuery(schemas, exclude []string, supportsProkind bool) (strin
 	}
 
 	// sql custom ordering: https://stackoverflow.com/q/4088532
-	query += "ORDER BY n.nspname <> 'public', n.nspname, p.proname"
+	query += " ORDER BY n.nspname <> 'public', n.nspname, p.proname"
 
 	q := replacePlaceholders(query)
 
