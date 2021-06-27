@@ -27,9 +27,9 @@ func TestTablesTemplate(t *testing.T) {
 			{
 				Name:        "users",
 				Schema:      "public",
-				StructName:  "USERS",
+				StructName:  "TABLE_USERS",
 				RawType:     "BASE TABLE",
-				Constructor: "TABLE_USERS",
+				Constructor: "USERS",
 				Fields: []TableField{
 					{
 						Name:        "id",
@@ -66,17 +66,17 @@ import (
 	sq "github.com/bokwoon95/go-structured-query"
 )
 
-// USERS references the public.users table.
-type USERS struct {
+// TABLE_USERS references the public.users table.
+type TABLE_USERS struct {
 	*sq.TableInfo
 	ID sq.NumberField
 	FIRST_NAME sq.StringField
 	DATE_CREATED sq.TimeField
 }
 
-// TABLE_USERS creates an instance of the public.users table.
-func TABLE_USERS() USERS {
-	tbl := USERS{TableInfo: &sq.TableInfo{
+// USERS creates an instance of the public.users table.
+func USERS() TABLE_USERS {
+	tbl := TABLE_USERS{TableInfo: &sq.TableInfo{
 		Schema: "public",
 		Name: "users",
 	},}
@@ -87,7 +87,7 @@ func TABLE_USERS() USERS {
 }
 
 // As modifies the alias of the underlying table.
-func (tbl USERS) As(alias string) USERS {
+func (tbl TABLE_USERS) As(alias string) TABLE_USERS {
 	tbl.TableInfo.Alias = alias
 	return tbl
 }`
