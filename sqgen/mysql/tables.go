@@ -199,11 +199,21 @@ func (table Table) Populate(config *Config, isDuplicate bool) Table {
 					field.RawType,
 				)
 			}
-
 			continue
 		}
 
-		fields = append(fields, field)
+		if strings.ToLower(f.Name) != f.Name {
+			if config != nil {
+				config.Logger.Printf(
+					"Skipping %s.%s because column name is case sensitive\n",
+					table.Name,
+					field.Name,
+				)
+			}
+			continue
+		}
+
+		fields = append(fields, f)
 	}
 
 	table.Fields = fields
