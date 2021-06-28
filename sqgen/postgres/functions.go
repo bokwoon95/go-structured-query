@@ -418,9 +418,10 @@ var (
 	)
 	FieldPatternTime = regexp.MustCompile(
 		`(?:` + `date` +
-		`|` + `(?:time|timestamp)` +
+		`|` + "timestamp" +
+		`|` + "time" + ")" +
 		`(?: \(\d+\))?` +
-		`(?: without time zone| with time zone)?` + `)` +
+		`(?: without time zone| with time zone)?` +
 		ArrayPattern,
 	)
 	FieldPatternBinary = regexp.MustCompile(
