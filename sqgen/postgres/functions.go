@@ -523,6 +523,7 @@ func extractNameAndType(rawField string) FunctionField {
 
 	} else if matches := FieldPatternBinary.
 		FindStringSubmatch(field.RawField); len(matches) == 2 {
+		field.Name = getFieldName(rawField, matches)
 		if isArrayType(matches) {
 			// Do nothing
 		} else {
