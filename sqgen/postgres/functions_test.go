@@ -68,36 +68,36 @@ func TestBuildFunctionsQuery(t *testing.T) {
 
 func TestCheckProkindSupport(t *testing.T) {
 	type TT struct {
-		name string
+		name    string
 		version string
 		support bool
-		err error
+		err     error
 	}
 
 	tests := []TT{
 		{
-			name: "version above 11 has support",
+			name:    "version above 11 has support",
 			version: "11.0.5",
 			support: true,
-			err: nil,
+			err:     nil,
 		},
 		{
-			name: "version above 11 has support",
+			name:    "version above 11 has support",
 			version: "12.0.5",
 			support: true,
-			err: nil,
+			err:     nil,
 		},
 		{
-			name: "version below 11 does not support",
+			name:    "version below 11 does not support",
 			version: "9.5",
 			support: false,
-			err: nil,
+			err:     nil,
 		},
 		{
-			name: "empty version returns error",
+			name:    "empty version returns error",
 			version: "",
 			support: false,
-			err: errors.New("could not find version number in string: ''"),
+			err:     errors.New("could not find version number in string: ''"),
 		},
 	}
 
@@ -114,26 +114,26 @@ func TestCheckProkindSupport(t *testing.T) {
 
 func TestIsArrayType(t *testing.T) {
 	type TT struct {
-		name string
+		name    string
 		matches []string
-		result bool
+		result  bool
 	}
 
 	tests := []TT{
 		{
-			name: "empty array",
+			name:    "empty array",
 			matches: nil,
-			result: false,
+			result:  false,
 		},
 		{
-			name: "non-array second match",
+			name:    "non-array second match",
 			matches: []string{"text", "(1)"},
-			result: false,
+			result:  false,
 		},
 		{
-			name: "array second match",
+			name:    "array second match",
 			matches: []string{"text", "[]"},
-			result: true,
+			result:  true,
 		},
 	}
 
@@ -147,36 +147,36 @@ func TestIsArrayType(t *testing.T) {
 
 func TestGetFieldName(t *testing.T) {
 	type TT struct {
-		name string
+		name     string
 		rawField string
-		matches []string
-		result string
+		matches  []string
+		result   string
 	}
 
 	tests := []TT{
 		{
-			name: "text field",
+			name:     "text field",
 			rawField: "col text",
-			matches: []string{"text", ""},
-			result: "col",
+			matches:  []string{"text", ""},
+			result:   "col",
 		},
 		{
-			name: "text field with leading space returns empty",
+			name:     "text field with leading space returns empty",
 			rawField: " text",
-			matches: []string{"text", ""},
-			result: "",
+			matches:  []string{"text", ""},
+			result:   "",
 		},
 		{
-			name: "integer field with trailing whitespace",
+			name:     "integer field with trailing whitespace",
 			rawField: "col integer",
-			matches: []string{"integer", ""},
-			result: "col",
+			matches:  []string{"integer", ""},
+			result:   "col",
 		},
 		{
-			name: "integer field with leading space returns empty",
+			name:     "integer field with leading space returns empty",
 			rawField: " integer",
-			matches: []string{"integer", ""},
-			result: "",
+			matches:  []string{"integer", ""},
+			result:   "",
 		},
 	}
 
@@ -190,97 +190,97 @@ func TestGetFieldName(t *testing.T) {
 
 func TestExtractNameAndType(t *testing.T) {
 	type TT struct {
-		name string
+		name     string
 		rawField string
-		result FunctionField
+		result   FunctionField
 	}
 
 	tests := []TT{
 		{
-			name: "anon boolean field",
+			name:     "anon boolean field",
 			rawField: " boolean",
 			result: FunctionField{
-				Name: "",
-				RawField: "boolean",
-				FieldType: FieldTypeBoolean,
-				GoType: GoTypeBool,
+				Name:        "",
+				RawField:    "boolean",
+				FieldType:   FieldTypeBoolean,
+				GoType:      GoTypeBool,
 				Constructor: FieldConstructorBoolean,
 			},
 		},
 		{
-			name: "named boolean field",
+			name:     "named boolean field",
 			rawField: "flag boolean",
 			result: FunctionField{
-				Name: "flag",
-				RawField: "flag boolean",
-				FieldType: FieldTypeBoolean,
-				GoType: GoTypeBool,
+				Name:        "flag",
+				RawField:    "flag boolean",
+				FieldType:   FieldTypeBoolean,
+				GoType:      GoTypeBool,
 				Constructor: FieldConstructorBoolean,
 			},
 		},
 		{
-			name: "boolean slice field",
+			name:     "boolean slice field",
 			rawField: "flags boolean[]",
 			result: FunctionField{
-				Name: "flags",
-				RawField: "flags boolean[]",
-				FieldType: FieldTypeArray,
-				GoType: GoTypeBoolSlice,
+				Name:        "flags",
+				RawField:    "flags boolean[]",
+				FieldType:   FieldTypeArray,
+				GoType:      GoTypeBoolSlice,
 				Constructor: FieldConstructorArray,
 			},
 		},
 		{
-			name: "anon json field",
+			name:     "anon json field",
 			rawField: " json",
 			result: FunctionField{
-				Name: "",
-				RawField: "json",
-				FieldType: FieldTypeJSON,
-				GoType: GoTypeInterface,
+				Name:        "",
+				RawField:    "json",
+				FieldType:   FieldTypeJSON,
+				GoType:      GoTypeInterface,
 				Constructor: FieldConstructorJSON,
 			},
 		},
 		{
-			name: "named json field",
+			name:     "named json field",
 			rawField: "data json",
 			result: FunctionField{
-				Name: "data",
-				RawField: "data json",
-				FieldType: FieldTypeJSON,
-				GoType: GoTypeInterface,
+				Name:        "data",
+				RawField:    "data json",
+				FieldType:   FieldTypeJSON,
+				GoType:      GoTypeInterface,
 				Constructor: FieldConstructorJSON,
 			},
 		},
 		{
-			name: "anon jsonb field",
+			name:     "anon jsonb field",
 			rawField: " jsonb",
 			result: FunctionField{
-				Name: "",
-				RawField: "jsonb",
-				FieldType: FieldTypeJSON,
-				GoType: GoTypeInterface,
+				Name:        "",
+				RawField:    "jsonb",
+				FieldType:   FieldTypeJSON,
+				GoType:      GoTypeInterface,
 				Constructor: FieldConstructorJSON,
 			},
 		},
 		{
-			name: "named jsonb field",
+			name:     "named jsonb field",
 			rawField: "data jsonb",
 			result: FunctionField{
-				Name: "data",
-				RawField: "data jsonb",
-				FieldType: FieldTypeJSON,
-				GoType: GoTypeInterface,
+				Name:        "data",
+				RawField:    "data jsonb",
+				FieldType:   FieldTypeJSON,
+				GoType:      GoTypeInterface,
 				Constructor: FieldConstructorJSON,
 			},
 		},
 		{
-			name: "json array field",
+			name:     "json array field",
 			rawField: "data_arr json[]",
 			result: FunctionField{
-				Name: "data_arr",
-				RawField: "data_arr json[]",
-				FieldType: FieldTypeArray,
-				GoType: GoTypeInterface,
+				Name:        "data_arr",
+				RawField:    "data_arr json[]",
+				FieldType:   FieldTypeArray,
+				GoType:      GoTypeInterface,
 				Constructor: FieldConstructorArray,
 			},
 		},
@@ -297,37 +297,37 @@ func TestExtractNameAndType(t *testing.T) {
 
 	for _, rawField := range intFields {
 		tests = append(tests, TT{
-			name: "anon " + rawField + " field",
+			name:     "anon " + rawField + " field",
 			rawField: rawField,
 			result: FunctionField{
-				Name: "",
-				RawField: rawField,
-				FieldType: FieldTypeNumber,
-				GoType: GoTypeInt,
+				Name:        "",
+				RawField:    rawField,
+				FieldType:   FieldTypeNumber,
+				GoType:      GoTypeInt,
 				Constructor: FieldConstructorNumber,
 			},
 		})
 
 		tests = append(tests, TT{
-			name: "named " + rawField + " field",
+			name:     "named " + rawField + " field",
 			rawField: "value " + rawField,
 			result: FunctionField{
-				Name: "value",
-				RawField: "value " + rawField,
-				FieldType: FieldTypeNumber,
-				GoType: GoTypeInt,
+				Name:        "value",
+				RawField:    "value " + rawField,
+				FieldType:   FieldTypeNumber,
+				GoType:      GoTypeInt,
 				Constructor: FieldConstructorNumber,
 			},
 		})
 
 		tests = append(tests, TT{
-			name: "anon " + rawField + " array field",
+			name:     "anon " + rawField + " array field",
 			rawField: rawField + "[]",
 			result: FunctionField{
-				Name: "",
-				RawField: rawField + "[]",
-				FieldType: FieldTypeArray,
-				GoType: GoTypeIntSlice,
+				Name:        "",
+				RawField:    rawField + "[]",
+				FieldType:   FieldTypeArray,
+				GoType:      GoTypeIntSlice,
 				Constructor: FieldConstructorArray,
 			},
 		})
@@ -342,37 +342,37 @@ func TestExtractNameAndType(t *testing.T) {
 
 	for _, rawField := range floatFields {
 		tests = append(tests, TT{
-			name: "anon " + rawField + " field",
+			name:     "anon " + rawField + " field",
 			rawField: rawField,
 			result: FunctionField{
-				Name: "",
-				RawField: rawField,
-				FieldType: FieldTypeNumber,
-				GoType: GoTypeFloat64,
+				Name:        "",
+				RawField:    rawField,
+				FieldType:   FieldTypeNumber,
+				GoType:      GoTypeFloat64,
 				Constructor: FieldConstructorNumber,
 			},
 		})
 
 		tests = append(tests, TT{
-			name: "named " + rawField + " field",
+			name:     "named " + rawField + " field",
 			rawField: "value " + rawField,
 			result: FunctionField{
-				Name: "value",
-				RawField: "value " + rawField,
-				FieldType: FieldTypeNumber,
-				GoType: GoTypeFloat64,
+				Name:        "value",
+				RawField:    "value " + rawField,
+				FieldType:   FieldTypeNumber,
+				GoType:      GoTypeFloat64,
 				Constructor: FieldConstructorNumber,
 			},
 		})
 
 		tests = append(tests, TT{
-			name: "anon " + rawField + " array field",
+			name:     "anon " + rawField + " array field",
 			rawField: rawField + "[]",
 			result: FunctionField{
-				Name: "",
-				RawField: rawField + "[]",
-				FieldType: FieldTypeArray,
-				GoType: GoTypeFloat64Slice,
+				Name:        "",
+				RawField:    rawField + "[]",
+				FieldType:   FieldTypeArray,
+				GoType:      GoTypeFloat64Slice,
 				Constructor: FieldConstructorArray,
 			},
 		})
@@ -393,42 +393,41 @@ func TestExtractNameAndType(t *testing.T) {
 
 	for _, rawField := range stringFields {
 		tests = append(tests, TT{
-			name: "anon " + rawField + " field",
+			name:     "anon " + rawField + " field",
 			rawField: rawField,
 			result: FunctionField{
-				Name: "",
-				RawField: rawField,
-				FieldType: FieldTypeString,
-				GoType: GoTypeString,
+				Name:        "",
+				RawField:    rawField,
+				FieldType:   FieldTypeString,
+				GoType:      GoTypeString,
 				Constructor: FieldConstructorString,
 			},
 		})
 
 		tests = append(tests, TT{
-			name: "named " + rawField + " field",
+			name:     "named " + rawField + " field",
 			rawField: "first_name " + rawField,
 			result: FunctionField{
-				Name: "first_name",
-				RawField: "first_name " + rawField,
-				FieldType: FieldTypeString,
-				GoType: GoTypeString,
+				Name:        "first_name",
+				RawField:    "first_name " + rawField,
+				FieldType:   FieldTypeString,
+				GoType:      GoTypeString,
 				Constructor: FieldConstructorString,
 			},
 		})
 
 		tests = append(tests, TT{
-			name: "anon " + rawField + " array field",
+			name:     "anon " + rawField + " array field",
 			rawField: rawField + "[]",
 			result: FunctionField{
-				Name: "",
-				RawField: rawField + "[]",
-				FieldType: FieldTypeArray,
-				GoType: GoTypeStringSlice,
+				Name:        "",
+				RawField:    rawField + "[]",
+				FieldType:   FieldTypeArray,
+				GoType:      GoTypeStringSlice,
 				Constructor: FieldConstructorArray,
 			},
 		})
 	}
-
 
 	timeFields := []string{
 		"date",
@@ -453,69 +452,69 @@ func TestExtractNameAndType(t *testing.T) {
 
 	for _, rawField := range timeFields {
 		tests = append(tests, TT{
-			name: "anon " + rawField + " field",
+			name:     "anon " + rawField + " field",
 			rawField: rawField,
 			result: FunctionField{
-				Name: "",
-				RawField: rawField,
-				FieldType: FieldTypeTime,
-				GoType: GoTypeTime,
+				Name:        "",
+				RawField:    rawField,
+				FieldType:   FieldTypeTime,
+				GoType:      GoTypeTime,
 				Constructor: FieldConstructorTime,
 			},
 		})
 
 		tests = append(tests, TT{
-			name: "named " + rawField + " field",
+			name:     "named " + rawField + " field",
 			rawField: "value " + rawField,
 			result: FunctionField{
-				Name: "value",
-				RawField: "value " + rawField,
-				FieldType: FieldTypeTime,
-				GoType: GoTypeTime,
+				Name:        "value",
+				RawField:    "value " + rawField,
+				FieldType:   FieldTypeTime,
+				GoType:      GoTypeTime,
 				Constructor: FieldConstructorTime,
 			},
 		})
 
 		// no fields added if it's an array of times
 		tests = append(tests, TT{
-			name: "anon " + rawField + " array field (skipped)",
+			name:     "anon " + rawField + " array field (skipped)",
 			rawField: rawField + "[]",
 			result: FunctionField{
-				Name: "",
+				Name:     "",
 				RawField: rawField + "[]",
 			},
 		})
 	}
 
 	tests = append(tests, TT{
-		name: "anon bytea field",
+		name:     "anon bytea field",
 		rawField: "bytea",
 		result: FunctionField{
-			Name: "",
-			RawField: "bytea",
-			FieldType: FieldTypeBinary,
-			GoType: GoTypeByteSlice,
+			Name:        "",
+			RawField:    "bytea",
+			FieldType:   FieldTypeBinary,
+			GoType:      GoTypeByteSlice,
 			Constructor: FieldConstructorBinary,
 		},
 	})
 
 	tests = append(tests, TT{
-		name: "named bytea field",
+		name:     "named bytea field",
 		rawField: "hash bytea",
 		result: FunctionField{
-			Name: "hash",
-			RawField: "hash bytea",
-			FieldType: FieldTypeBinary,
-			GoType: GoTypeByteSlice,
+			Name:        "hash",
+			RawField:    "hash bytea",
+			FieldType:   FieldTypeBinary,
+			GoType:      GoTypeByteSlice,
 			Constructor: FieldConstructorBinary,
 		},
 	})
 
 	tests = append(tests, TT{
-		name: "anon bytea array field (skipped)",
+		name:     "anon bytea array field (skipped)",
 		rawField: "bytea[]",
 		result: FunctionField{
-			Name: "",
+			Name:     "",
 			RawField: "bytea[]",
 		},
 	})

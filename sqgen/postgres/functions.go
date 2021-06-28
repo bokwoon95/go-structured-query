@@ -386,47 +386,47 @@ func (function Function) Populate(isDuplicate bool, overloadCount int) (*Functio
 // patterns used to match the types of arguments/return types of a function
 var (
 	// optionally matches a [] at the end of a type in a capturing group, inclued EOL match
-	ArrayPattern = `(\[\])?$`
+	ArrayPattern        = `(\[\])?$`
 	FieldPatternBoolean = regexp.MustCompile(`boolean` + ArrayPattern)
-	FieldPatternJSON = regexp.MustCompile(`json` + `(?:b)?` + ArrayPattern)
-	FieldPatternInt = regexp.MustCompile(
-		`(?:` + 
-		`smallint` +
-		`|` + `oid` +
-		`|` + `integer` +
-		`|` + `bigint` +
-		`|` + `smallserial` +
-		`|` + `serial` +
-		`|` + `bigserial` + `)` +
-		ArrayPattern,
+	FieldPatternJSON    = regexp.MustCompile(`json` + `(?:b)?` + ArrayPattern)
+	FieldPatternInt     = regexp.MustCompile(
+		`(?:` +
+			`smallint` +
+			`|` + `oid` +
+			`|` + `integer` +
+			`|` + `bigint` +
+			`|` + `smallserial` +
+			`|` + `serial` +
+			`|` + `bigserial` + `)` +
+			ArrayPattern,
 	)
 	FieldPatternFloat = regexp.MustCompile(
 		`(?:` + `decimal` +
-		`|` + `numeric` +
-		`|` + `real` +
-		`|` + `double precision` + `)` +
-		ArrayPattern,
+			`|` + `numeric` +
+			`|` + `real` +
+			`|` + `double precision` + `)` +
+			ArrayPattern,
 	)
 	FieldPatternString = regexp.MustCompile(
 		`(?:` + `text` +
-		`|` + `name` +
-		`|` + `char` + `(?:\(\d+\))?` +
-		`|` + `character` + `(?:\(\d+\))?` +
-		`|` + `varchar` + `(?:\(\d+\))?` +
-		`|` + `character varying` + `(?:\(\d+\))?` + `)` +
-		ArrayPattern,
+			`|` + `name` +
+			`|` + `char` + `(?:\(\d+\))?` +
+			`|` + `character` + `(?:\(\d+\))?` +
+			`|` + `varchar` + `(?:\(\d+\))?` +
+			`|` + `character varying` + `(?:\(\d+\))?` + `)` +
+			ArrayPattern,
 	)
 	FieldPatternTime = regexp.MustCompile(
 		`(?:` + `date` +
-		`|` + "timestamp" +
-		`|` + "time" + ")" +
-		`(?: \(\d+\))?` +
-		`(?: without time zone| with time zone)?` +
-		ArrayPattern,
+			`|` + "timestamp" +
+			`|` + "time" + ")" +
+			`(?: \(\d+\))?` +
+			`(?: without time zone| with time zone)?` +
+			ArrayPattern,
 	)
 	FieldPatternBinary = regexp.MustCompile(
 		`bytea` +
-		ArrayPattern,
+			ArrayPattern,
 	)
 )
 
