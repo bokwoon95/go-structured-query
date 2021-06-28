@@ -334,10 +334,15 @@ func (function Function) Populate(isDuplicate bool, overloadCount int) (*Functio
 
 	if function.RawResults == "void" {
 		// no return type
-	} else if function.RawResults == "trigger" {
+		return &function, nil
+	}
+
+	if function.RawResults == "trigger" {
 		err := fmt.Errorf("Skipping %s.%s because it is a trigger function", function.Schema, function.Name)
 		return nil, err
-	} else if isTable {
+	} 
+
+	if isTable {
 		rawResults := function.RawResults[6 : len(function.RawResults)-1] // remove 'TABLE (' prefix and ')' suffix
 		rawFields := strings.Split(rawResults, ",")
 
