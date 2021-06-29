@@ -368,7 +368,7 @@ func (function Function) Populate(isDuplicate bool, overloadCount int) (*Functio
 		field := extractNameAndType(rawResults)
 
 		if field.FieldType == "" {
-			err := fmt.Errorf("Skipping %s.%s because return type '%s' is not supported", function.Schema, function.Name, function.RawResults)
+			err := fmt.Errorf("Skipping %s.%s because SETOF return type '%s' is not supported", function.Schema, function.Name, rawResults)
 			return nil, err
 		}
 
