@@ -3,6 +3,7 @@ package postgres
 
 import (
 	"bytes"
+	"errors"
 	"database/sql"
 	"fmt"
 	"io"
@@ -219,18 +220,27 @@ func buildFunctionsQuery(schemas, exclude []string, supportsProkind bool) (strin
 }
 
 func queryPgVersion(db *sql.DB) (string, error) {
-	var version string
-
 	query := "SHOW server_version;"
 
-	row := db.QueryRow(query)
+	rows, err := db.Query(query);
 
-	if err := row.Err(); err != nil {
+	if err != nil {
 		return "", err
 	}
 
-	if err := row.Scan(&version); err != nil {
-		return "", err
+	defer rows.Close()
+
+	var version string
+	for rows.Next() {
+		err := rows.Scan(&version)
+
+		if err != nil {
+			return "", err
+		}
+	}
+
+	if version == "" { 
+		return "", errors.New("Could not detect postgres version.")
 	}
 
 	return version, nil
