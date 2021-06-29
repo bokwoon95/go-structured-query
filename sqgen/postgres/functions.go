@@ -287,6 +287,7 @@ func (function Function) Populate(isDuplicate bool, overloadCount int) (*Functio
 		for i := range rawFields {
 			field := extractNameAndType(rawFields[i])
 
+			// space is trimmed from field.RawField in extractNameAndType
 			rawField := strings.ToUpper(field.RawField)
 
 			if strings.HasPrefix(rawField, "VARIADIC ") {
@@ -299,7 +300,7 @@ func (function Function) Populate(isDuplicate bool, overloadCount int) (*Functio
 				return nil, err
 			}
 
-			if strings.HasPrefix(rawField, "IN ") || strings.HasPrefix(rawField, "OUT ") {
+			if strings.HasPrefix(rawField, "IN ") || strings.HasPrefix(rawField, "OUT ") || strings.HasPrefix(rawField, "INOUT ") {
 				err := fmt.Errorf(
 					"Skipping %s.%s because INOUT arguments are not supported '%s'",
 					function.Schema,
@@ -311,7 +312,7 @@ func (function Function) Populate(isDuplicate bool, overloadCount int) (*Functio
 
 			if field.FieldType == "" {
 				err := fmt.Errorf(
-					"Skipping %s.%s because user-defined type '%s' is not supported",
+					"Skipping %s.%s because user-defined parameter type '%s' is not supported",
 					function.Schema,
 					function.Name,
 					field.RawField,
@@ -329,9 +330,6 @@ func (function Function) Populate(isDuplicate bool, overloadCount int) (*Functio
 
 	// Function Return Types
 
-	isTable := strings.HasPrefix(function.RawResults, "TABLE(") &&
-		strings.HasSuffix(function.RawResults, ")")
-
 	if function.RawResults == "void" {
 		// no return type
 		return &function, nil
@@ -342,6 +340,9 @@ func (function Function) Populate(isDuplicate bool, overloadCount int) (*Functio
 		return nil, err
 	} 
 
+	isTable := strings.HasPrefix(function.RawResults, "TABLE(") &&
+		strings.HasSuffix(function.RawResults, ")")
+
 	if isTable {
 		rawResults := function.RawResults[6 : len(function.RawResults)-1] // remove 'TABLE (' prefix and ')' suffix
 		rawFields := strings.Split(rawResults, ",")
@@ -351,11 +352,6 @@ func (function Function) Populate(isDuplicate bool, overloadCount int) (*Functio
 
 			if field.FieldType == "" {
 				err := fmt.Errorf("Skipping %s.%s because return type '%s' is not supported", function.Schema, function.Name, field.RawField)
-				return nil, err
-			}
-
-			if strings.ToLower(field.Name) != field.Name {
-				err := fmt.Errorf("Skipping %s.%s because return type '%s' is case-sensitive", function.Schema, function.Name, field.Name)
 				return nil, err
 			}
 
@@ -373,11 +369,6 @@ func (function Function) Populate(isDuplicate bool, overloadCount int) (*Functio
 
 		if field.FieldType == "" {
 			err := fmt.Errorf("Skipping %s.%s because return type '%s' is not supported", function.Schema, function.Name, function.RawResults)
-			return nil, err
-		}
-
-		if strings.ToLower(field.Name) != field.Name {
-			err := fmt.Errorf("Skipping %s.%s because return type '%s' is case-sensitive", function.Schema, function.Name, field.Name)
 			return nil, err
 		}
 
