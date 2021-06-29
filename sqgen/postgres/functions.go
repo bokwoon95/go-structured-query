@@ -391,7 +391,7 @@ func (function Function) Populate(isDuplicate bool, overloadCount int) (*Functio
 
 // patterns used to match the types of arguments/return types of a function
 var (
-	// optionally matches a [] at the end of a type in a capturing group, inclued EOL match
+	// optionally matches a [] at the end of a type in a capturing group, includes EOL match
 	ArrayPattern        = `(\[\])?$`
 	FieldPatternBoolean = regexp.MustCompile(`boolean` + ArrayPattern)
 	FieldPatternJSON    = regexp.MustCompile(`json` + `(?:b)?` + ArrayPattern)
