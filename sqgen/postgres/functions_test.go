@@ -526,3 +526,392 @@ func TestExtractNameAndType(t *testing.T) {
 		})
 	}
 }
+
+func TestFunctionPopulate(t *testing.T) {
+	type TT struct {
+		name string
+		function Function
+		isDuplicate bool
+		overloadCount int
+		functionResult *Function
+		err error
+	}
+
+	tests := []TT{
+		{
+			name: "regular function, not duplicate, no overload",
+			function: Function{
+				Name: "create_user",
+				Schema: "public",
+				RawArguments: "first_name text, hash bytea, is_verified boolean, jsonb",
+				RawResults: " integer",
+			},
+			isDuplicate: false,
+			overloadCount: 0,
+			functionResult: &Function{
+				Name: "create_user",
+				Schema: "public",
+				RawArguments: "first_name text, hash bytea, is_verified boolean, jsonb",
+				RawResults: " integer",
+				StructName: "FUNCTION_CREATE_USER",
+				Constructor: "CREATE_USER",
+				Arguments: []FunctionField{
+					{
+						Name: "first_name",
+						RawField: "first_name text",
+						FieldType: FieldTypeString,
+						Constructor: FieldConstructorString,
+						GoType: GoTypeString,
+					},
+					{
+						Name: "hash",
+						RawField: "hash bytea",
+						FieldType: FieldTypeBinary,
+						Constructor: FieldConstructorBinary,
+						GoType: GoTypeByteSlice,
+					},
+					{
+						Name: "is_verified",
+						RawField: "is_verified boolean",
+						FieldType: FieldTypeBoolean,
+						Constructor: FieldConstructorBoolean,
+						GoType: GoTypeBool,
+					},
+					{
+						Name: "_arg4",
+						RawField: "jsonb",
+						FieldType: FieldTypeJSON,
+						Constructor: FieldConstructorJSON,
+						GoType: GoTypeInterface,
+					},
+				},
+				Results: []FunctionField{
+					{
+						Name: "Result",
+						RawField: "integer",
+						FieldType: FieldTypeNumber,
+						Constructor: FieldConstructorNumber,
+						GoType: GoTypeInt,
+					},
+				},
+			},
+			err: nil,
+		},
+		{
+			name: "regular function, duplicate, no overload",
+			function: Function{
+				Name: "create_user",
+				Schema: "public",
+				RawArguments: "",
+				RawResults: "void",
+			},
+			isDuplicate: true,
+			overloadCount: 0,
+			functionResult: &Function{
+				Name: "create_user",
+				Schema: "public",
+				RawArguments: "",
+				RawResults: "void",
+				StructName: "FUNCTION_PUBLIC__CREATE_USER",
+				Constructor: "PUBLIC__CREATE_USER",
+				Arguments: nil,
+				Results: nil,
+			},
+			err: nil,
+		},
+		{
+			name: "regular function, duplicate, overload 1",
+			function: Function{
+				Name: "create_user",
+				Schema: "public",
+				RawArguments: "",
+				RawResults: "void",
+			},
+			isDuplicate: true,
+			overloadCount: 1,
+			functionResult: &Function{
+				Name: "create_user",
+				Schema: "public",
+				RawArguments: "",
+				RawResults: "void",
+				StructName: "FUNCTION_PUBLIC__CREATE_USER1",
+				Constructor: "PUBLIC__CREATE_USER1",
+				Arguments: nil,
+				Results: nil,
+			},
+			err: nil,
+		},
+		{
+			name: "regular function, duplicate, overload 2",
+			function: Function{
+				Name: "create_user",
+				Schema: "public",
+				RawArguments: "",
+				RawResults: "void",
+			},
+			isDuplicate: true,
+			overloadCount: 2,
+			functionResult: &Function{
+				Name: "create_user",
+				Schema: "public",
+				RawArguments: "",
+				RawResults: "void",
+				StructName: "FUNCTION_PUBLIC__CREATE_USER2",
+				Constructor: "PUBLIC__CREATE_USER2",
+				Arguments: nil,
+				Results: nil,
+			},
+			err: nil,
+		},
+		{
+			name: "regular function, not duplicate, overload 1",
+			function: Function{
+				Name: "create_user",
+				Schema: "public",
+				RawArguments: "",
+				RawResults: "void",
+			},
+			isDuplicate: false,
+			overloadCount: 1,
+			functionResult: &Function{
+				Name: "create_user",
+				Schema: "public",
+				RawArguments: "",
+				RawResults: "void",
+				StructName: "FUNCTION_PUBLIC__CREATE_USER1",
+				Constructor: "PUBLIC__CREATE_USER1",
+				Arguments: nil,
+				Results: nil,
+			},
+			err: nil,
+		},
+		{
+			name: "function with variadic params is skipped",
+			function: Function{
+				Name: "create_user",
+				Schema: "public",
+				RawArguments: "VARIADIC integer",
+				RawResults: "void",
+			},
+			isDuplicate: false,
+			overloadCount: 0,
+			functionResult: nil,
+			err: errors.New("Skipping public.create_user because VARIADIC arguments are not supported 'VARIADIC integer'"),
+		},
+		{
+			name: "function with IN param is skipped",
+			function: Function{
+				Name: "create_user",
+				Schema: "public",
+				RawArguments: "IN integer",
+				RawResults: "void",
+			},
+			isDuplicate: false,
+			overloadCount: 0,
+			functionResult: nil,
+			err: errors.New("Skipping public.create_user because INOUT arguments are not supported 'IN integer'"),
+		},
+		{
+			name: "function with OUT param is skipped",
+			function: Function{
+				Name: "create_user",
+				Schema: "public",
+				RawArguments: "OUT integer",
+				RawResults: "void",
+			},
+			isDuplicate: false,
+			overloadCount: 0,
+			functionResult: nil,
+			err: errors.New("Skipping public.create_user because INOUT arguments are not supported 'OUT integer'"),
+		},
+		{
+			name: "function with INOUT param is skipped",
+			function: Function{
+				Name: "create_user",
+				Schema: "public",
+				RawArguments: "INOUT integer",
+				RawResults: "void",
+			},
+			isDuplicate: false,
+			overloadCount: 0,
+			functionResult: nil,
+			err: errors.New("Skipping public.create_user because INOUT arguments are not supported 'INOUT integer'"),
+		},
+		{
+			name: "function with unknown param type is skipped",
+			function: Function{
+				Name: "create_user",
+				Schema: "public",
+				RawArguments: "some_unknown_type",
+				RawResults: "void",
+			},
+			isDuplicate: false,
+			overloadCount: 0,
+			functionResult: nil,
+			err: errors.New("Skipping public.create_user because user-defined parameter type 'some_unknown_type' is not supported"),
+		},
+		{
+			name: "function with void return type has nil Results",
+			function: Function{
+				Name: "create_user",
+				Schema: "public",
+				RawArguments: "name text",
+				RawResults: "void",
+			},
+			isDuplicate: false,
+			overloadCount: 0,
+			functionResult: &Function{
+				Name: "create_user",
+				Schema: "public",
+				RawArguments: "name text",
+				RawResults: "void",
+				StructName: "FUNCTION_CREATE_USER",
+				Constructor: "CREATE_USER",
+				Arguments: []FunctionField{
+					{
+						Name: "name",
+						RawField: "name text",
+						FieldType: FieldTypeString,
+						Constructor: FieldConstructorString,
+						GoType: GoTypeString,
+					},
+				},
+				Results: nil,
+			},
+			err: nil,
+		},
+		{
+			name: "trigger function is skipped",
+			function: Function{
+				Name: "create_user",
+				Schema: "public",
+				RawArguments: "name text",
+				RawResults: "trigger",
+			},
+			isDuplicate: false,
+			overloadCount: 0,
+			functionResult: nil,
+			err: errors.New("Skipping public.create_user because it is a trigger function"),
+		},
+		{
+			name: "function with table return type is supported",
+			function: Function{
+				Name: "create_user",
+				Schema: "public",
+				RawArguments: "name text",
+				RawResults: "TABLE(first_name text, boolean)",
+			},
+			isDuplicate: false,
+			overloadCount: 0,
+			functionResult: &Function{
+				Name: "create_user",
+				Schema: "public",
+				RawArguments: "name text",
+				RawResults: "TABLE(first_name text, boolean)",
+				StructName: "FUNCTION_CREATE_USER",
+				Constructor: "CREATE_USER",
+				Arguments: []FunctionField{
+					{
+						Name: "name",
+						RawField: "name text",
+						FieldType: FieldTypeString,
+						Constructor: FieldConstructorString,
+						GoType: GoTypeString,
+					},
+				},
+				Results: []FunctionField{
+					{
+						Name: "first_name",
+						RawField: "first_name text",
+						FieldType: FieldTypeString,
+						Constructor: FieldConstructorString,
+						GoType: GoTypeString,
+					},
+					{
+						Name: "Result2",
+						RawField: "boolean",
+						FieldType: FieldTypeBoolean,
+						Constructor: FieldConstructorBoolean,
+						GoType: GoTypeBool,
+					},
+				},
+			},
+			err: nil,
+		},
+		{
+			name: "function with table return type with unknown column type is skipped",
+			function: Function{
+				Name: "create_user",
+				Schema: "public",
+				RawArguments: "name text",
+				RawResults: "TABLE(first_name text, some_unknown_type)",
+			},
+			isDuplicate: false,
+			overloadCount: 0,
+			functionResult: nil,
+			err: errors.New("Skipping public.create_user because return type 'some_unknown_type' is not supported"),
+		},
+		{
+			name: "function with SETOF return type is supported",
+			function: Function{
+				Name: "create_user",
+				Schema: "public",
+				RawArguments: "name text",
+				RawResults: "SETOF text",
+			},
+			isDuplicate: false,
+			overloadCount: 0,
+			functionResult: &Function{
+				Name: "create_user",
+				Schema: "public",
+				RawArguments: "name text",
+				RawResults: "SETOF text",
+				StructName: "FUNCTION_CREATE_USER",
+				Constructor: "CREATE_USER",
+				Arguments: []FunctionField{
+					{
+						Name: "name",
+						RawField: "name text",
+						FieldType: FieldTypeString,
+						Constructor: FieldConstructorString,
+						GoType: GoTypeString,
+					},
+				},
+				Results: []FunctionField{
+					{
+						Name: "Result",
+						RawField: "text",
+						FieldType: FieldTypeString,
+						Constructor: FieldConstructorString,
+						GoType: GoTypeString,
+					},
+				},
+			},
+			err: nil,
+		},
+		{
+			name: "function with SETOF return type with unknown type is skipped",
+			function: Function{
+				Name: "create_user",
+				Schema: "public",
+				RawArguments: "name text",
+				RawResults: "SETOF some_unknown_type",
+			},
+			isDuplicate: false,
+			overloadCount: 0,
+			functionResult: nil,
+			err: errors.New("Skipping public.create_user because SETOF return type 'some_unknown_type' is not supported"),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			is := is.New(t)
+
+			function, err := tt.function.Populate(tt.isDuplicate, tt.overloadCount)
+
+			is.Equal(err, tt.err)
+			is.Equal(function, tt.functionResult)
+		})
+	}
+}
