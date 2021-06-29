@@ -300,7 +300,8 @@ func (function Function) Populate(isDuplicate bool, overloadCount int) (*Functio
 				return nil, err
 			}
 
-			if strings.HasPrefix(rawField, "IN ") || strings.HasPrefix(rawField, "OUT ") || strings.HasPrefix(rawField, "INOUT ") {
+			if strings.HasPrefix(rawField, "IN ") || strings.HasPrefix(rawField, "OUT ") ||
+				strings.HasPrefix(rawField, "INOUT ") {
 				err := fmt.Errorf(
 					"Skipping %s.%s because INOUT arguments are not supported '%s'",
 					function.Schema,
@@ -336,9 +337,13 @@ func (function Function) Populate(isDuplicate bool, overloadCount int) (*Functio
 	}
 
 	if function.RawResults == "trigger" {
-		err := fmt.Errorf("Skipping %s.%s because it is a trigger function", function.Schema, function.Name)
+		err := fmt.Errorf(
+			"Skipping %s.%s because it is a trigger function",
+			function.Schema,
+			function.Name,
+		)
 		return nil, err
-	} 
+	}
 
 	isTable := strings.HasPrefix(function.RawResults, "TABLE(") &&
 		strings.HasSuffix(function.RawResults, ")")
@@ -351,7 +356,12 @@ func (function Function) Populate(isDuplicate bool, overloadCount int) (*Functio
 			field := extractNameAndType(rawFields[i])
 
 			if field.FieldType == "" {
-				err := fmt.Errorf("Skipping %s.%s because return type '%s' is not supported", function.Schema, function.Name, field.RawField)
+				err := fmt.Errorf(
+					"Skipping %s.%s because return type '%s' is not supported",
+					function.Schema,
+					function.Name,
+					field.RawField,
+				)
 				return nil, err
 			}
 
