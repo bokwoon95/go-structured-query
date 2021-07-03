@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/lib/pq"
 )
 
@@ -52,6 +53,8 @@ func (r *Row) ScanInto(dest interface{}, field Field) {
 			r.dest = append(r.dest, &sql.NullString{})
 		case *time.Time, *sql.NullTime:
 			r.dest = append(r.dest, &sql.NullTime{})
+		case *uuid.UUID:
+			r.dest = append(r.dest, &uuid.Nil)
 		default:
 			r.dest = append(r.dest, dest)
 		}
@@ -97,6 +100,9 @@ func (r *Row) ScanInto(dest interface{}, field Field) {
 	case *sql.NullTime:
 		nulltime := r.dest[r.index].(*sql.NullTime)
 		*ptr = *nulltime
+	case *uuid.UUID:
+		uuid := r.dest[r.index].(*uuid.UUID)
+		*ptr = *uuid
 	default:
 		var nothing interface{}
 		if len(r.tmpdest) != len(r.dest) {
@@ -351,4 +357,18 @@ func rowNullTime(r *Row, field Field) sql.NullTime {
 	nulltime := r.dest[r.index].(*sql.NullTime)
 	r.index++
 	return *nulltime
+}
+
+/* github.com/google/uuid.UUID */
+
+func (r *Row) UUID(field UUIDField) uuid.UUID {
+	if r.rows == nil {
+		r.fields = append(r.fields, field)
+		r.dest = append(r.dest, &uuid.Nil)
+		return uuid.Nil
+	}
+
+	uuid := r.dest[r.index].(*uuid.UUID)
+	r.index++
+	return *uuid
 }

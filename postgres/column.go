@@ -1,6 +1,10 @@
 package sq
 
-import "time"
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
 
 type colmode int
 
@@ -89,5 +93,9 @@ func (col *Column) SetString(field StringField, value string) {
 
 // SetTime maps the time.Time value to the TimeField.
 func (col *Column) SetTime(field TimeField, value time.Time) {
+	col.Set(field, value)
+}
+
+func (col *Column) SetUUID(field UUIDField, value uuid.UUID) {
 	col.Set(field, value)
 }
