@@ -16,7 +16,7 @@ import (
 	"github.com/matryer/is"
 )
 
-func init() {
+func TestMain(t *testing.M) {
 	err := godotenv.Load("../.env")
 	if err != nil {
 		log.Fatal("Error loading .env file")
@@ -26,6 +26,8 @@ func init() {
 	MYSQL_PORT := os.Getenv("MYSQL_PORT")
 	MYSQL_NAME := os.Getenv("MYSQL_NAME")
 	txdb.Register("txdb", "mysql", fmt.Sprintf("%s:%s@tcp(127.0.0.1:%s)/%s?parseTime=true", MYSQL_USER, MYSQL_PASSWORD, MYSQL_PORT, MYSQL_NAME))
+
+	os.Exit(t.Run())
 }
 
 type Option struct {
