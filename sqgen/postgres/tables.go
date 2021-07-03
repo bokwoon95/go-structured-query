@@ -289,5 +289,11 @@ func (field TableField) Populate() TableField {
 		return field
 	}
 
+	if field.RawType == "uuid" {
+		field.Type = FieldTypeUUID
+		field.Constructor = FieldConstructorUUID
+		return field
+	}
+
 	return field
 }

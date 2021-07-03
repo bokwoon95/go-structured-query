@@ -346,6 +346,7 @@ type TABLE_MEDIA struct {
 	NAME        sq.StringField
 	TYPE        sq.StringField
 	UPDATED_AT  sq.TimeField
+	UUID        sq.UUIDField
 }
 
 // MEDIA creates an instance of the public.media table.
@@ -361,6 +362,7 @@ func MEDIA() TABLE_MEDIA {
 	tbl.NAME = sq.NewStringField("name", tbl.TableInfo)
 	tbl.TYPE = sq.NewStringField("type", tbl.TableInfo)
 	tbl.UPDATED_AT = sq.NewTimeField("updated_at", tbl.TableInfo)
+	tbl.UUID = sq.NewUUIDField("uuid", tbl.TableInfo)
 	return tbl
 }
 
