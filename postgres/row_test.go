@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/DATA-DOG/go-txdb"
+	"github.com/google/uuid"
 	"github.com/joho/godotenv"
 	"github.com/matryer/is"
 )
@@ -434,4 +435,42 @@ func TestRowFunctions(t *testing.T) {
 	is.Equal(data.wantString, data.gotString)
 	is.Equal(data.wantStringValid, data.gotStringValid)
 	is.True(data.gotTimeValid)
+}
+
+func TestRowUUIDs(t *testing.T) {
+	if testing.Short() {
+		return
+	}
+
+	is := is.New(t)
+	db, err := sql.Open("txdb", "RowUUIDs")
+	is.NoErr(err)
+	m := MEDIA()
+
+	// hardcoded in init.sql
+	wantUUID, err := uuid.Parse("dbc59321-22ee-4613-bb27-8b2ba5be3109")
+
+	is.NoErr(err)
+
+	type Data struct {
+		wantUUID uuid.UUID
+		gotUUID uuid.UUID
+	}
+
+	data := Data{
+		wantUUID: wantUUID,
+		gotUUID: uuid.Nil, // can't use zero-value of uuid
+	}
+
+
+	err = WithDefaultLog(Lverbose).
+		From(m).
+		Limit(1).
+		SelectRowx(func(r *Row) {
+			data.gotUUID = r.UUID(m.UUID)
+		}).
+		Fetch(db)
+
+	is.NoErr(err)
+	is.Equal(data.wantUUID, data.gotUUID)
 }

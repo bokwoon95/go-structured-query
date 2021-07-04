@@ -399,4 +399,8 @@ CREATE TABLE media (
 
     ,FOREIGN KEY (type) REFERENCES mime_type_enum (type) ON UPDATE CASCADE
 );
+
+INSERT INTO media (uuid, name, description, data) 
+VALUES ('dbc59321-22ee-4613-bb27-8b2ba5be3109', 'some_media', 'description never hurts', ''::bytea);
+
 CREATE TRIGGER media_updated_at BEFORE UPDATE ON media FOR EACH ROW EXECUTE PROCEDURE trg.updated_at();
