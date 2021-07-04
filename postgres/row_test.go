@@ -24,7 +24,6 @@ func TestMain(t *testing.M) {
 	POSTGRES_PASSWORD := os.Getenv("POSTGRES_PASSWORD")
 	POSTGRES_PORT := os.Getenv("POSTGRES_PORT")
 	POSTGRES_NAME := os.Getenv("POSTGRES_NAME")
-	fmt.Println("running test main")
 	txdb.Register("txdb", "postgres", fmt.Sprintf("postgres://%s:%s@localhost:%s/%s?sslmode=disable", POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_PORT, POSTGRES_NAME))
 
 	os.Exit(t.Run())
