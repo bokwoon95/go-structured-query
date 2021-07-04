@@ -6,7 +6,7 @@ import (
 	"io"
 	"strings"
 
-	"github.com/quentin-fox/go-structured-query/sqgen"
+	"github.com/bokwoon95/go-structured-query/sqgen"
 )
 
 type Table struct {
@@ -35,7 +35,7 @@ func BuildTables(config Config, writer io.Writer) (int, error) {
 	templateData := TablesTemplateData{
 		PackageName: config.Package,
 		Imports: []string{
-			`sq "github.com/quentin-fox/go-structured-query/postgres"`,
+			`sq "github.com/bokwoon95/go-structured-query/postgres"`,
 		},
 		Tables: tables,
 	}

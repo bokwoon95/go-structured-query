@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/quentin-fox/go-structured-query/sqgen/mysql"
+	"github.com/bokwoon95/go-structured-query/sqgen/mysql"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/spf13/cobra"
 )

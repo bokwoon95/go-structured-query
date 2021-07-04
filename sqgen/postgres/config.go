@@ -3,7 +3,7 @@ package postgres
 import (
 	"database/sql"
 
-	"github.com/quentin-fox/go-structured-query/sqgen"
+	"github.com/bokwoon95/go-structured-query/sqgen"
 )
 
 type Config struct {

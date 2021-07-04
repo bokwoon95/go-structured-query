@@ -3,7 +3,7 @@ package postgres
 import (
 	"text/template"
 
-	"github.com/quentin-fox/go-structured-query/sqgen"
+	"github.com/bokwoon95/go-structured-query/sqgen"
 )
 
 func getTablesTemplate() (*template.Template, error) {

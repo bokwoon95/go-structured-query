@@ -21,7 +21,7 @@ func TestTablesTemplate(t *testing.T) {
 	data := TablesTemplateData{
 		PackageName: "tables",
 		Imports: []string{
-			`sq "github.com/quentin-fox/go-structured-query"`,
+			`sq "github.com/bokwoon95/go-structured-query"`,
 		},
 		Tables: []Table{
 			{
@@ -63,7 +63,7 @@ func TestTablesTemplate(t *testing.T) {
 package tables
 
 import (
-	sq "github.com/quentin-fox/go-structured-query"
+	sq "github.com/bokwoon95/go-structured-query"
 )
 
 // TABLE_USERS references the public.users table.
@@ -110,7 +110,7 @@ func TestFunctionsTemplate(t *testing.T) {
 	data := FunctionsTemplateData{
 		PackageName: "tables",
 		Imports: []string{
-			`sq "github.com/quentin-fox/go-structured-query"`,
+			`sq "github.com/bokwoon95/go-structured-query"`,
 		},
 		Functions: []Function{
 			{
@@ -153,7 +153,7 @@ func TestFunctionsTemplate(t *testing.T) {
 package tables
 
 import (
-	sq "github.com/quentin-fox/go-structured-query"
+	sq "github.com/bokwoon95/go-structured-query"
 )
 
 // FUNCTION_INSERT_USER references the public.insert_user function.

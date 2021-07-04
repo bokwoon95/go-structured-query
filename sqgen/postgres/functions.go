@@ -11,7 +11,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/quentin-fox/go-structured-query/sqgen"
+	"github.com/bokwoon95/go-structured-query/sqgen"
 )
 
 // Function contains metadata for a plpgsql function.
@@ -45,7 +45,7 @@ func BuildFunctions(config Config, writer io.Writer) (int, error) {
 	templateData := FunctionsTemplateData{
 		PackageName: config.Package,
 		Imports: []string{
-			`sq "github.com/quentin-fox/go-structured-query/postgres"`,
+			`sq "github.com/bokwoon95/go-structured-query/postgres"`,
 		},
 		Functions: functions,
 	}
