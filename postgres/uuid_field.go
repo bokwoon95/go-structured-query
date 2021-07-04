@@ -164,6 +164,18 @@ func (f UUIDField) In(v interface{}) Predicate {
 	}
 }
 
+func (f UUIDField) Asc() UUIDField {
+	desc := false
+	f.descending = &desc
+	return f
+}
+
+func (f UUIDField) Desc() UUIDField {
+	desc := true
+	f.descending = &desc
+	return f
+}
+
 func (f UUIDField) String() string {
 	buf := &strings.Builder{}
 	var args []interface{}
