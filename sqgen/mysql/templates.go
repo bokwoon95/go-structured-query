@@ -3,7 +3,7 @@ package mysql
 import (
 	"text/template"
 
-	"github.com/bokwoon95/go-structured-query/sqgen"
+	"github.com/quentin-fox/go-structured-query/sqgen"
 )
 
 type TablesTemplateData struct {

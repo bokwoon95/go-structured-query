@@ -1,4 +1,4 @@
-module github.com/bokwoon95/go-structured-query
+module github.com/quentin-fox/go-structured-query
 
 go 1.14
 

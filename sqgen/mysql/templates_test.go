@@ -21,7 +21,7 @@ func TestTablesTemplate(t *testing.T) {
 	data := TablesTemplateData{
 		PackageName: "tables",
 		Imports: []string{
-			`sq "github.com/bokwoon95/go-structured-query"`,
+			`sq "github.com/quentin-fox/go-structured-query"`,
 		},
 		Tables: []Table{
 			{
@@ -63,7 +63,7 @@ func TestTablesTemplate(t *testing.T) {
 package tables
 
 import (
-	sq "github.com/bokwoon95/go-structured-query"
+	sq "github.com/quentin-fox/go-structured-query"
 )
 
 // TABLE_USERS references the public.users table.
