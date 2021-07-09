@@ -96,6 +96,7 @@ func (col *Column) SetTime(field TimeField, value time.Time) {
 	col.Set(field, value)
 }
 
+// SetUUID maps the uuid.UUID value to the UUIDField.
 func (col *Column) SetUUID(field UUIDField, value uuid.UUID) {
 	col.Set(field, value)
 }

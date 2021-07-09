@@ -361,6 +361,7 @@ func rowNullTime(r *Row, field Field) sql.NullTime {
 
 /* github.com/google/uuid.UUID */
 
+// UUID returns the uuid.UUID value of the UUIDField
 func (r *Row) UUID(field UUIDField) uuid.UUID {
 	if r.rows == nil {
 		r.fields = append(r.fields, field)

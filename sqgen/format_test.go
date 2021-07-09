@@ -2,7 +2,7 @@ package sqgen
 
 import (
 	"testing"
-	
+
 	"github.com/matryer/is"
 )
 

@@ -55,7 +55,6 @@ func TestColumnInsert(t *testing.T) {
 	)
 }
 
-
 func TestColumnUpdate(t *testing.T) {
 	is := is.New(t)
 	type User struct {

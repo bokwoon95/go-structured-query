@@ -454,14 +454,13 @@ func TestRowUUIDs(t *testing.T) {
 
 	type Data struct {
 		wantUUID uuid.UUID
-		gotUUID uuid.UUID
+		gotUUID  uuid.UUID
 	}
 
 	data := Data{
 		wantUUID: wantUUID,
-		gotUUID: uuid.Nil, // can't use zero-value of uuid
+		gotUUID:  uuid.Nil, // can't use zero-value of uuid
 	}
-
 
 	err = WithDefaultLog(Lverbose).
 		From(m).

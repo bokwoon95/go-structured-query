@@ -11,14 +11,14 @@ import (
 func TestUUIDField_AppendSQLExclude(t *testing.T) {
 	type TT struct {
 		description string
-		f UUIDField
-		exclude []string
-		wantQuery string
-		wantArgs []interface{}
+		f           UUIDField
+		exclude     []string
+		wantQuery   string
+		wantArgs    []interface{}
 	}
 
 	tests := []TT{
-		func () TT {
+		func() TT {
 			desc := "literal uuid"
 			f := UUID(uuid.Nil)
 			wantQuery := "?"
@@ -29,7 +29,7 @@ func TestUUIDField_AppendSQLExclude(t *testing.T) {
 			desc := "table qualified"
 			f := NewUUIDField("code", &TableInfo{
 				Schema: "devlab",
-				Name: "users",
+				Name:   "users",
 			})
 			wantQuery := "users.code"
 			return TT{desc, f, nil, wantQuery, nil}
@@ -38,8 +38,8 @@ func TestUUIDField_AppendSQLExclude(t *testing.T) {
 			desc := "table alias qualified"
 			f := NewUUIDField("code", &TableInfo{
 				Schema: "devlab",
-				Name: "users",
-				Alias: "u",
+				Name:   "users",
+				Alias:  "u",
 			})
 			wantQuery := "u.code"
 			return TT{desc, f, nil, wantQuery, nil}
@@ -48,7 +48,7 @@ func TestUUIDField_AppendSQLExclude(t *testing.T) {
 			desc := "excludedTableQualifiers (name)"
 			f := NewUUIDField("code", &TableInfo{
 				Schema: "devlab",
-				Name: "users",
+				Name:   "users",
 			})
 			exclude := []string{"users"}
 			wantQuery := "code"
@@ -58,8 +58,8 @@ func TestUUIDField_AppendSQLExclude(t *testing.T) {
 			desc := "excludedTableQualifiers (alias)"
 			f := NewUUIDField("code", &TableInfo{
 				Schema: "devlab",
-				Name: "users",
-				Alias: "u",
+				Name:   "users",
+				Alias:  "u",
 			})
 			exclude := []string{"u"}
 			wantQuery := "code"
@@ -69,7 +69,7 @@ func TestUUIDField_AppendSQLExclude(t *testing.T) {
 			desc := "quoted whitespace"
 			f := NewUUIDField("signup code", &TableInfo{
 				Schema: "devlab",
-				Name: "app users",
+				Name:   "app users",
 			})
 			wantQuery := `"app users"."signup code"`
 			return TT{desc, f, nil, wantQuery, nil}
@@ -78,7 +78,7 @@ func TestUUIDField_AppendSQLExclude(t *testing.T) {
 			desc := "ASC"
 			f := NewUUIDField("signup code", &TableInfo{
 				Schema: "devlab",
-				Name: "app users",
+				Name:   "app users",
 			}).Asc()
 			wantQuery := `"app users"."signup code" ASC`
 			return TT{desc, f, nil, wantQuery, nil}
@@ -87,7 +87,7 @@ func TestUUIDField_AppendSQLExclude(t *testing.T) {
 			desc := "DESC"
 			f := NewUUIDField("signup code", &TableInfo{
 				Schema: "devlab",
-				Name: "app users",
+				Name:   "app users",
 			}).Desc()
 			wantQuery := `"app users"."signup code" DESC`
 			return TT{desc, f, nil, wantQuery, nil}
@@ -114,15 +114,15 @@ func TestUUIDField_AppendSQLExclude(t *testing.T) {
 func TestUUIDField_FieldAssignment(t *testing.T) {
 	type TT struct {
 		description string
-		a FieldAssignment
-		exclude []string
-		wantQuery string
-		wantArgs []interface{}
+		a           FieldAssignment
+		exclude     []string
+		wantQuery   string
+		wantArgs    []interface{}
 	}
 
 	f := NewUUIDField("code", &TableInfo{
 		Schema: "public",
-		Name: "users",
+		Name:   "users",
 	})
 
 	tests := []TT{
@@ -166,10 +166,10 @@ func TestUUIDField_FieldAssignment(t *testing.T) {
 func TestUUIDField_Predicates(t *testing.T) {
 	type TT struct {
 		description string
-		p Predicate
-		exclude []string
-		wantQuery string
-		wantArgs []interface{}
+		p           Predicate
+		exclude     []string
+		wantQuery   string
+		wantArgs    []interface{}
 	}
 
 	tests := []TT{
@@ -177,7 +177,7 @@ func TestUUIDField_Predicates(t *testing.T) {
 			desc := "IsNull"
 			f := NewUUIDField("code", &TableInfo{
 				Schema: "public",
-				Name: "users",
+				Name:   "users",
 			})
 			p := f.IsNull()
 			wantQuery := "users.code IS NULL"
@@ -187,7 +187,7 @@ func TestUUIDField_Predicates(t *testing.T) {
 			desc := "IsNotNull"
 			f := NewUUIDField("code", &TableInfo{
 				Schema: "public",
-				Name: "users",
+				Name:   "users",
 			})
 			p := f.IsNotNull()
 			wantQuery := "users.code IS NOT NULL"
@@ -197,7 +197,7 @@ func TestUUIDField_Predicates(t *testing.T) {
 			desc := "Eq"
 			f := NewUUIDField("code", &TableInfo{
 				Schema: "public",
-				Name: "users",
+				Name:   "users",
 			})
 			p := f.Eq(f)
 			wantQuery := "users.code = users.code"
@@ -207,7 +207,7 @@ func TestUUIDField_Predicates(t *testing.T) {
 			desc := "Ne"
 			f := NewUUIDField("code", &TableInfo{
 				Schema: "public",
-				Name: "users",
+				Name:   "users",
 			})
 			p := f.Ne(f)
 			wantQuery := "users.code <> users.code"
@@ -217,7 +217,7 @@ func TestUUIDField_Predicates(t *testing.T) {
 			desc := "EqUUID"
 			f := NewUUIDField("code", &TableInfo{
 				Schema: "public",
-				Name: "users",
+				Name:   "users",
 			})
 			p := f.EqUUID(uuid.Nil)
 			wantQuery := "users.code = ?"
@@ -228,7 +228,7 @@ func TestUUIDField_Predicates(t *testing.T) {
 			desc := "NeUUID"
 			f := NewUUIDField("code", &TableInfo{
 				Schema: "public",
-				Name: "users",
+				Name:   "users",
 			})
 			p := f.NeUUID(uuid.Nil)
 			wantQuery := "users.code <> ?"
@@ -239,7 +239,7 @@ func TestUUIDField_Predicates(t *testing.T) {
 			desc := "In slice"
 			f := NewUUIDField("code", &TableInfo{
 				Schema: "public",
-				Name: "users",
+				Name:   "users",
 			})
 			p := f.In([]interface{}{uuid.Nil, uuid.Nil})
 			wantQuery := "users.code IN (?, ?)"
@@ -250,7 +250,7 @@ func TestUUIDField_Predicates(t *testing.T) {
 			desc := "In fields"
 			f := NewUUIDField("code", &TableInfo{
 				Schema: "public",
-				Name: "users",
+				Name:   "users",
 			})
 			p := f.In(Fields{f, f, f})
 			wantQuery := "users.code IN (users.code, users.code, users.code)"
