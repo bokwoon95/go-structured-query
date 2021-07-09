@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/matryer/is"
 )
 
@@ -54,6 +55,7 @@ func TestColumnInsert(t *testing.T) {
 	)
 }
 
+
 func TestColumnUpdate(t *testing.T) {
 	is := is.New(t)
 	type User struct {
@@ -101,6 +103,29 @@ func TestColumn_Basic(t *testing.T) {
 	)
 	is.Equal(
 		RowValues{{true, 3.0, 2, int64(4), now}},
+		col.rowValues,
+	)
+}
+
+func TestColumn_UUID(t *testing.T) {
+	is := is.New(t)
+
+	m := MEDIA().As("m")
+	col := &Column{mode: colmodeInsert}
+
+	uuid := uuid.New()
+	col.SetUUID(m.UUID, uuid)
+
+	col.SetString(m.NAME, "some_media")
+	col.SetString(m.DESCRIPTION, "a description")
+
+	is.Equal(
+		Fields{m.UUID, m.NAME, m.DESCRIPTION},
+		col.insertColumns,
+	)
+
+	is.Equal(
+		RowValues{{uuid, "some_media", "a description"}},
 		col.rowValues,
 	)
 }
