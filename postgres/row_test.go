@@ -453,13 +453,12 @@ func TestRowUUIDs(t *testing.T) {
 	is.NoErr(err)
 
 	type Data struct {
-		wantUUID uuid.UUID
-		gotUUID  uuid.UUID
+		wantUUID [16]byte
+		gotUUID  [16]byte
 	}
 
 	data := Data{
-		wantUUID: wantUUID,
-		gotUUID:  uuid.Nil, // can't use zero-value of uuid
+		wantUUID: [16]byte(wantUUID),
 	}
 
 	err = WithDefaultLog(Lverbose).
@@ -471,5 +470,5 @@ func TestRowUUIDs(t *testing.T) {
 		Fetch(db)
 
 	is.NoErr(err)
-	is.Equal(data.wantUUID, data.gotUUID)
+	is.Equal(data.gotUUID, data.wantUUID)
 }
