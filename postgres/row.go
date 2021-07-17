@@ -367,7 +367,3 @@ func (r *Row) UUID(field UUIDField) [16]byte {
 	r.index++
 	return *uuid
 }
-
-	r.index++
-	return dest
-}
