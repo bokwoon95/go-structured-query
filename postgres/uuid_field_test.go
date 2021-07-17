@@ -255,6 +255,18 @@ func TestUUIDField_Predicates(t *testing.T) {
 			wantQuery := "users.code IN (users.code, users.code, users.code)"
 			return TT{desc, p, nil, wantQuery, nil}
 		}(),
+		func() TT {
+			desc := "In Row Values"
+			f := NewUUIDField("code", &TableInfo{
+				Schema: "public",
+				Name: "users",
+			})
+
+			p := f.In(RowValue{1, 2, 3})
+			wantQuery := "users.code IN (?, ?, ?)"
+			wantArgs := []interface{}{1, 2, 3}
+			return TT{desc, p, nil, wantQuery, wantArgs}
+		}(),
 	}
 
 	for _, tt := range tests {
