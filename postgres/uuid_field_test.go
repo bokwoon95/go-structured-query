@@ -4,7 +4,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/google/uuid"
 	"github.com/matryer/is"
 )
 
@@ -20,9 +19,9 @@ func TestUUIDField_AppendSQLExclude(t *testing.T) {
 	tests := []TT{
 		func() TT {
 			desc := "literal uuid"
-			f := UUID(uuid.Nil)
+			f := UUID([16]byte{})
 			wantQuery := "?"
-			wantArgs := []interface{}{uuid.Nil}
+			wantArgs := []interface{}{[16]byte{}}
 			return TT{desc, f, nil, wantQuery, wantArgs}
 		}(),
 		func() TT {
@@ -135,17 +134,17 @@ func TestUUIDField_FieldAssignment(t *testing.T) {
 		},
 		{
 			"set uuid",
-			f.Set(uuid.Nil),
+			f.Set([16]byte{}),
 			nil,
 			"users.code = ?",
-			[]interface{}{uuid.Nil},
+			[]interface{}{[16]byte{}},
 		},
 		{
 			"setuuid uuid",
-			f.SetUUID(uuid.Nil),
+			f.SetUUID([16]byte{}),
 			nil,
 			"users.code = ?",
-			[]interface{}{uuid.Nil},
+			[]interface{}{[16]byte{}},
 		},
 	}
 
@@ -219,9 +218,9 @@ func TestUUIDField_Predicates(t *testing.T) {
 				Schema: "public",
 				Name:   "users",
 			})
-			p := f.EqUUID(uuid.Nil)
+			p := f.EqUUID([16]byte{})
 			wantQuery := "users.code = ?"
-			wantArgs := []interface{}{uuid.Nil}
+			wantArgs := []interface{}{[16]byte{}}
 			return TT{desc, p, nil, wantQuery, wantArgs}
 		}(),
 		func() TT {
@@ -230,9 +229,9 @@ func TestUUIDField_Predicates(t *testing.T) {
 				Schema: "public",
 				Name:   "users",
 			})
-			p := f.NeUUID(uuid.Nil)
+			p := f.NeUUID([16]byte{})
 			wantQuery := "users.code <> ?"
-			wantArgs := []interface{}{uuid.Nil}
+			wantArgs := []interface{}{[16]byte{}}
 			return TT{desc, p, nil, wantQuery, wantArgs}
 		}(),
 		func() TT {
@@ -241,9 +240,9 @@ func TestUUIDField_Predicates(t *testing.T) {
 				Schema: "public",
 				Name:   "users",
 			})
-			p := f.In([]interface{}{uuid.Nil, uuid.Nil})
+			p := f.In([]interface{}{[16]byte{}, [16]byte{}})
 			wantQuery := "users.code IN (?, ?)"
-			wantArgs := []interface{}{uuid.Nil, uuid.Nil}
+			wantArgs := []interface{}{[16]byte{}, [16]byte{}}
 			return TT{desc, p, nil, wantQuery, wantArgs}
 		}(),
 		func() TT {
