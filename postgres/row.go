@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/oklog/ulid"
 	"github.com/lib/pq"
 )
 
@@ -368,6 +369,15 @@ func (r *Row) UUID(field UUIDField) [16]byte {
 	return *uuid
 }
 
+func (r *Row) ULID(field UUIDField) [16]byte {
+	if r.rows == nil {
+		r.fields = append(r.fields, field)
+		r.dest = append(r.dest, &ulid.ULID{})
+		return [16]byte{}
+	}
+
+	ulid := r.dest[r.index].(*ulid.ULID)
+
 	r.index++
-	return dest
+	return *ulid
 }
