@@ -3,6 +3,7 @@ package sq
 import (
 	"database/sql"
 	"fmt"
+	"reflect"
 	"runtime"
 	"strconv"
 	"strings"
@@ -99,20 +100,11 @@ func (r *Row) ScanInto(dest interface{}, field Field) {
 		nulltime := r.dest[r.index].(*sql.NullTime)
 		*ptr = *nulltime
 	default:
-		var nothing interface{}
-		if len(r.tmpdest) != len(r.dest) {
-			r.tmpdest = make([]interface{}, len(r.dest))
-			for i := range r.tmpdest {
-				r.tmpdest[i] = &nothing
-			}
+		destValue := reflect.ValueOf(dest)
+		if destValue.Type().Kind() != reflect.Ptr {
+			panic(fmt.Errorf("cannot pass in non pointer value (%#v) as dest", dest))
 		}
-		r.tmpdest[r.index] = dest
-		err := r.rows.Scan(r.tmpdest...)
-		if err != nil {
-			_, sourcefile, linenbr, _ := runtime.Caller(1)
-			panic(fmt.Errorf("row.ScanInto failed on %s:%d: %w", sourcefile, linenbr, err))
-		}
-		r.tmpdest[r.index] = &nothing
+		destValue.Elem().Set(reflect.ValueOf(r.dest[r.index]).Elem())
 	}
 	r.index++
 }
