@@ -15,7 +15,7 @@ import (
 	"github.com/matryer/is"
 )
 
-func init() {
+func TestMain(t *testing.M) {
 	err := godotenv.Load("../../.env")
 	if err != nil {
 		log.Fatal("Error loading .env file")
@@ -36,6 +36,7 @@ func init() {
 		),
 	)
 
+	os.Exit(t.Run())
 }
 
 func TestBuildTables(t *testing.T) {
@@ -345,6 +346,7 @@ type TABLE_MEDIA struct {
 	NAME        sq.StringField
 	TYPE        sq.StringField
 	UPDATED_AT  sq.TimeField
+	UUID        sq.UUIDField
 }
 
 // MEDIA creates an instance of the public.media table.
@@ -360,6 +362,7 @@ func MEDIA() TABLE_MEDIA {
 	tbl.NAME = sq.NewStringField("name", tbl.TableInfo)
 	tbl.TYPE = sq.NewStringField("type", tbl.TableInfo)
 	tbl.UPDATED_AT = sq.NewTimeField("updated_at", tbl.TableInfo)
+	tbl.UUID = sq.NewUUIDField("uuid", tbl.TableInfo)
 	return tbl
 }
 
@@ -1318,20 +1321,18 @@ type FUNCTION_PUBLIC__GEN_SALT1 struct {
 // PUBLIC__GEN_SALT1 creates an instance of the public.gen_salt function.
 func PUBLIC__GEN_SALT1(
 	_arg1 string,
-	_arg2 int,
 ) FUNCTION_PUBLIC__GEN_SALT1 {
-	return PUBLIC__GEN_SALT1_(_arg1, _arg2)
+	return PUBLIC__GEN_SALT1_(_arg1)
 }
 
 // PUBLIC__GEN_SALT1_ creates an instance of the public.gen_salt function.
 func PUBLIC__GEN_SALT1_(
 	_arg1 interface{},
-	_arg2 interface{},
 ) FUNCTION_PUBLIC__GEN_SALT1 {
 	f := FUNCTION_PUBLIC__GEN_SALT1{FunctionInfo: &sq.FunctionInfo{
 		Schema:    "public",
 		Name:      "gen_salt",
-		Arguments: []interface{}{_arg1, _arg2},
+		Arguments: []interface{}{_arg1},
 	}}
 	f.RESULT = sq.NewStringField("Result", f.FunctionInfo)
 	return f
@@ -1352,18 +1353,20 @@ type FUNCTION_PUBLIC__GEN_SALT2 struct {
 // PUBLIC__GEN_SALT2 creates an instance of the public.gen_salt function.
 func PUBLIC__GEN_SALT2(
 	_arg1 string,
+	_arg2 int,
 ) FUNCTION_PUBLIC__GEN_SALT2 {
-	return PUBLIC__GEN_SALT2_(_arg1)
+	return PUBLIC__GEN_SALT2_(_arg1, _arg2)
 }
 
 // PUBLIC__GEN_SALT2_ creates an instance of the public.gen_salt function.
 func PUBLIC__GEN_SALT2_(
 	_arg1 interface{},
+	_arg2 interface{},
 ) FUNCTION_PUBLIC__GEN_SALT2 {
 	f := FUNCTION_PUBLIC__GEN_SALT2{FunctionInfo: &sq.FunctionInfo{
 		Schema:    "public",
 		Name:      "gen_salt",
-		Arguments: []interface{}{_arg1},
+		Arguments: []interface{}{_arg1, _arg2},
 	}}
 	f.RESULT = sq.NewStringField("Result", f.FunctionInfo)
 	return f
@@ -1383,8 +1386,8 @@ type FUNCTION_PUBLIC__HMAC1 struct {
 
 // PUBLIC__HMAC1 creates an instance of the public.hmac function.
 func PUBLIC__HMAC1(
-	_arg1 string,
-	_arg2 string,
+	_arg1 []byte,
+	_arg2 []byte,
 	_arg3 string,
 ) FUNCTION_PUBLIC__HMAC1 {
 	return PUBLIC__HMAC1_(_arg1, _arg2, _arg3)
@@ -1419,8 +1422,8 @@ type FUNCTION_PUBLIC__HMAC2 struct {
 
 // PUBLIC__HMAC2 creates an instance of the public.hmac function.
 func PUBLIC__HMAC2(
-	_arg1 []byte,
-	_arg2 []byte,
+	_arg1 string,
+	_arg2 string,
 	_arg3 string,
 ) FUNCTION_PUBLIC__HMAC2 {
 	return PUBLIC__HMAC2_(_arg1, _arg2, _arg3)
@@ -1489,21 +1492,19 @@ type FUNCTION_PUBLIC__PGP_PUB_DECRYPT1 struct {
 func PUBLIC__PGP_PUB_DECRYPT1(
 	_arg1 []byte,
 	_arg2 []byte,
-	_arg3 string,
 ) FUNCTION_PUBLIC__PGP_PUB_DECRYPT1 {
-	return PUBLIC__PGP_PUB_DECRYPT1_(_arg1, _arg2, _arg3)
+	return PUBLIC__PGP_PUB_DECRYPT1_(_arg1, _arg2)
 }
 
 // PUBLIC__PGP_PUB_DECRYPT1_ creates an instance of the public.pgp_pub_decrypt function.
 func PUBLIC__PGP_PUB_DECRYPT1_(
 	_arg1 interface{},
 	_arg2 interface{},
-	_arg3 interface{},
 ) FUNCTION_PUBLIC__PGP_PUB_DECRYPT1 {
 	f := FUNCTION_PUBLIC__PGP_PUB_DECRYPT1{FunctionInfo: &sq.FunctionInfo{
 		Schema:    "public",
 		Name:      "pgp_pub_decrypt",
-		Arguments: []interface{}{_arg1, _arg2, _arg3},
+		Arguments: []interface{}{_arg1, _arg2},
 	}}
 	f.RESULT = sq.NewStringField("Result", f.FunctionInfo)
 	return f
@@ -1525,19 +1526,21 @@ type FUNCTION_PUBLIC__PGP_PUB_DECRYPT2 struct {
 func PUBLIC__PGP_PUB_DECRYPT2(
 	_arg1 []byte,
 	_arg2 []byte,
+	_arg3 string,
 ) FUNCTION_PUBLIC__PGP_PUB_DECRYPT2 {
-	return PUBLIC__PGP_PUB_DECRYPT2_(_arg1, _arg2)
+	return PUBLIC__PGP_PUB_DECRYPT2_(_arg1, _arg2, _arg3)
 }
 
 // PUBLIC__PGP_PUB_DECRYPT2_ creates an instance of the public.pgp_pub_decrypt function.
 func PUBLIC__PGP_PUB_DECRYPT2_(
 	_arg1 interface{},
 	_arg2 interface{},
+	_arg3 interface{},
 ) FUNCTION_PUBLIC__PGP_PUB_DECRYPT2 {
 	f := FUNCTION_PUBLIC__PGP_PUB_DECRYPT2{FunctionInfo: &sq.FunctionInfo{
 		Schema:    "public",
 		Name:      "pgp_pub_decrypt",
-		Arguments: []interface{}{_arg1, _arg2},
+		Arguments: []interface{}{_arg1, _arg2, _arg3},
 	}}
 	f.RESULT = sq.NewStringField("Result", f.FunctionInfo)
 	return f
@@ -1597,21 +1600,19 @@ type FUNCTION_PUBLIC__PGP_PUB_DECRYPT_BYTEA1 struct {
 func PUBLIC__PGP_PUB_DECRYPT_BYTEA1(
 	_arg1 []byte,
 	_arg2 []byte,
-	_arg3 string,
 ) FUNCTION_PUBLIC__PGP_PUB_DECRYPT_BYTEA1 {
-	return PUBLIC__PGP_PUB_DECRYPT_BYTEA1_(_arg1, _arg2, _arg3)
+	return PUBLIC__PGP_PUB_DECRYPT_BYTEA1_(_arg1, _arg2)
 }
 
 // PUBLIC__PGP_PUB_DECRYPT_BYTEA1_ creates an instance of the public.pgp_pub_decrypt_bytea function.
 func PUBLIC__PGP_PUB_DECRYPT_BYTEA1_(
 	_arg1 interface{},
 	_arg2 interface{},
-	_arg3 interface{},
 ) FUNCTION_PUBLIC__PGP_PUB_DECRYPT_BYTEA1 {
 	f := FUNCTION_PUBLIC__PGP_PUB_DECRYPT_BYTEA1{FunctionInfo: &sq.FunctionInfo{
 		Schema:    "public",
 		Name:      "pgp_pub_decrypt_bytea",
-		Arguments: []interface{}{_arg1, _arg2, _arg3},
+		Arguments: []interface{}{_arg1, _arg2},
 	}}
 	f.RESULT = sq.NewBinaryField("Result", f.FunctionInfo)
 	return f
@@ -1634,9 +1635,8 @@ func PUBLIC__PGP_PUB_DECRYPT_BYTEA2(
 	_arg1 []byte,
 	_arg2 []byte,
 	_arg3 string,
-	_arg4 string,
 ) FUNCTION_PUBLIC__PGP_PUB_DECRYPT_BYTEA2 {
-	return PUBLIC__PGP_PUB_DECRYPT_BYTEA2_(_arg1, _arg2, _arg3, _arg4)
+	return PUBLIC__PGP_PUB_DECRYPT_BYTEA2_(_arg1, _arg2, _arg3)
 }
 
 // PUBLIC__PGP_PUB_DECRYPT_BYTEA2_ creates an instance of the public.pgp_pub_decrypt_bytea function.
@@ -1644,12 +1644,11 @@ func PUBLIC__PGP_PUB_DECRYPT_BYTEA2_(
 	_arg1 interface{},
 	_arg2 interface{},
 	_arg3 interface{},
-	_arg4 interface{},
 ) FUNCTION_PUBLIC__PGP_PUB_DECRYPT_BYTEA2 {
 	f := FUNCTION_PUBLIC__PGP_PUB_DECRYPT_BYTEA2{FunctionInfo: &sq.FunctionInfo{
 		Schema:    "public",
 		Name:      "pgp_pub_decrypt_bytea",
-		Arguments: []interface{}{_arg1, _arg2, _arg3, _arg4},
+		Arguments: []interface{}{_arg1, _arg2, _arg3},
 	}}
 	f.RESULT = sq.NewBinaryField("Result", f.FunctionInfo)
 	return f
@@ -1671,19 +1670,23 @@ type FUNCTION_PUBLIC__PGP_PUB_DECRYPT_BYTEA3 struct {
 func PUBLIC__PGP_PUB_DECRYPT_BYTEA3(
 	_arg1 []byte,
 	_arg2 []byte,
+	_arg3 string,
+	_arg4 string,
 ) FUNCTION_PUBLIC__PGP_PUB_DECRYPT_BYTEA3 {
-	return PUBLIC__PGP_PUB_DECRYPT_BYTEA3_(_arg1, _arg2)
+	return PUBLIC__PGP_PUB_DECRYPT_BYTEA3_(_arg1, _arg2, _arg3, _arg4)
 }
 
 // PUBLIC__PGP_PUB_DECRYPT_BYTEA3_ creates an instance of the public.pgp_pub_decrypt_bytea function.
 func PUBLIC__PGP_PUB_DECRYPT_BYTEA3_(
 	_arg1 interface{},
 	_arg2 interface{},
+	_arg3 interface{},
+	_arg4 interface{},
 ) FUNCTION_PUBLIC__PGP_PUB_DECRYPT_BYTEA3 {
 	f := FUNCTION_PUBLIC__PGP_PUB_DECRYPT_BYTEA3{FunctionInfo: &sq.FunctionInfo{
 		Schema:    "public",
 		Name:      "pgp_pub_decrypt_bytea",
-		Arguments: []interface{}{_arg1, _arg2},
+		Arguments: []interface{}{_arg1, _arg2, _arg3, _arg4},
 	}}
 	f.RESULT = sq.NewBinaryField("Result", f.FunctionInfo)
 	return f
@@ -1775,21 +1778,19 @@ type FUNCTION_PUBLIC__PGP_PUB_ENCRYPT_BYTEA1 struct {
 func PUBLIC__PGP_PUB_ENCRYPT_BYTEA1(
 	_arg1 []byte,
 	_arg2 []byte,
-	_arg3 string,
 ) FUNCTION_PUBLIC__PGP_PUB_ENCRYPT_BYTEA1 {
-	return PUBLIC__PGP_PUB_ENCRYPT_BYTEA1_(_arg1, _arg2, _arg3)
+	return PUBLIC__PGP_PUB_ENCRYPT_BYTEA1_(_arg1, _arg2)
 }
 
 // PUBLIC__PGP_PUB_ENCRYPT_BYTEA1_ creates an instance of the public.pgp_pub_encrypt_bytea function.
 func PUBLIC__PGP_PUB_ENCRYPT_BYTEA1_(
 	_arg1 interface{},
 	_arg2 interface{},
-	_arg3 interface{},
 ) FUNCTION_PUBLIC__PGP_PUB_ENCRYPT_BYTEA1 {
 	f := FUNCTION_PUBLIC__PGP_PUB_ENCRYPT_BYTEA1{FunctionInfo: &sq.FunctionInfo{
 		Schema:    "public",
 		Name:      "pgp_pub_encrypt_bytea",
-		Arguments: []interface{}{_arg1, _arg2, _arg3},
+		Arguments: []interface{}{_arg1, _arg2},
 	}}
 	f.RESULT = sq.NewBinaryField("Result", f.FunctionInfo)
 	return f
@@ -1811,19 +1812,21 @@ type FUNCTION_PUBLIC__PGP_PUB_ENCRYPT_BYTEA2 struct {
 func PUBLIC__PGP_PUB_ENCRYPT_BYTEA2(
 	_arg1 []byte,
 	_arg2 []byte,
+	_arg3 string,
 ) FUNCTION_PUBLIC__PGP_PUB_ENCRYPT_BYTEA2 {
-	return PUBLIC__PGP_PUB_ENCRYPT_BYTEA2_(_arg1, _arg2)
+	return PUBLIC__PGP_PUB_ENCRYPT_BYTEA2_(_arg1, _arg2, _arg3)
 }
 
 // PUBLIC__PGP_PUB_ENCRYPT_BYTEA2_ creates an instance of the public.pgp_pub_encrypt_bytea function.
 func PUBLIC__PGP_PUB_ENCRYPT_BYTEA2_(
 	_arg1 interface{},
 	_arg2 interface{},
+	_arg3 interface{},
 ) FUNCTION_PUBLIC__PGP_PUB_ENCRYPT_BYTEA2 {
 	f := FUNCTION_PUBLIC__PGP_PUB_ENCRYPT_BYTEA2{FunctionInfo: &sq.FunctionInfo{
 		Schema:    "public",
 		Name:      "pgp_pub_encrypt_bytea",
-		Arguments: []interface{}{_arg1, _arg2},
+		Arguments: []interface{}{_arg1, _arg2, _arg3},
 	}}
 	f.RESULT = sq.NewBinaryField("Result", f.FunctionInfo)
 	return f
@@ -1915,21 +1918,19 @@ type FUNCTION_PUBLIC__PGP_SYM_DECRYPT_BYTEA1 struct {
 func PUBLIC__PGP_SYM_DECRYPT_BYTEA1(
 	_arg1 []byte,
 	_arg2 string,
-	_arg3 string,
 ) FUNCTION_PUBLIC__PGP_SYM_DECRYPT_BYTEA1 {
-	return PUBLIC__PGP_SYM_DECRYPT_BYTEA1_(_arg1, _arg2, _arg3)
+	return PUBLIC__PGP_SYM_DECRYPT_BYTEA1_(_arg1, _arg2)
 }
 
 // PUBLIC__PGP_SYM_DECRYPT_BYTEA1_ creates an instance of the public.pgp_sym_decrypt_bytea function.
 func PUBLIC__PGP_SYM_DECRYPT_BYTEA1_(
 	_arg1 interface{},
 	_arg2 interface{},
-	_arg3 interface{},
 ) FUNCTION_PUBLIC__PGP_SYM_DECRYPT_BYTEA1 {
 	f := FUNCTION_PUBLIC__PGP_SYM_DECRYPT_BYTEA1{FunctionInfo: &sq.FunctionInfo{
 		Schema:    "public",
 		Name:      "pgp_sym_decrypt_bytea",
-		Arguments: []interface{}{_arg1, _arg2, _arg3},
+		Arguments: []interface{}{_arg1, _arg2},
 	}}
 	f.RESULT = sq.NewBinaryField("Result", f.FunctionInfo)
 	return f
@@ -1951,19 +1952,21 @@ type FUNCTION_PUBLIC__PGP_SYM_DECRYPT_BYTEA2 struct {
 func PUBLIC__PGP_SYM_DECRYPT_BYTEA2(
 	_arg1 []byte,
 	_arg2 string,
+	_arg3 string,
 ) FUNCTION_PUBLIC__PGP_SYM_DECRYPT_BYTEA2 {
-	return PUBLIC__PGP_SYM_DECRYPT_BYTEA2_(_arg1, _arg2)
+	return PUBLIC__PGP_SYM_DECRYPT_BYTEA2_(_arg1, _arg2, _arg3)
 }
 
 // PUBLIC__PGP_SYM_DECRYPT_BYTEA2_ creates an instance of the public.pgp_sym_decrypt_bytea function.
 func PUBLIC__PGP_SYM_DECRYPT_BYTEA2_(
 	_arg1 interface{},
 	_arg2 interface{},
+	_arg3 interface{},
 ) FUNCTION_PUBLIC__PGP_SYM_DECRYPT_BYTEA2 {
 	f := FUNCTION_PUBLIC__PGP_SYM_DECRYPT_BYTEA2{FunctionInfo: &sq.FunctionInfo{
 		Schema:    "public",
 		Name:      "pgp_sym_decrypt_bytea",
-		Arguments: []interface{}{_arg1, _arg2},
+		Arguments: []interface{}{_arg1, _arg2, _arg3},
 	}}
 	f.RESULT = sq.NewBinaryField("Result", f.FunctionInfo)
 	return f
@@ -1985,21 +1988,19 @@ type FUNCTION_PUBLIC__PGP_SYM_ENCRYPT1 struct {
 func PUBLIC__PGP_SYM_ENCRYPT1(
 	_arg1 string,
 	_arg2 string,
-	_arg3 string,
 ) FUNCTION_PUBLIC__PGP_SYM_ENCRYPT1 {
-	return PUBLIC__PGP_SYM_ENCRYPT1_(_arg1, _arg2, _arg3)
+	return PUBLIC__PGP_SYM_ENCRYPT1_(_arg1, _arg2)
 }
 
 // PUBLIC__PGP_SYM_ENCRYPT1_ creates an instance of the public.pgp_sym_encrypt function.
 func PUBLIC__PGP_SYM_ENCRYPT1_(
 	_arg1 interface{},
 	_arg2 interface{},
-	_arg3 interface{},
 ) FUNCTION_PUBLIC__PGP_SYM_ENCRYPT1 {
 	f := FUNCTION_PUBLIC__PGP_SYM_ENCRYPT1{FunctionInfo: &sq.FunctionInfo{
 		Schema:    "public",
 		Name:      "pgp_sym_encrypt",
-		Arguments: []interface{}{_arg1, _arg2, _arg3},
+		Arguments: []interface{}{_arg1, _arg2},
 	}}
 	f.RESULT = sq.NewBinaryField("Result", f.FunctionInfo)
 	return f
@@ -2021,19 +2022,21 @@ type FUNCTION_PUBLIC__PGP_SYM_ENCRYPT2 struct {
 func PUBLIC__PGP_SYM_ENCRYPT2(
 	_arg1 string,
 	_arg2 string,
+	_arg3 string,
 ) FUNCTION_PUBLIC__PGP_SYM_ENCRYPT2 {
-	return PUBLIC__PGP_SYM_ENCRYPT2_(_arg1, _arg2)
+	return PUBLIC__PGP_SYM_ENCRYPT2_(_arg1, _arg2, _arg3)
 }
 
 // PUBLIC__PGP_SYM_ENCRYPT2_ creates an instance of the public.pgp_sym_encrypt function.
 func PUBLIC__PGP_SYM_ENCRYPT2_(
 	_arg1 interface{},
 	_arg2 interface{},
+	_arg3 interface{},
 ) FUNCTION_PUBLIC__PGP_SYM_ENCRYPT2 {
 	f := FUNCTION_PUBLIC__PGP_SYM_ENCRYPT2{FunctionInfo: &sq.FunctionInfo{
 		Schema:    "public",
 		Name:      "pgp_sym_encrypt",
-		Arguments: []interface{}{_arg1, _arg2},
+		Arguments: []interface{}{_arg1, _arg2, _arg3},
 	}}
 	f.RESULT = sq.NewBinaryField("Result", f.FunctionInfo)
 	return f
@@ -2055,21 +2058,19 @@ type FUNCTION_PUBLIC__PGP_SYM_ENCRYPT_BYTEA1 struct {
 func PUBLIC__PGP_SYM_ENCRYPT_BYTEA1(
 	_arg1 []byte,
 	_arg2 string,
-	_arg3 string,
 ) FUNCTION_PUBLIC__PGP_SYM_ENCRYPT_BYTEA1 {
-	return PUBLIC__PGP_SYM_ENCRYPT_BYTEA1_(_arg1, _arg2, _arg3)
+	return PUBLIC__PGP_SYM_ENCRYPT_BYTEA1_(_arg1, _arg2)
 }
 
 // PUBLIC__PGP_SYM_ENCRYPT_BYTEA1_ creates an instance of the public.pgp_sym_encrypt_bytea function.
 func PUBLIC__PGP_SYM_ENCRYPT_BYTEA1_(
 	_arg1 interface{},
 	_arg2 interface{},
-	_arg3 interface{},
 ) FUNCTION_PUBLIC__PGP_SYM_ENCRYPT_BYTEA1 {
 	f := FUNCTION_PUBLIC__PGP_SYM_ENCRYPT_BYTEA1{FunctionInfo: &sq.FunctionInfo{
 		Schema:    "public",
 		Name:      "pgp_sym_encrypt_bytea",
-		Arguments: []interface{}{_arg1, _arg2, _arg3},
+		Arguments: []interface{}{_arg1, _arg2},
 	}}
 	f.RESULT = sq.NewBinaryField("Result", f.FunctionInfo)
 	return f
@@ -2091,19 +2092,21 @@ type FUNCTION_PUBLIC__PGP_SYM_ENCRYPT_BYTEA2 struct {
 func PUBLIC__PGP_SYM_ENCRYPT_BYTEA2(
 	_arg1 []byte,
 	_arg2 string,
+	_arg3 string,
 ) FUNCTION_PUBLIC__PGP_SYM_ENCRYPT_BYTEA2 {
-	return PUBLIC__PGP_SYM_ENCRYPT_BYTEA2_(_arg1, _arg2)
+	return PUBLIC__PGP_SYM_ENCRYPT_BYTEA2_(_arg1, _arg2, _arg3)
 }
 
 // PUBLIC__PGP_SYM_ENCRYPT_BYTEA2_ creates an instance of the public.pgp_sym_encrypt_bytea function.
 func PUBLIC__PGP_SYM_ENCRYPT_BYTEA2_(
 	_arg1 interface{},
 	_arg2 interface{},
+	_arg3 interface{},
 ) FUNCTION_PUBLIC__PGP_SYM_ENCRYPT_BYTEA2 {
 	f := FUNCTION_PUBLIC__PGP_SYM_ENCRYPT_BYTEA2{FunctionInfo: &sq.FunctionInfo{
 		Schema:    "public",
 		Name:      "pgp_sym_encrypt_bytea",
-		Arguments: []interface{}{_arg1, _arg2},
+		Arguments: []interface{}{_arg1, _arg2, _arg3},
 	}}
 	f.RESULT = sq.NewBinaryField("Result", f.FunctionInfo)
 	return f

@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/matryer/is"
 )
 
@@ -101,6 +102,31 @@ func TestColumn_Basic(t *testing.T) {
 	)
 	is.Equal(
 		RowValues{{true, 3.0, 2, int64(4), now}},
+		col.rowValues,
+	)
+}
+
+func TestColumn_UUID(t *testing.T) {
+	is := is.New(t)
+
+	m := MEDIA().As("m")
+	col := &Column{mode: colmodeInsert}
+
+	u := [16]byte{109, 255, 68, 140, 201, 211, 72, 194, 172, 250, 156, 128, 172, 41, 152, 62}
+	col.SetUUID(m.UUID, u)
+
+	col.SetString(m.NAME, "some_media")
+	col.SetString(m.DESCRIPTION, "a description")
+
+	is.Equal(
+		Fields{m.UUID, m.NAME, m.DESCRIPTION},
+		col.insertColumns,
+	)
+
+	var uuid uuid.UUID = u
+
+	is.Equal(
+		RowValues{{uuid, "some_media", "a description"}},
 		col.rowValues,
 	)
 }

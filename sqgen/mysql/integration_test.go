@@ -16,7 +16,7 @@ import (
 	"github.com/matryer/is"
 )
 
-func init() {
+func TestMain(t *testing.M) {
 	err := godotenv.Load("../../.env")
 	if err != nil {
 		log.Fatal("Error loading .env file")
@@ -36,6 +36,8 @@ func init() {
 			MYSQL_NAME,
 		),
 	)
+
+	os.Exit(t.Run())
 }
 
 func TestBuildTables(t *testing.T) {

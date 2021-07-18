@@ -11,11 +11,12 @@ import (
 	"time"
 
 	"github.com/DATA-DOG/go-txdb"
+	"github.com/google/uuid"
 	"github.com/joho/godotenv"
 	"github.com/matryer/is"
 )
 
-func init() {
+func TestMain(t *testing.M) {
 	err := godotenv.Load("../.env")
 	if err != nil {
 		log.Fatal("Error loading .env file")
@@ -25,6 +26,8 @@ func init() {
 	POSTGRES_PORT := os.Getenv("POSTGRES_PORT")
 	POSTGRES_NAME := os.Getenv("POSTGRES_NAME")
 	txdb.Register("txdb", "postgres", fmt.Sprintf("postgres://%s:%s@localhost:%s/%s?sslmode=disable", POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_PORT, POSTGRES_NAME))
+
+	os.Exit(t.Run())
 }
 
 type Option struct {
@@ -432,4 +435,40 @@ func TestRowFunctions(t *testing.T) {
 	is.Equal(data.wantString, data.gotString)
 	is.Equal(data.wantStringValid, data.gotStringValid)
 	is.True(data.gotTimeValid)
+}
+
+func TestRowUUIDs(t *testing.T) {
+	if testing.Short() {
+		return
+	}
+
+	is := is.New(t)
+	db, err := sql.Open("txdb", "RowUUIDs")
+	is.NoErr(err)
+	m := MEDIA()
+
+	// hardcoded in init.sql
+	wantUUID, err := uuid.Parse("dbc59321-22ee-4613-bb27-8b2ba5be3109")
+
+	is.NoErr(err)
+
+	type Data struct {
+		wantUUID [16]byte
+		gotUUID  [16]byte
+	}
+
+	data := Data{
+		wantUUID: [16]byte(wantUUID),
+	}
+
+	err = WithDefaultLog(Lverbose).
+		From(m).
+		Limit(1).
+		SelectRowx(func(r *Row) {
+			data.gotUUID = r.UUID(m.UUID)
+		}).
+		Fetch(db)
+
+	is.NoErr(err)
+	is.Equal(data.gotUUID, data.wantUUID)
 }

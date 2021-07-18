@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/lib/pq"
 )
 
@@ -351,4 +352,16 @@ func rowNullTime(r *Row, field Field) sql.NullTime {
 	nulltime := r.dest[r.index].(*sql.NullTime)
 	r.index++
 	return *nulltime
+}
+
+// UUID returns the [16]byte value of the UUIDField
+func (r *Row) UUID(field UUIDField) [16]byte {
+	if r.rows == nil {
+		r.fields = append(r.fields, field)
+		r.dest = append(r.dest, &uuid.UUID{})
+		return [16]byte{}
+	}
+	uuid := r.dest[r.index].(*uuid.UUID)
+	r.index++
+	return *uuid
 }

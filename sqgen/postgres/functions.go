@@ -3,8 +3,8 @@ package postgres
 
 import (
 	"bytes"
-	"errors"
 	"database/sql"
+	"errors"
 	"fmt"
 	"io"
 	"regexp"
@@ -202,7 +202,8 @@ func buildFunctionsQuery(schemas, exclude []string, supportsProkind bool) (strin
 	}
 
 	// sql custom ordering: https://stackoverflow.com/q/4088532
-	query += " ORDER BY n.nspname <> 'public', n.nspname, p.proname"
+	// orders also by result and arguments, so that overloads are returned in a consistent order
+	query += " ORDER BY n.nspname <> 'public', n.nspname, p.proname, 3, 4"
 
 	q := replacePlaceholders(query)
 
@@ -222,7 +223,7 @@ func buildFunctionsQuery(schemas, exclude []string, supportsProkind bool) (strin
 func queryPgVersion(db *sql.DB) (string, error) {
 	query := "SHOW server_version;"
 
-	rows, err := db.Query(query);
+	rows, err := db.Query(query)
 
 	if err != nil {
 		return "", err
@@ -239,7 +240,7 @@ func queryPgVersion(db *sql.DB) (string, error) {
 		}
 	}
 
-	if version == "" { 
+	if version == "" {
 		return "", errors.New("Could not detect postgres version.")
 	}
 

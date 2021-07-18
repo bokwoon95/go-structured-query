@@ -10,6 +10,7 @@ const (
 	FieldTypeEnum    = "sq.EnumField"
 	FieldTypeArray   = "sq.ArrayField"
 	FieldTypeBinary  = "sq.BinaryField"
+	FieldTypeUUID    = "sq.UUIDField"
 
 	FieldConstructorBoolean = "sq.NewBooleanField"
 	FieldConstructorJSON    = "sq.NewJSONField"
@@ -19,6 +20,7 @@ const (
 	FieldConstructorEnum    = "sq.NewEnumField"
 	FieldConstructorArray   = "sq.NewArrayField"
 	FieldConstructorBinary  = "sq.NewBinaryField"
+	FieldConstructorUUID    = "sq.NewUUIDField"
 )
 
 // Go Types
