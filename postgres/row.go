@@ -361,9 +361,7 @@ func (r *Row) UUID(field UUIDField) [16]byte {
 		r.dest = append(r.dest, &uuid.UUID{})
 		return [16]byte{}
 	}
-
 	uuid := r.dest[r.index].(*uuid.UUID)
-
 	r.index++
 	return *uuid
 }

@@ -2,6 +2,8 @@ package sq
 
 import (
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type colmode int
@@ -96,5 +98,6 @@ func (col *Column) SetTime(field TimeField, value time.Time) {
 
 // SetUUID maps the uuid.UUID value to the UUIDField.
 func (col *Column) SetUUID(field UUIDField, value [16]byte) {
-	col.Set(field, value[:])
+	var u uuid.UUID = value
+	col.Set(field, u)
 }

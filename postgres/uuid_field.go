@@ -2,6 +2,7 @@ package sq
 
 import (
 	"strings"
+	"github.com/google/uuid"
 )
 
 // UUIDField represents a UUID column or a literal UUID value.
@@ -10,8 +11,8 @@ type UUIDField struct {
 	// Examples of literal UUID values:
 	// | query | args |
 	// |-------|---------|
-	// | ?     | [16]byte(123e4567-e89b-12d3-a456-426614174000) |
-	value *[16]byte
+	// | ?     | uuid.UUID{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0} |
+	value *uuid.UUID
 
 	// 2) UUID column
 	alias      string
@@ -82,8 +83,9 @@ func NewUUIDField(name string, table Table) UUIDField {
 
 // UUID returns a new UUIDField representing a literal UUID value.
 func UUID(u [16]byte) UUIDField {
+	var value uuid.UUID = u
 	return UUIDField{
-		value: &u,
+		value: &value,
 	}
 }
 
@@ -99,9 +101,10 @@ func (f UUIDField) Set(value interface{}) FieldAssignment {
 // SetUUID returns a fieldAssignment associating the UUIDField to the [16]byte value
 // i.e. 'field = value'
 func (f UUIDField) SetUUID(u [16]byte) FieldAssignment {
+	var value uuid.UUID = u
 	return FieldAssignment{
 		Field: f,
-		Value: u,
+		Value: value,
 	}
 }
 
@@ -139,17 +142,19 @@ func (f UUIDField) Ne(field UUIDField) Predicate {
 
 // Eq returns an 'X = Y' Predicate. It only accepts [16]byte
 func (f UUIDField) EqUUID(u [16]byte) Predicate {
+	var value uuid.UUID = u
 	return CustomPredicate{
 		Format: "? = ?",
-		Values: []interface{}{f, u},
+		Values: []interface{}{f, value},
 	}
 }
 
 // Eq returns an 'X <> Y' Predicate. It only accepts [16]byte
 func (f UUIDField) NeUUID(u [16]byte) Predicate {
+	var value uuid.UUID = u
 	return CustomPredicate{
 		Format: "? <> ?",
-		Values: []interface{}{f, u},
+		Values: []interface{}{f, value},
 	}
 }
 
