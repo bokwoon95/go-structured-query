@@ -50,8 +50,11 @@ func appendSQLValue(buf *strings.Builder, args *[]interface{}, excludedTableQual
 		v.AppendSQL(buf, args, nil)
 		return
 	}
-	switch reflect.TypeOf(value).Kind() {
+	switch typ := reflect.TypeOf(value); typ.Kind() {
 	case reflect.Slice:
+		if typ.Elem().Kind() == reflect.Uint8 {
+			break
+		}
 		s := reflect.ValueOf(value)
 		if l := s.Len(); l == 0 {
 			buf.WriteString("NULL")
