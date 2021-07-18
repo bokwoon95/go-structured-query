@@ -4,6 +4,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/matryer/is"
 )
 
@@ -21,7 +22,7 @@ func TestUUIDField_AppendSQLExclude(t *testing.T) {
 			desc := "literal uuid"
 			f := UUID([16]byte{})
 			wantQuery := "?"
-			wantArgs := []interface{}{[16]byte{}}
+			wantArgs := []interface{}{uuid.UUID{}}
 			return TT{desc, f, nil, wantQuery, wantArgs}
 		}(),
 		func() TT {
@@ -144,7 +145,7 @@ func TestUUIDField_FieldAssignment(t *testing.T) {
 			f.SetUUID([16]byte{}),
 			nil,
 			"users.code = ?",
-			[]interface{}{[16]byte{}},
+			[]interface{}{uuid.UUID{}},
 		},
 	}
 
@@ -220,7 +221,7 @@ func TestUUIDField_Predicates(t *testing.T) {
 			})
 			p := f.EqUUID([16]byte{})
 			wantQuery := "users.code = ?"
-			wantArgs := []interface{}{[16]byte{}}
+			wantArgs := []interface{}{uuid.UUID{}}
 			return TT{desc, p, nil, wantQuery, wantArgs}
 		}(),
 		func() TT {
@@ -231,7 +232,7 @@ func TestUUIDField_Predicates(t *testing.T) {
 			})
 			p := f.NeUUID([16]byte{})
 			wantQuery := "users.code <> ?"
-			wantArgs := []interface{}{[16]byte{}}
+			wantArgs := []interface{}{uuid.UUID{}}
 			return TT{desc, p, nil, wantQuery, wantArgs}
 		}(),
 		func() TT {
