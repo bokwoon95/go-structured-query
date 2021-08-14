@@ -4,6 +4,7 @@ import (
 	"strings"
 )
 
+// Literal allows for the underlying string to be literally plugged into the SQL query
 type Literal string
 
 var _ SQLExcludeAppender = (*Literal)(nil)
