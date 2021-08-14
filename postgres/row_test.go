@@ -298,6 +298,19 @@ func TestRow_ScanJSON(t *testing.T) {
 
 	is.NoErr(err)
 	is.True(len(users) > 0)
+
+	var user User
+
+	err = WithDefaultLog(Lverbose).
+		SelectRowx(func(r *Row) {
+			r.ScanJSON(&user, field)
+		}).
+		From(ur).
+		Where(ur.USER_ID.EqInt(16)).
+		GroupBy(ur.USER_ID).
+		Fetch(db)
+
+	is.True(err != nil)
 }
 
 func TestRow_Assorted(t *testing.T) {
