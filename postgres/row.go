@@ -2,6 +2,7 @@ package sq
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"reflect"
 	"runtime"
@@ -131,6 +132,29 @@ func (r *Row) ScanArray(slice interface{}, field Field) {
 		panic(fmt.Errorf("row.ScanArray failed on %s:%d: %w", sourcefile, linenbr, err))
 	}
 	r.tmpdest[r.index] = &nothing
+	r.index++
+}
+
+// ScanJSON accepts a pointer to a type and scans a postgres json into it.
+// If the JSON cannot be unmarshaled into the dest, will panic
+func (r *Row) ScanJSON(dest interface{}, field Field) {
+	if r.rows == nil {
+		var b []byte
+		r.fields = append(r.fields, field)
+		r.dest = append(r.dest, &b)
+		return
+	}
+
+	bptr := r.dest[r.index].(*[]byte)
+	err := json.Unmarshal(*bptr, dest)
+
+	if err != nil {
+		// collect caller info because it is quite possible the unmarshalling
+        // may fail due to user error, and we want the user to know which line
+        // caused it
+		_, file, line, _ := runtime.Caller(1)
+		panic(fmt.Errorf("%s:%d unmarshaling json '%s' into %T: %w", file, line, string(*bptr), dest, err))
+	}
 	r.index++
 }
 

@@ -34,19 +34,16 @@ func expandValues(buf *strings.Builder, args *[]interface{}, excludedTableQualif
 // appendSQLValue will write the SQL representation of the interface{} value
 // into the buffer and args slice. It propagates excludedTableQualifiers where
 // relevant.
+
 func appendSQLValue(buf *strings.Builder, args *[]interface{}, excludedTableQualifiers []string, value interface{}) {
 	switch v := value.(type) {
 	case nil:
 		buf.WriteString("NULL")
 		return
-	case interface {
-		AppendSQLExclude(*strings.Builder, *[]interface{}, map[string]int, []string)
-	}:
+	case SQLExcludeAppender:
 		v.AppendSQLExclude(buf, args, nil, excludedTableQualifiers)
 		return
-	case interface {
-		AppendSQL(*strings.Builder, *[]interface{}, map[string]int)
-	}:
+	case SQLAppender:
 		v.AppendSQL(buf, args, nil)
 		return
 	}
@@ -59,10 +56,21 @@ func appendSQLValue(buf *strings.Builder, args *[]interface{}, excludedTableQual
 		if l := s.Len(); l == 0 {
 			buf.WriteString("NULL")
 		} else {
-			buf.WriteString("?")
-			buf.WriteString(strings.Repeat(", ?", l-1))
 			for i := 0; i < l; i++ {
-				*args = append(*args, s.Index(i).Interface())
+				if i != 0 {
+					buf.WriteString(", ")
+				}
+
+				item := s.Index(i).Interface()
+				switch v := item.(type) {
+				case SQLExcludeAppender:
+					v.AppendSQLExclude(buf, args, nil, excludedTableQualifiers)
+				case SQLAppender:
+					v.AppendSQL(buf, args, nil)
+				default:
+					buf.WriteString("?")
+					*args = append(*args, item)
+				}
 			}
 		}
 		return

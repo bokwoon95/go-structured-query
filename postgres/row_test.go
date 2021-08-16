@@ -265,6 +265,54 @@ func TestRow_ScanArray(t *testing.T) {
 	is.True(err != nil)
 }
 
+func TestRow_ScanJSON(t *testing.T) {
+	if testing.Short() {
+		return
+	}
+	is := is.New(t)
+	db, err := sql.Open("txdb", "Row_ScanJSON")
+	is.NoErr(err)
+
+	ur := USER_ROLES()
+
+	type User struct {
+		UserID int
+		Cohort string
+	}
+
+	var users []User
+
+	field := Fieldf("jsonb_agg(jsonb_build_object(?))", []interface{}{
+		Literal(`'UserID'`), ur.USER_ID,
+		Literal(`'Cohort'`), ur.COHORT,
+	})
+
+	err = WithDefaultLog(Lverbose).
+		SelectRowx(func(r *Row) {
+			r.ScanJSON(&users, field)
+		}).
+		From(ur).
+		Where(ur.USER_ID.EqInt(16)).
+		GroupBy(ur.USER_ID).
+		Fetch(db)
+
+	is.NoErr(err)
+	is.True(len(users) > 0)
+
+	var user User
+
+	err = WithDefaultLog(Lverbose).
+		SelectRowx(func(r *Row) {
+			r.ScanJSON(&user, field)
+		}).
+		From(ur).
+		Where(ur.USER_ID.EqInt(16)).
+		GroupBy(ur.USER_ID).
+		Fetch(db)
+
+	is.True(err != nil)
+}
+
 func TestRow_Assorted(t *testing.T) {
 	if testing.Short() {
 		return
