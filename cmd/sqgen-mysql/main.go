@@ -58,6 +58,8 @@ var (
 )
 
 func init() {
+	sqgenCmd.AddCommand(tablesCmd)
+
 	tablesDatabase = tablesCmd.Flags().String("database", "", "(required) Database URL")
 	tablesDirectory = tablesCmd.Flags().
 		String("directory", filepath.Join(currdir, "tables"), "(optional) Directory to place the generated file. Can be absolute or relative filepath")
