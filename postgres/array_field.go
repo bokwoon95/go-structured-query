@@ -165,17 +165,8 @@ func Array(slice interface{}) ArrayField {
 }
 
 // Set returns a FieldAssignment associating the ArrayField to the value i.e.
-// 'field = value'. It only accepts ArrayField.
-func (f ArrayField) Set(value ArrayField) FieldAssignment {
-	return FieldAssignment{
-		Field: f,
-		Value: value,
-	}
-}
-
-// SetTo returns a FieldAssignment associating the ArrayField to another
-// field i.e. 'field = EXCLUDED.field'.
-func (f ArrayField) SetTo(value Field) FieldAssignment {
+// 'field = value'.
+func (f ArrayField) Set(value interface{}) FieldAssignment {
 	return FieldAssignment{
 		Field: f,
 		Value: value,

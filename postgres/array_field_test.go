@@ -164,22 +164,43 @@ func TestArrayField_FieldAssignment(t *testing.T) {
 	f := NewArrayField("user_list", &TableInfo{Schema: "public", Name: "users"})
 	tests := []TT{
 		{
-			"set array value",
+			"set array value to []string",
 			f.Set(Array([]string{"tom", "dick", "harry"})),
 			nil,
 			"users.user_list = ARRAY[?, ?, ?]",
 			[]interface{}{"tom", "dick", "harry"},
 		},
 		{
+			"set array value to []bool",
+			f.Set(Array([]bool{true, false, false})),
+			nil,
+			"users.user_list = ARRAY[?, ?, ?]",
+			[]interface{}{true, false, false},
+		},
+		{
+			"set array value to []int64",
+			f.Set(Array([]int64{1, 2, 3})),
+			nil,
+			"users.user_list = ARRAY[?, ?, ?]",
+			[]interface{}{int64(1), int64(2), int64(3)},
+		},
+		{
+			"set array value to []float64",
+			f.Set(Array([]float64{1, 2, 3})),
+			nil,
+			"users.user_list = ARRAY[?, ?, ?]",
+			[]interface{}{1.0, 2.0, 3.0},
+		},
+		{
 			"set to another field",
-			f.SetTo(NewArrayField("user_list", &TableInfo{Schema: "public", Name: "users", Alias: "source"})),
+			f.Set(NewArrayField("user_list", &TableInfo{Schema: "public", Name: "users", Alias: "source"})),
 			nil,
 			"users.user_list = source.user_list",
 			nil,
 		},
 		{
 			"set to excluded field",
-			f.SetTo(Excluded(f)),
+			f.Set(Excluded(f)),
 			nil,
 			"users.user_list = EXCLUDED.user_list",
 			nil,
