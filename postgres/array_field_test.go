@@ -164,11 +164,25 @@ func TestArrayField_FieldAssignment(t *testing.T) {
 	f := NewArrayField("user_list", &TableInfo{Schema: "public", Name: "users"})
 	tests := []TT{
 		{
-			"set field",
+			"set array value",
 			f.Set(Array([]string{"tom", "dick", "harry"})),
 			nil,
 			"users.user_list = ARRAY[?, ?, ?]",
 			[]interface{}{"tom", "dick", "harry"},
+		},
+		{
+			"set to another field",
+			f.SetTo(NewArrayField("user_list", &TableInfo{Schema: "public", Name: "users", Alias: "source"})),
+			nil,
+			"users.user_list = source.user_list",
+			nil,
+		},
+		{
+			"set to excluded field",
+			f.SetTo(Excluded(f)),
+			nil,
+			"users.user_list = EXCLUDED.user_list",
+			nil,
 		},
 	}
 	for _, tt := range tests {

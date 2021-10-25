@@ -173,6 +173,15 @@ func (f ArrayField) Set(value ArrayField) FieldAssignment {
 	}
 }
 
+// SetTo returns a FieldAssignment associating the ArrayField to another
+// field i.e. 'field = EXCLUDED.field'.
+func (f ArrayField) SetTo(value Field) FieldAssignment {
+	return FieldAssignment{
+		Field: f,
+		Value: value,
+	}
+}
+
 // As returns a new ArrayField with the new field Alias i.e. 'field AS Alias'.
 func (f ArrayField) As(alias string) ArrayField {
 	f.alias = alias
