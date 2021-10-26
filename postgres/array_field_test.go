@@ -1,6 +1,8 @@
 package sq
 
 import (
+	"database/sql/driver"
+	"fmt"
 	"strings"
 	"testing"
 
@@ -153,6 +155,15 @@ func TestArrayField_AppendSQLExclude(t *testing.T) {
 	}
 }
 
+type array2D struct {
+	dim1, dim2 []string
+}
+
+// Value implements database/sql/driver:Valuer interface
+func (src array2D) Value() (driver.Value, error) {
+	return fmt.Sprintf("{{%v},{%v}}", strings.Join(src.dim1, ","), strings.Join(src.dim2, ",")), nil
+}
+
 func TestArrayField_FieldAssignment(t *testing.T) {
 	type TT struct {
 		description string
@@ -161,14 +172,71 @@ func TestArrayField_FieldAssignment(t *testing.T) {
 		wantQuery   string
 		wantArgs    []interface{}
 	}
+	customArray := array2D{[]string{"a", "b", "c"}, []string{"p", "q", "r"}}
 	f := NewArrayField("user_list", &TableInfo{Schema: "public", Name: "users"})
 	tests := []TT{
 		{
-			"set field",
+			"set array value to []string",
+			f.Set([]string{"tom", "dick", "harry"}),
+			nil,
+			"users.user_list = ARRAY[?, ?, ?]",
+			[]interface{}{"tom", "dick", "harry"},
+		},
+		{
+			"set array value to []bool",
+			f.Set([]bool{true, false, false}),
+			nil,
+			"users.user_list = ARRAY[?, ?, ?]",
+			[]interface{}{true, false, false},
+		},
+		{
+			"set array value to []int64",
+			f.Set([]int64{1, 2, 3}),
+			nil,
+			"users.user_list = ARRAY[?, ?, ?]",
+			[]interface{}{int64(1), int64(2), int64(3)},
+		},
+		{
+			"set array value to []float64",
+			f.Set([]float64{1, 2, 3}),
+			nil,
+			"users.user_list = ARRAY[?, ?, ?]",
+			[]interface{}{1.0, 2.0, 3.0},
+		},
+		{
+			"set array value to ArrayField",
 			f.Set(Array([]string{"tom", "dick", "harry"})),
 			nil,
 			"users.user_list = ARRAY[?, ?, ?]",
 			[]interface{}{"tom", "dick", "harry"},
+		},
+		{
+			"set to another field",
+			f.Set(NewArrayField("user_list", &TableInfo{Schema: "public", Name: "users", Alias: "source"})),
+			nil,
+			"users.user_list = source.user_list",
+			nil,
+		},
+		{
+			"set to excluded field",
+			f.Set(Excluded(f)),
+			nil,
+			"users.user_list = EXCLUDED.user_list",
+			nil,
+		},
+		{
+			"set to custom implementation",
+			f.Set(customArray),
+			nil,
+			"users.user_list = ?",
+			[]interface{}{customArray},
+		},
+		{
+			"set to invalid value",
+			f.Set("scaler"),
+			nil,
+			"users.user_list = (unsupported type \"scaler\": only []bool/[]float64/[]int64/[]string/[]int slices are supported.)",
+			nil,
 		},
 	}
 	for _, tt := range tests {

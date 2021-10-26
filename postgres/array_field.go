@@ -1,6 +1,7 @@
 package sq
 
 import (
+	"database/sql/driver"
 	"fmt"
 	"strings"
 )
@@ -165,8 +166,16 @@ func Array(slice interface{}) ArrayField {
 }
 
 // Set returns a FieldAssignment associating the ArrayField to the value i.e.
-// 'field = value'. It only accepts ArrayField.
-func (f ArrayField) Set(value ArrayField) FieldAssignment {
+// 'field = value'.
+func (f ArrayField) Set(value interface{}) FieldAssignment {
+	switch value.(type) {
+	case Field:
+		break
+	case driver.Valuer:
+		break
+	default:
+		value = Array(value)
+	}
 	return FieldAssignment{
 		Field: f,
 		Value: value,

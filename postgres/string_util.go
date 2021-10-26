@@ -46,10 +46,13 @@ func appendSQLValue(buf *strings.Builder, args *[]interface{}, excludedTableQual
 	case SQLAppender:
 		v.AppendSQL(buf, args, nil)
 		return
-	}
-	switch typ := reflect.TypeOf(value); typ.Kind() {
-	case reflect.Slice:
-		if typ.Elem().Kind() == reflect.Uint8 {
+	case driver.Valuer:
+		break
+	case []byte:
+		break
+	default:
+		typ := reflect.TypeOf(value)
+		if typ.Kind() != reflect.Slice {
 			break
 		}
 		s := reflect.ValueOf(value)
@@ -60,7 +63,6 @@ func appendSQLValue(buf *strings.Builder, args *[]interface{}, excludedTableQual
 				if i != 0 {
 					buf.WriteString(", ")
 				}
-
 				item := s.Index(i).Interface()
 				switch v := item.(type) {
 				case SQLExcludeAppender:
