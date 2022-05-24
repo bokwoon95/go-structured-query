@@ -49,7 +49,7 @@ func TestCustomPredicate_AppendSQLExclude(t *testing.T) {
 			"In",
 			In(u.USER_ID, []interface{}{22, 25}),
 			[]string{u.GetName()},
-			"user_id IN (?)",
+			"user_id IN (?, ?)",
 			[]interface{}{22, 25},
 		},
 		{
