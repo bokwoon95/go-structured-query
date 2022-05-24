@@ -46,6 +46,13 @@ func TestCustomPredicate_AppendSQLExclude(t *testing.T) {
 			[]interface{}{22},
 		},
 		{
+			"In",
+			In(u.USER_ID, []interface{}{22, 25}),
+			[]string{u.GetName()},
+			"user_id IN (?)",
+			[]interface{}{22, 25},
+		},
+		{
 			"Ne",
 			Ne(u.USER_ID, 22),
 			[]string{u.GetName()},
