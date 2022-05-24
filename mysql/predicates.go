@@ -179,6 +179,14 @@ func Eq(f1, f2 interface{}) Predicate {
 	}
 }
 
+// In returns an 'X IN (Y)' Predicate.
+func In(f1 interface{}, f2 []interface{}) Predicate {
+	return CustomPredicate{
+		Format: "? IN (?)",
+		Values: []interface{}{f1, f2},
+	}
+}
+
 // Ne returns an 'X <> Y' Predicate.
 func Ne(f1, f2 interface{}) Predicate {
 	return CustomPredicate{
