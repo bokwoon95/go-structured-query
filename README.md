@@ -5,7 +5,7 @@
 [![Coverage Status](https://coveralls.io/repos/github/bokwoon95/go-structured-query/badge.svg?branch=master)](https://coveralls.io/github/bokwoon95/go-structured-query?branch=master)
 <!-- [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://raw.githubusercontent.com/bokwoon95/go-structured-query/master/LICENSE) -->
 
-<h1>Hey! Development has stopped on this for a while. Please see [sq](https://github.com/bokwoon95/sq) for the spiritual successor to this library. I will still support this library, but new features will not be added (it will stay as-is).</h1>
+<h1>Hey! Development has stopped on this for a while. Please see [sq](https://github.com/bokwoon95/sq) for the spiritual successor to this library. I will still support this library, but new features will not be added. For a guide on how to migrate from go-structured-query to sq, see [https://bokwoon.neocities.org/sq#migrating-from-go-structured-query](https://bokwoon.neocities.org/sq#migrating-from-go-structured-query)</h1>
 
 <div align="center"><h1>sq (Structured Query)</h1></div>
 <div align="center"><h5>🎯🏆 sq is a code-generated, type safe query builder and struct mapper for Go. 🏆🎯</h5></div>
